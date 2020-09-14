@@ -1,0 +1,1 @@
+# dotnet-aad-query-sample
