@@ -17,7 +17,7 @@ namespace MsGraph_Samples.Services
         Task<IEnumerable<DirectoryObject>?> GetUsersAsync(string filter, string search, string select, string orderBy);
         Task<IEnumerable<DirectoryObject>?> GetTransitiveMemberOfAsGroupsAsync(string id);
         Task<IEnumerable<DirectoryObject>?> GetTransitiveMembersAsUsersAsync(string id);
-        Task<IEnumerable<DirectoryObject>?> GetOwnersAsUsersAsync(string id);
+        Task<IEnumerable<DirectoryObject>?> GetAppOwnersAsUsersAsync(string id);
         
         Task<long> GetUsersRawCountAsync(string filter, string search);
         Uri? LastCall { get; }
@@ -30,17 +30,17 @@ namespace MsGraph_Samples.Services
         // Required for Advanced Queries
         private readonly Option[] EventualConsistency = new[] { new HeaderOption("ConsistencyLevel", "eventual") };
 
+        /// <summary>
+        /// Used for to show the full URL in case of errors
+        /// </summary>
+        public Uri? LastCall { get; private set; } = null;
+
         private readonly IGraphServiceClient _graphClient;
 
         public GraphDataService(IGraphServiceClient graphClient)
         {
             _graphClient = graphClient;
         }
-
-        private static QueryOption GetOption(string name, string value) => new QueryOption($"${name}", $"{UrlEncoder.Default.Encode(value)}");
-        private static QueryOption GetSearchOption(string value) => new QueryOption("$search", $"\"{UrlEncoder.Default.Encode(value)}\"");
-
-        public Uri? LastCall { get; private set; } = null;
 
         private void AddAdvancedOptions(IBaseRequest request, string? filter = null, string? search = null, string? select = null, string? orderBy = null)
         {
@@ -59,12 +59,16 @@ namespace MsGraph_Samples.Services
                 request.QueryOptions.Add(GetSearchOption(search));
 
             LastCall = request.GetHttpRequestMessage().RequestUri;
+
+            static QueryOption GetOption(string name, string value) => new QueryOption($"${name}", $"{UrlEncoder.Default.Encode(value)}");
+            static QueryOption GetSearchOption(string value) => new QueryOption("$search", $"\"{UrlEncoder.Default.Encode(value)}\"");
         }
 
         public async Task<IEnumerable<DirectoryObject>?> GetDevicesAsync(string filter, string search, string select, string orderBy)
         {
             var request = _graphClient.Devices.Request(EventualConsistency);
             AddAdvancedOptions(request, filter, search, select, orderBy);
+
             return await request.GetAsync();
         }
 
@@ -72,6 +76,7 @@ namespace MsGraph_Samples.Services
         {
             var request = _graphClient.Users.Request(EventualConsistency);
             AddAdvancedOptions(request, filter, search, select, orderBy);
+
             return await request.GetAsync();
         }
 
@@ -79,6 +84,7 @@ namespace MsGraph_Samples.Services
         {
             var request = _graphClient.Groups.Request(EventualConsistency);
             AddAdvancedOptions(request, filter, search, select, orderBy);
+
             return await request.GetAsync();
         }
 
@@ -86,6 +92,7 @@ namespace MsGraph_Samples.Services
         {
             var request = _graphClient.Applications.Request(EventualConsistency);
             AddAdvancedOptions(request, filter, search, select, orderBy);
+
             return await request.GetAsync();
         }
 
@@ -94,7 +101,8 @@ namespace MsGraph_Samples.Services
             var requestUrl = _graphClient.Users[id].TransitiveMemberOf
                 .AppendSegmentToRequestUrl("microsoft.graph.group"); // OData Cast
             var request = new GraphServiceGroupsCollectionRequest(requestUrl, _graphClient, EventualConsistency);
-            request.QueryOptions.Add(OdataCount);
+            AddAdvancedOptions(request);
+
             return await request.GetAsync();
         }
 
@@ -108,7 +116,7 @@ namespace MsGraph_Samples.Services
             return await request.GetAsync();
         }
 
-        public async Task<IEnumerable<DirectoryObject>?> GetOwnersAsUsersAsync(string id)
+        public async Task<IEnumerable<DirectoryObject>?> GetAppOwnersAsUsersAsync(string id)
         {
             var requestUrl = _graphClient.Applications[id].Owners
                 .AppendSegmentToRequestUrl("microsoft.graph.user"); // OData Cast
@@ -126,6 +134,7 @@ namespace MsGraph_Samples.Services
 
             var requestMessage = request.GetHttpRequestMessage();
             var responseMessage = await _graphClient.HttpProvider.SendAsync(requestMessage);
+            
             var userCount = await responseMessage.Content.ReadAsStringAsync();
             return long.Parse(userCount);
         }

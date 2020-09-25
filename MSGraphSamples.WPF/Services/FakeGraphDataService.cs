@@ -24,7 +24,7 @@ namespace MsGraph_Samples.Services
             return Task.FromResult<IEnumerable<DirectoryObject>?>(null);
         }
 
-        public Task<IEnumerable<DirectoryObject>?> GetOwnersAsUsersAsync(string id)
+        public Task<IEnumerable<DirectoryObject>?> GetAppOwnersAsUsersAsync(string id)
         {
             return Task.FromResult<IEnumerable<DirectoryObject>?>(null);
         }

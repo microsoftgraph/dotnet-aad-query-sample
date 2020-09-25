@@ -125,7 +125,7 @@ namespace MsGraph_Samples.ViewModels
                 {
                     "Users" => await _graphDataService.GetTransitiveMemberOfAsGroupsAsync(SelectedObject.Id),
                     "Groups" => await _graphDataService.GetTransitiveMembersAsUsersAsync(SelectedObject.Id),
-                    "Applications" => await _graphDataService.GetOwnersAsUsersAsync(SelectedObject.Id),
+                    "Applications" => await _graphDataService.GetAppOwnersAsUsersAsync(SelectedObject.Id),
                     "Devices" => await _graphDataService.GetTransitiveMemberOfAsGroupsAsync(SelectedObject.Id),
                     _ => null
                 };
