@@ -33,9 +33,11 @@
     Height="800"
     DataContext="{Binding MainVM, Source={StaticResource Locator}}"
     WindowStartupLocation="CenterScreen"
-    mc:Ignorable="d">
+    mc:Ignorable="d" Icon="/Assets/MSGraph.png">
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
@@ -137,9 +139,32 @@
                 IsDefault="True" />
         </Grid>
 
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox
+                Margin="6,0"
+                IsReadOnly="True"
+                Background="{DynamicResource {x:Static SystemColors.InactiveCaptionBrushKey}}"
+                Text="{Binding LastUrl, Mode=OneWay}" />
+            <Button
+                Grid.Column="1"
+                Width="120"
+                Margin="6,0" Command="{Binding GraphExplorerCommand}"
+                Padding="6,0"
+                Content="Graph Explorer" />
+        </Grid>
+
+        <ProgressBar
+            Grid.Row="2"
+            Height="6"
+            Margin="6"
+            IsIndeterminate="{Binding IsBusy}" />
         <DataGrid
             Name="ResultsDataGrid"
-            Grid.Row="1"
+            Grid.Row="3"
             IsReadOnly="True"
             ItemsSource="{Binding DirectoryObjects}"
             SelectedItem="{Binding SelectedObject}"
@@ -156,9 +181,5 @@
                 </i:EventTrigger>
             </i:Interaction.Triggers>
         </DataGrid>
-        <ProgressBar
-            Grid.Row="1"
-            VerticalAlignment="Top"
-            IsIndeterminate="{Binding IsBusy}" />
     </Grid>
 </Window>

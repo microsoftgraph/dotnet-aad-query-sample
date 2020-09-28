@@ -12,5 +12,15 @@ namespace MsGraph_Samples
         {
             return items.Any(i => i.Trim().Equals(x, StringComparison.InvariantCultureIgnoreCase));
         }
+
+        public static int NthIndexOf(this string input, char value, int nth, int startIndex = 0)
+        {
+            if (nth < 1)
+                throw new ArgumentException("Input must be greater than 0", nameof(nth));
+            if (nth == 1)
+                return input.IndexOf(value, startIndex);
+
+            return input.NthIndexOf(value, --nth, input.IndexOf(value, startIndex) + 1);
+        }
     }
 }

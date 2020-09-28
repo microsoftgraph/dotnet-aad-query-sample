@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Graph;
@@ -21,6 +22,7 @@ namespace MsGraph_Samples.ViewModels
             get => _isBusy;
             set => Set(ref _isBusy, value);
         }
+
         public IReadOnlyList<string> Entities => new[] { "Users", "Groups", "Applications", "Devices" };
         private string _selectedEntity = "Users";
         public string SelectedEntity
@@ -35,8 +37,9 @@ namespace MsGraph_Samples.ViewModels
             get => _selectedObject;
             set => Set(ref _selectedObject, value);
         }
+        public string? LastUrl => _graphDataService.LastUrl;
 
-        private IEnumerable<DirectoryObject>? _directoryObjects; // = Enumerable.Empty<DirectoryObject>();
+        private IEnumerable<DirectoryObject>? _directoryObjects;
         public IEnumerable<DirectoryObject>? DirectoryObjects
         {
             get => _directoryObjects;
@@ -74,7 +77,6 @@ namespace MsGraph_Samples.ViewModels
         }
 
         public RelayCommand LoadCommand => new RelayCommand(LoadAction);
-
         private async void LoadAction()
         {
             IsBusy = true;
@@ -89,21 +91,22 @@ namespace MsGraph_Samples.ViewModels
                     "Devices" => await _graphDataService.GetDevicesAsync(Filter, Search, Select, OrderBy),
                     _ => throw new NotImplementedException("Can't find selected entity"),
                 };
+
             }
             catch (ServiceException ex)
             {
-                var url = _graphDataService.LastCall;
-                MessageBox.Show($"URL: {url}\n{ex.Message}", ex.Error.Message);
-                Clipboard.SetText(url?.AbsoluteUri);
+                MessageBox.Show(ex.Message, ex.Error.Message);
             }
 
+            RaisePropertyChanged(nameof(LastUrl));
             IsBusy = false;
         }
 
         public RelayCommand<DataGridAutoGeneratingColumnEventArgs> AutoGeneratingColumn =>
             new RelayCommand<DataGridAutoGeneratingColumnEventArgs>((e) => e.Cancel = !e.PropertyName.In(Select.Split(',')));
 
-        public RelayCommand<DataGridSortingEventArgs> SortCommand => new RelayCommand<DataGridSortingEventArgs>(SortAction);
+        private RelayCommand<DataGridSortingEventArgs>? _sortCommand;
+        public RelayCommand<DataGridSortingEventArgs> SortCommand => _sortCommand ??= new RelayCommand<DataGridSortingEventArgs>(SortAction);
         private void SortAction(DataGridSortingEventArgs e)
         {
             OrderBy = $"{e.Column.Header}";
@@ -111,11 +114,14 @@ namespace MsGraph_Samples.ViewModels
             LoadAction();
         }
 
-        public RelayCommand DrillDownCommand => new RelayCommand(DrillDownCommandAction);
+        private RelayCommand? _drillDownCommand;
+        public RelayCommand DrillDownCommand => _drillDownCommand ??= new RelayCommand(DrillDownCommandAction);
         private async void DrillDownCommandAction()
         {
             if (SelectedObject == null)
                 return;
+
+            IsBusy = true;
 
             Filter = string.Empty;
 
@@ -129,13 +135,33 @@ namespace MsGraph_Samples.ViewModels
                     "Devices" => await _graphDataService.GetTransitiveMemberOfAsGroupsAsync(SelectedObject.Id),
                     _ => null
                 };
+
             }
             catch (ServiceException ex)
             {
-                var url = _graphDataService.LastCall;
-                MessageBox.Show($"URL: {url}\n{ex.Message}", ex.Error.Message);
-                Clipboard.SetText(url?.AbsoluteUri);
+                MessageBox.Show(ex.Message, ex.Error.Message);
             }
+
+            RaisePropertyChanged(nameof(LastUrl));
+            IsBusy = false;
+        }
+
+        private RelayCommand? _graphExplorerCommand;
+        public RelayCommand GraphExplorerCommand => _graphExplorerCommand ??= new RelayCommand(GraphExplorerAction);
+        private void GraphExplorerAction()
+        {
+            if (LastUrl == null)
+                return;
+
+            var geBaseUrl = "https://developer.microsoft.com/en-us/graph/graph-explorer"; 
+            var version = "v1.0";
+            var graphUrl = "https://graph.microsoft.com";
+            var encodedUrl = WebUtility.UrlEncode(LastUrl.Substring(LastUrl.NthIndexOf('/', 4)));
+            var encodedHeaders = "W3sibmFtZSI6IkNvbnNpc3RlbmN5TGV2ZWwiLCJ2YWx1ZSI6ImV2ZW50dWFsIn1d";            
+            var url = $"{geBaseUrl}?request={encodedUrl}&method=GET&version={version}&GraphUrl={graphUrl}&headers={encodedHeaders}";
+
+            var psi = new System.Diagnostics.ProcessStartInfo { FileName = url, UseShellExecute = true };
+            System.Diagnostics.Process.Start(psi);
         }
     }
 }

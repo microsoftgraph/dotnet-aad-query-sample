@@ -31,7 +31,7 @@ namespace MsGraph_Samples.Helpers
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public void OnPropertyChanged([CallerMemberName]string? propertyName = null) =>
+        public void RaisePropertyChanged([CallerMemberName]string? propertyName = null) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         protected bool Set<T>(ref T storage, T value, [CallerMemberName]string? propertyName = null)
@@ -42,7 +42,7 @@ namespace MsGraph_Samples.Helpers
             }
 
             storage = value;
-            OnPropertyChanged(propertyName);
+            RaisePropertyChanged(propertyName);
             return true;
         }
     }

@@ -7,7 +7,7 @@ namespace MsGraph_Samples.Services
 {
     public class FakeGraphDataService : IGraphDataService
     {
-        public Uri? LastCall => throw new NotImplementedException();
+        public string? LastUrl => "https://graph.microsoft.com/beta/users?$count=true";
 
         public Task<IEnumerable<DirectoryObject>?> GetApplicationsAsync(string filter, string search, string select, string orderBy)
         {
