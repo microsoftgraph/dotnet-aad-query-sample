@@ -15,7 +15,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{85C2D888-4
 	ProjectSection(SolutionItems) = preProject
 		docs\api_permissions.png = docs\api_permissions.png
 		docs\app1.png = docs\app1.png
-		docs\platform_config.png = docs\platform_config.png
 		docs\register_app.png = docs\register_app.png
 	EndProjectSection
 EndProject
