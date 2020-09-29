@@ -87,7 +87,7 @@
                 Margin="6,0"
                 VerticalAlignment="Bottom">
                 <TextBlock FontWeight="Bold" Text="Filter" />
-                <TextBox Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}" ToolTipService.ShowDuration="10000">
+                <TextBox Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" ToolTipService.ShowDuration="10000">
                     <TextBox.ToolTip>
                         <TextBlock>
                             <Run FontWeight="Bold">$filter</Run><LineBreak />
@@ -106,7 +106,7 @@
                 Grid.Column="1"
                 Margin="6">
                 <TextBlock FontWeight="Bold" Text="Search" />
-                <TextBox Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}" ToolTipService.ShowDuration="10000">
+                <TextBox Text="{Binding Search, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" ToolTipService.ShowDuration="10000">
                     <TextBox.ToolTip>
                         <TextBlock>
                             <Run FontWeight="Bold">$search</Run><LineBreak />
@@ -187,15 +187,18 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                     </Grid>
                 </ItemsPanelTemplate>
             </StatusBar.ItemsPanel>
-            <TextBlock Margin="6,0" Text="{Binding UserName, StringFormat=Hello {0}, TargetNullValue='Logging in...'}" />
-            <Separator Grid.Column="1" />
+            <StatusBarItem Margin="6,0">
+                <TextBlock Text="{Binding UserName, StringFormat=Hello {0}, TargetNullValue='Logging in...'}" />
+            </StatusBarItem>
+            <Separator Grid.Column="1" Margin="0,0,6,0" />
             <StatusBarItem Grid.Column="2">
                 <Button
-                    Margin="6,0"
+                    Margin="0,0,6,0"
                     Padding="6,0"
                     Command="{Binding LogoutCommand}"
                     Content="Logout" />
@@ -205,6 +208,9 @@
                     Height="12"
                     Margin="0,0,6,0"
                     IsIndeterminate="{Binding IsBusy}" />
+            </StatusBarItem>
+            <StatusBarItem Grid.Column="4" Margin="0,0,6,0">
+                <TextBlock Text="{Binding ElapsedMs, StringFormat={}{0} ms}" />
             </StatusBarItem>
         </StatusBar>
     </Grid>

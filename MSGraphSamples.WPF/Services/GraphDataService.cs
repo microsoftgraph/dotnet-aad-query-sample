@@ -38,7 +38,7 @@ namespace MsGraph_Samples.Services
             _graphClient = graphClient;
         }
 
-        private void AddAdvancedOptions(IBaseRequest request, string? filter = null, string? search = null, string? select = null, string? orderBy = null)
+        private void AddAdvancedOptions(IBaseRequest request, string filter = "", string search = "", string select = "", string orderBy = "")
         {
             request.QueryOptions.Add(OdataCount);
             request.Headers.Add(EventualConsistency);
