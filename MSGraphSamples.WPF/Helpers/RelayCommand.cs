@@ -41,6 +41,11 @@ namespace MsGraph_Samples.Helpers
                 CommandManager.RequerySuggested -= value;
             }
         }
+
+        public void RaiseCanExecuteChanged()
+        {
+            CommandManager.InvalidateRequerySuggested();
+        }
     }
 
     public class RelayCommand<T> : ICommand
@@ -77,6 +82,10 @@ namespace MsGraph_Samples.Helpers
             {
                 CommandManager.RequerySuggested -= value;
             }
+        }
+        public void RaiseCanExecuteChanged()
+        {
+            CommandManager.InvalidateRequerySuggested();
         }
     }
 }

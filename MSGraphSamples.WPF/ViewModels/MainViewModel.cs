@@ -12,9 +12,10 @@ using MsGraph_Samples.Services;
 
 namespace MsGraph_Samples.ViewModels
 {
-    public class MainViewModel : Observable
+    public class MainViewModel : ViewModelBase
     {
-        private readonly IGraphDataService _graphDataService;
+        private readonly IAuthService _authService;
+        private IGraphDataService _graphDataService;
 
         private bool _isBusy;
         public bool IsBusy
@@ -22,6 +23,8 @@ namespace MsGraph_Samples.ViewModels
             get => _isBusy;
             set => Set(ref _isBusy, value);
         }
+
+        public string? UserName => _authService.Account?.Username;
 
         public IReadOnlyList<string> Entities => new[] { "Users", "Groups", "Applications", "Devices" };
         private string _selectedEntity = "Users";
@@ -70,9 +73,22 @@ namespace MsGraph_Samples.ViewModels
             set => Set(ref _orderBy, value);
         }
 
-        public MainViewModel(IGraphDataService dataService)
+        public MainViewModel(IAuthService authService)
         {
-            _graphDataService = dataService;
+            _authService = authService;
+            _authService.AuthenticationSuccessful += () =>
+            {
+                RaisePropertyChanged(nameof(UserName));
+                LogoutCommand.RaiseCanExecuteChanged();
+            };
+
+            if (IsInDesignMode)
+            {
+                _graphDataService = new FakeGraphDataService();
+                return;
+            }
+
+            _graphDataService = new GraphDataService(_authService.GetServiceClient());
             LoadAction();
         }
 
@@ -153,15 +169,23 @@ namespace MsGraph_Samples.ViewModels
             if (LastUrl == null)
                 return;
 
-            var geBaseUrl = "https://developer.microsoft.com/en-us/graph/graph-explorer"; 
+            var geBaseUrl = "https://developer.microsoft.com/en-us/graph/graph-explorer";
             var version = "v1.0";
             var graphUrl = "https://graph.microsoft.com";
-            var encodedUrl = WebUtility.UrlEncode(LastUrl.Substring(LastUrl.NthIndexOf('/', 4)));
-            var encodedHeaders = "W3sibmFtZSI6IkNvbnNpc3RlbmN5TGV2ZWwiLCJ2YWx1ZSI6ImV2ZW50dWFsIn1d";            
+            var encodedUrl = WebUtility.UrlEncode(LastUrl.Substring(LastUrl.NthIndexOf('/', 4) + 1));
+            var encodedHeaders = "W3sibmFtZSI6IkNvbnNpc3RlbmN5TGV2ZWwiLCJ2YWx1ZSI6ImV2ZW50dWFsIn1d";
             var url = $"{geBaseUrl}?request={encodedUrl}&method=GET&version={version}&GraphUrl={graphUrl}&headers={encodedHeaders}";
 
             var psi = new System.Diagnostics.ProcessStartInfo { FileName = url, UseShellExecute = true };
             System.Diagnostics.Process.Start(psi);
+        }
+
+        private RelayCommand? _logoutCommand;
+        public RelayCommand LogoutCommand => _logoutCommand ??= new RelayCommand(LogoutAction, () => UserName != null);
+        private void LogoutAction()
+        {
+            _authService.Logout();
+            App.Current.Shutdown();
         }
     }
 }

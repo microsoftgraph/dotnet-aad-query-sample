@@ -41,7 +41,7 @@ This application use the [.NET Core Secret Manager](https://docs.microsoft.com/e
 To add the ClientId created on step 1:
 
 1. Open the Developer Command Prompt under `dotnet-aad-query-sample\MSGraphSamples.WPF\` directory
-2. type `dotnet user-secrets set "clientId" "<YOUR ID>"`
+2. type `dotnet user-secrets set "clientId" "<YOUR CLIENT ID>"`
 
 ### Build & Run
 
@@ -50,8 +50,9 @@ The auth token will be cached for the subsequent runs.
 
 ### Using the app
 
-You can query your tenant using the standard MSGraph `$filter`, `$search`, `$orderBy`, `$select` clauses.
+You can query your tenant using the standard OData `$filter`, `$search`, `$orderBy`, `$select` clauses.
 ![Screenshot of the App](docs/app1.png)
-If you double click on a row, a default drill-down will happen (for example by showing the list of transitive groups a user is part of).
-If you click on a header, the results will be sorted by that column. **Note: not all columns are supported**.
-If any Query error happen, it will displayed with a MessageBox. You can see the generated URL in the Url textbox. You can Click the graph Explorer button to open the current query in Graph Explorer.
+If you double click on a row, a default drill-down will happen (for example by showing the list of transitive groups a user is part of).  
+If you click on a header, the results will be sorted by that column. **Note: not all columns are supported**.  
+If any query error happen, it will displayed with a MessageBox.  
+The generated URL will appear in the readonly Url textbox. You can Click the graph Explorer button to open the current query in Graph Explorer.

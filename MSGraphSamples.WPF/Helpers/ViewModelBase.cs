@@ -24,12 +24,14 @@
 
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows;
 
 namespace MsGraph_Samples.Helpers
 {
-    public class Observable : INotifyPropertyChanged
+    public class ViewModelBase : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
+        public bool IsInDesignMode => Application.Current.MainWindow == null;
 
         public void RaisePropertyChanged([CallerMemberName]string? propertyName = null) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

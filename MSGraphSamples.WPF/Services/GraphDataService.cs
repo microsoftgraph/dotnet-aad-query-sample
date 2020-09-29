@@ -25,12 +25,10 @@ namespace MsGraph_Samples.Services
     {
         // Required for Advanced Queries
         private readonly QueryOption OdataCount = new QueryOption("$count", "true");
+
         // Required for Advanced Queries
         private readonly HeaderOption EventualConsistency = new HeaderOption("ConsistencyLevel", "eventual");
 
-        /// <summary>
-        /// Used for to show the full URL in case of errors
-        /// </summary>
         public string? LastUrl { get; private set; } = null;
 
         private readonly IGraphServiceClient _graphClient;
@@ -134,10 +132,9 @@ namespace MsGraph_Samples.Services
             var request = new BaseRequest(requestUrl, _graphClient);
             AddAdvancedOptions(request, filter, search);
 
-            var requestMessage = request.GetHttpRequestMessage();
-            var responseMessage = await _graphClient.HttpProvider.SendAsync(requestMessage);
+            var response = await _graphClient.HttpProvider.SendAsync(request.GetHttpRequestMessage());
+            var userCount = await response.Content.ReadAsStringAsync();
 
-            var userCount = await responseMessage.Content.ReadAsStringAsync();
             return long.Parse(userCount);
         }
     }

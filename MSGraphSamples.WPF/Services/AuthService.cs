@@ -16,7 +16,9 @@ namespace MsGraph_Samples.Services
     public interface IAuthService : IAuthenticationProvider
     {
         GraphServiceClient GetServiceClient();
+        IAccount? Account { get; }
         void Logout();
+        event Action? AuthenticationSuccessful;
     }
 
     public class AuthService : IAuthService
@@ -38,6 +40,8 @@ namespace MsGraph_Samples.Services
 
         private readonly IPublicClientApplication _publicClientApp;
         private GraphServiceClient? _graphClient;
+        public IAccount? Account { get; private set; }
+        public event Action? AuthenticationSuccessful;
 
         public AuthService(string clientId)
         {
@@ -45,7 +49,6 @@ namespace MsGraph_Samples.Services
                 .WithAuthority(CloudInstance, Tenant)
                 .WithDefaultRedirectUri() // MAKE SURE YOU SET http://localhost AS REDIRECT URI IN THE AZURE PORTAL
                 .Build();
-
             TokenCacheHelper.EnableSerialization(_publicClientApp.UserTokenCache);
         }
 
@@ -59,19 +62,22 @@ namespace MsGraph_Samples.Services
         {
             var accessToken = await AcquireTokenAsync();
             requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            if (accessToken != null)
+                AuthenticationSuccessful?.Invoke();
         }
 
         private async Task<string?> AcquireTokenAsync()
         {
-            var accounts = await _publicClientApp.GetAccountsAsync().ConfigureAwait(false);
-            var firstAccount = accounts.FirstOrDefault();
-
+            var accounts = await _publicClientApp
+                .GetAccountsAsync().ConfigureAwait(false);
+            Account = accounts.FirstOrDefault();
+            
             AuthenticationResult authResult;
             try
             {
                 authResult = await _publicClientApp
-                    .AcquireTokenSilent(_scopes, firstAccount)
-                    .ExecuteAsync();
+                    .AcquireTokenSilent(_scopes, Account)
+                    .ExecuteAsync().ConfigureAwait(false);
             }
             catch (MsalUiRequiredException ex)
             {
@@ -82,8 +88,11 @@ namespace MsGraph_Samples.Services
                 {
                     authResult = await _publicClientApp
                         .AcquireTokenInteractive(_scopes)
-                        .ExecuteAsync()
-                        .ConfigureAwait(false);
+                        .ExecuteAsync().ConfigureAwait(false);
+
+                    accounts = await _publicClientApp
+                        .GetAccountsAsync().ConfigureAwait(false);
+                    Account = accounts.FirstOrDefault();
                 }
                 catch (MsalException msalex)
                 {
@@ -102,8 +111,9 @@ namespace MsGraph_Samples.Services
 
         public async void Logout()
         {
-            var accounts = await _publicClientApp.GetAccountsAsync().ConfigureAwait(false);
-            await _publicClientApp.RemoveAsync(accounts.FirstOrDefault()).ConfigureAwait(false);
+            await _publicClientApp.RemoveAsync(Account).ConfigureAwait(false);
+            _graphClient = null;
+            TokenCacheHelper.Clear();
         }
     }
 }

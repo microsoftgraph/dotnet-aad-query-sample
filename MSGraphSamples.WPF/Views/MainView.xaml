@@ -32,14 +32,15 @@
     Width="1100"
     Height="800"
     DataContext="{Binding MainVM, Source={StaticResource Locator}}"
+    Icon="/Assets/MSGraph.png"
     WindowStartupLocation="CenterScreen"
-    mc:Ignorable="d" Icon="/Assets/MSGraph.png">
+    mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid>
             <Grid.RowDefinitions>
@@ -145,26 +146,22 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <TextBox
-                Margin="6,0"
+                Margin="6"
+                Background="{DynamicResource {x:Static SystemColors.MenuBrushKey}}"
                 IsReadOnly="True"
-                Background="{DynamicResource {x:Static SystemColors.InactiveCaptionBrushKey}}"
                 Text="{Binding LastUrl, Mode=OneWay}" />
             <Button
                 Grid.Column="1"
                 Width="120"
-                Margin="6,0" Command="{Binding GraphExplorerCommand}"
+                Margin="6"
                 Padding="6,0"
+                Command="{Binding GraphExplorerCommand}"
                 Content="Graph Explorer" />
         </Grid>
 
-        <ProgressBar
-            Grid.Row="2"
-            Height="6"
-            Margin="6"
-            IsIndeterminate="{Binding IsBusy}" />
         <DataGrid
             Name="ResultsDataGrid"
-            Grid.Row="3"
+            Grid.Row="2"
             IsReadOnly="True"
             ItemsSource="{Binding DirectoryObjects}"
             SelectedItem="{Binding SelectedObject}"
@@ -181,5 +178,30 @@
                 </i:EventTrigger>
             </i:Interaction.Triggers>
         </DataGrid>
+        <StatusBar Grid.Row="3">
+            <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                    </Grid>
+                </ItemsPanelTemplate>
+            </StatusBar.ItemsPanel>
+            <TextBlock Text="{Binding UserName, StringFormat=Hello {0}, TargetNullValue='Logging in...'}" />
+            <Separator Grid.Column="1" />
+            <StatusBarItem Grid.Column="2">
+                <Button
+                    Padding="6,0"
+                    Command="{Binding LogoutCommand}"
+                    Content="Logout" />
+            </StatusBarItem>
+            <StatusBarItem Grid.Column="3" HorizontalContentAlignment="Stretch">
+                <ProgressBar Height="12" IsIndeterminate="{Binding IsBusy}" />
+            </StatusBarItem>
+        </StatusBar>
     </Grid>
 </Window>

@@ -45,6 +45,14 @@ namespace MsGraph_Samples.Helpers
             }
         }
 
+        public static void Clear()
+        {
+            lock (FileLock)
+            {
+                File.Delete(CacheFilePath);
+            }
+        }
+
         internal static void EnableSerialization(ITokenCache tokenCache)
         {
             tokenCache.SetBeforeAccess(BeforeAccessNotification);
