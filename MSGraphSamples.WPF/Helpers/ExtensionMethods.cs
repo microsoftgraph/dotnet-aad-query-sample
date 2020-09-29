@@ -8,9 +8,9 @@ namespace MsGraph_Samples
 {
     public static class ExtensionMethods
     {
-        public static bool In(this string x, params string[] items)
+        public static bool In(this string s, params string[] items)
         {
-            return items.Any(i => i.Trim().Equals(x, StringComparison.InvariantCultureIgnoreCase));
+            return items.Any(i => i.Trim().Equals(s, StringComparison.InvariantCultureIgnoreCase));
         }
 
         public static int NthIndexOf(this string input, char value, int nth, int startIndex = 0)

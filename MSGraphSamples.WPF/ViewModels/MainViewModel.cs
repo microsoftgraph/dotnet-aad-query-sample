@@ -119,7 +119,15 @@ namespace MsGraph_Samples.ViewModels
         }
 
         public RelayCommand<DataGridAutoGeneratingColumnEventArgs> AutoGeneratingColumn =>
-            new RelayCommand<DataGridAutoGeneratingColumnEventArgs>((e) => e.Cancel = !e.PropertyName.In(Select.Split(',')));
+            new RelayCommand<DataGridAutoGeneratingColumnEventArgs>(AutoGeneratingColumnAction);
+        private void AutoGeneratingColumnAction(DataGridAutoGeneratingColumnEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(Select))
+            {
+                e.Cancel = !e.PropertyName.In(Select.Split(','));
+                e.Column.Width = new DataGridLength(1, DataGridLengthUnitType.Star);
+            }
+        }
 
         private RelayCommand<DataGridSortingEventArgs>? _sortCommand;
         public RelayCommand<DataGridSortingEventArgs> SortCommand => _sortCommand ??= new RelayCommand<DataGridSortingEventArgs>(SortAction);
@@ -131,8 +139,8 @@ namespace MsGraph_Samples.ViewModels
         }
 
         private RelayCommand? _drillDownCommand;
-        public RelayCommand DrillDownCommand => _drillDownCommand ??= new RelayCommand(DrillDownCommandAction);
-        private async void DrillDownCommandAction()
+        public RelayCommand DrillDownCommand => _drillDownCommand ??= new RelayCommand(DrillDownAction);
+        private async void DrillDownAction()
         {
             if (SelectedObject == null)
                 return;
@@ -151,7 +159,6 @@ namespace MsGraph_Samples.ViewModels
                     "Devices" => await _graphDataService.GetTransitiveMemberOfAsGroupsAsync(SelectedObject.Id),
                     _ => null
                 };
-
             }
             catch (ServiceException ex)
             {
