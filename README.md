@@ -1,7 +1,7 @@
 ---
 uid: dotnet-aad-query-sample
 title: Microsoft Graph Directory Objects Advanced Queries with .NET SDK
-description: Learn how to use .NET Core Graph SDK to query Directory Objects with a simple app that mimick Graph Explorer
+description: Learn how to use .NET Graph SDK to query Directory Objects
 page_type: sample
 createdDate: 09/22/2020 00:00:00 AM
 languages:
