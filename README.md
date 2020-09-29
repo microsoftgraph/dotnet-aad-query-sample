@@ -26,7 +26,7 @@ This is a sample .NET Core application using the [Microsoft Graph SDK](https://g
 
 ## Getting Started
 
-### 1\. Register your application
+### Register your application
 
 1. Register your application to use Microsoft Graph API using the [Microsoft Application Registration Portal](https://aka.ms/appregistrations).
 ![Application Registration](docs/register_app.png)
@@ -35,7 +35,7 @@ This is a sample .NET Core application using the [Microsoft Graph SDK](https://g
 3. Set the permissions for `User.Read.All` and `Directory.Read.All`.
 ![Api Permissions](docs/api_permissions.png)
 
-### 2\. Configure the App Secret using the Secret Manager
+### Configure the App Secret using the Secret Manager
 
 This application use the [.NET Core Secret Manager](https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-3.1&tabs=windows) to store the ClientId.
 To add the ClientId created on step 1:
@@ -43,12 +43,12 @@ To add the ClientId created on step 1:
 1. Open the Developer Command Prompt under `dotnet-aad-query-sample\MSGraphSamples.WPF\` directory
 2. type `dotnet user-secrets set "clientId" "<YOUR ID>"`
 
-### 3\. Build & Run
+### Build & Run
 
 If everything was configured correctly, you should be able to run the application, and see the first login prompt.
 The auth token will be cached for the subsequent runs.
 
-#### 4\. Using the app
+### Using the app
 
 You can query your tenant using the standard MSGraph `$filter`, `$search`, `$orderBy`, `$select` clauses.
 ![Screenshot of the App](docs/app1.png)
