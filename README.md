@@ -28,20 +28,20 @@ This is a sample .NET Core application using the [Microsoft Graph SDK](https://g
 
 ### 1\. Register your application
 
-Register your application to use Microsoft Graph API using the [Microsoft Application Registration Portal](https://aka.ms/appregistrations).
-![Application Registration](docs/register app.png)
-Set the right authentication for .NET Core apps (adding `http://localhost` redirect URI).
-![Platform Configuration](docs/platform config.png)
-Set the permissions for `User.Read.All` and `Directory.Read.All`.
-![Api Permissions](docs/api permissions.png)
+1. Register your application to use Microsoft Graph API using the [Microsoft Application Registration Portal](https://aka.ms/appregistrations).
+![Application Registration](docs/register_app.png)
+2. Set the right authentication for .NET Core apps (adding `http://localhost` redirect URI).
+![Platform Configuration](docs/platform_config.png)
+3. Set the permissions for `User.Read.All` and `Directory.Read.All`.
+![Api Permissions](docs/api_permissions.png)
 
 ### 2\. Configure the App Secret using the Secret Manager
 
 This application use the [.NET Core Secret Manager](https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-3.1&tabs=windows) to store the ClientId.
 To add the ClientId created on step 1:
 
-1. Open the Developer Command Prompt under `dotnet-aad-query-sample\MSGraphSamples.WPF\` directory
-2. type `dotnet user-secrets set "clientId" "<YOUR ID>"`
+1. Open the Developer Command Prompt under `dotnet-aad-query-sample\MSGraphSamples.WPF\` directory
+2. type `dotnet user-secrets set "clientId" "<YOUR ID>"`
 
 ### 3\. Build & Run
 
