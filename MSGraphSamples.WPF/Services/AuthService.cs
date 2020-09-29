@@ -34,15 +34,13 @@ namespace MsGraph_Samples.Services
         private const AzureCloudInstance CloudInstance = AzureCloudInstance.AzurePublic;
 
         // Make sure the user you login with has "Directory.Read.All" and "User.Read.All"
-        private readonly string[] _scopes;
+        private readonly string[] _scopes = { "Directory.Read.All", "User.Read.All" };
 
         private readonly IPublicClientApplication _publicClientApp;
         private GraphServiceClient? _graphClient;
 
-        public AuthService(string clientId, string[] scopes)
+        public AuthService(string clientId)
         {
-            _scopes = scopes;
-            
             _publicClientApp = PublicClientApplicationBuilder.Create(clientId)
                 .WithAuthority(CloudInstance, Tenant)
                 .WithDefaultRedirectUri() // MAKE SURE YOU SET http://localhost AS REDIRECT URI IN THE AZURE PORTAL

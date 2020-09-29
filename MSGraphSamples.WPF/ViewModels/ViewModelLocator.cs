@@ -20,31 +20,20 @@ namespace MsGraph_Samples.ViewModels
                 return;
             }
 
-            (var clientId, var scopes) = GetConfig();
-            var authService = new AuthService(clientId, scopes);
-            var serviceClient = authService.GetServiceClient();
-            _graphDataService = new GraphDataService(serviceClient);
-        }
-
-        private static (string clientId, string[] scopes) GetConfig()
-        {
             var appConfig = new ConfigurationBuilder()
-                .AddUserSecrets<App>()
-                .Build();
+                .AddUserSecrets<App>().Build();
 
             // This should contain your Client Id
             var clientId = appConfig["clientId"];
-
-            // This should contain "Directory.Read.All;User.Read.All"
-            var scopes = appConfig["scopes"];
-
-            if (clientId == null || scopes == null)
+            if (clientId == null)
             {
                 var helpUrl = "https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-3.1&tabs=windows";
                 throw new FileNotFoundException($"Missing or invalid secrets.json\nMake sure you created one: {helpUrl}");
             }
 
-            return (clientId, scopes.Split(';'));
+            var authService = new AuthService(clientId);
+            var serviceClient = authService.GetServiceClient();
+            _graphDataService = new GraphDataService(serviceClient);
         }
 
         private bool IsInDesignMode => Application.Current.MainWindow == null;
