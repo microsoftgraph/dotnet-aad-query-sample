@@ -26,7 +26,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
 
-namespace MsGraph_Samples.Helpers
+namespace MsGraph_Samples.MVVM
 {
     public class ViewModelBase : INotifyPropertyChanged
     {

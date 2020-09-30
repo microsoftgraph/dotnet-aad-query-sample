@@ -22,7 +22,8 @@ zipUrl: https://github.com/microsoftgraph/dotnet-aad-query-sample/archive/master
 
 # Advanced Query Capabilities for Directory Objects with .NET SDK
 
-This is a sample .NET Core application using the [Microsoft Graph SDK](https://github.com/microsoftgraph/msgraph-sdk-dotnet) to query AAD.
+This sample helps you explore the  Microsoft Graph's [new query capabilities](https://aka.ms/BlogPostMezzoGA) of the Identity APIs using the [Microsoft Graph SDK](https://github.com/microsoftgraph/msgraph-sdk-dotnet) to query AAD.  
+The main code is in [GraphDataService.cs](MSGraphSamples.WPF/Services/GraphDataService.cs) file, where every request pass trough `AddAdvancedOptions` function adding the required `$count=true` QueryString parameter and `ConsistencyLevel=eventual` header.
 
 ## Getting Started
 
@@ -58,4 +59,10 @@ You can query your tenant using the standard OData `$filter`, `$search`, `$order
 If you double click on a row, a default drill-down will happen (for example by showing the list of transitive groups a user is part of).  
 If you click on a header, the results will be sorted by that column. **Note: not all columns are supported**.  
 If any query error happen, it will displayed with a MessageBox.  
-The generated URL will appear in the readonly Url textbox. You can Click the graph Explorer button to open the current query in Graph Explorer.
+The generated URL will appear in the readonly Url textbox. You can click the Graph Explorer button to open the current query in Graph Explorer.
+
+## Code Architecture
+
+This is a classic WPF MVVM app with Views, ViewModels and Services. ICommand and INotifyPropertyChange are manually implemented.
+Even if Dependency Injection is not implemented, it's a good starting point for whoever wants to call graph from .NET.
+Nullable and Code Analysis are enabled to enforce code quality.

@@ -4,7 +4,7 @@
 using System;
 using System.Windows.Input;
 
-namespace MsGraph_Samples.Helpers
+namespace MsGraph_Samples.MVVM
 {
     public class RelayCommand : ICommand
     {

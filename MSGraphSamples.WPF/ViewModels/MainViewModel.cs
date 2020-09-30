@@ -8,7 +8,7 @@ using System.Net;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Graph;
-using MsGraph_Samples.Helpers;
+using MsGraph_Samples.MVVM;
 using MsGraph_Samples.Services;
 
 namespace MsGraph_Samples.ViewModels
