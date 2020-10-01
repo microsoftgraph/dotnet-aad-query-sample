@@ -15,14 +15,17 @@ namespace MsGraph_Samples.Services
 {
     public interface IAuthService : IAuthenticationProvider
     {
-        GraphServiceClient GetServiceClient();
         IAccount? Account { get; }
-        void Logout();
         event Action? AuthenticationSuccessful;
+        GraphServiceClient GetServiceClient();
+        Task Logout();
     }
 
     public class AuthService : IAuthService
     {
+        public IAccount? Account { get; private set; }
+        public event Action? AuthenticationSuccessful;
+
         /// <summary>
         /// The content of Tenant by the information about the accounts allowed to sign-in in your application:
         /// - for Work or School account in your org, use your tenant ID, or domain
@@ -35,13 +38,10 @@ namespace MsGraph_Samples.Services
         // To change from Microsoft public cloud to a national cloud, use another value of AzureCloudInstance
         private const AzureCloudInstance CloudInstance = AzureCloudInstance.AzurePublic;
 
-        // Make sure the user you login with has "Directory.Read.All" and "User.Read.All"
-        private readonly string[] _scopes = { "Directory.Read.All", "User.Read.All" };
-
+        // Make sure the user you login with has "Directory.Read.All" permissions
+        private readonly string[] _scopes = { "Directory.Read.All" };
         private readonly IPublicClientApplication _publicClientApp;
         private GraphServiceClient? _graphClient;
-        public IAccount? Account { get; private set; }
-        public event Action? AuthenticationSuccessful;
 
         public AuthService(string clientId)
         {
@@ -109,11 +109,12 @@ namespace MsGraph_Samples.Services
             return authResult?.AccessToken;
         }
 
-        public async void Logout()
+        public async Task Logout()
         {
-            await _publicClientApp.RemoveAsync(Account).ConfigureAwait(false);
-            _graphClient = null;
             TokenCacheHelper.Clear();
+            _graphClient = null;
+            await _publicClientApp.RemoveAsync(Account)
+                .ConfigureAwait(false);
         }
     }
 }

@@ -219,9 +219,9 @@ namespace MsGraph_Samples.ViewModels
 
         private RelayCommand? _logoutCommand;
         public RelayCommand LogoutCommand => _logoutCommand ??= new RelayCommand(LogoutAction, () => UserName != null);
-        private void LogoutAction()
+        private async void LogoutAction()
         {
-            _authService.Logout();
+            await _authService.Logout();
             App.Current.Shutdown();
         }
     }

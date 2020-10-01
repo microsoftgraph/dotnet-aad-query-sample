@@ -35,14 +35,13 @@ Use the [Microsoft Application Registration Portal](https://aka.ms/appregistrati
 
 ### 2. Set the Permissions
 
-Add the delegated permissions for `User.Read.All` and `Directory.Read.All`.
+Add the delegated permissions for `Directory.Read.All`.
 ![Api Permissions](docs/api_permissions.png)
 
 ### 3. Configure the App Secret using the Secret Manager
 
 This application use the [.NET Core Secret Manager](https://docs.microsoft.com/aspnet/core/security/app-secrets?view=aspnetcore-3.1&tabs=windows) to store the ClientId.
 To add the ClientId created on step 1:
-
 1. Open the Developer Command Prompt under `dotnet-aad-query-sample\MSGraphSamples.WPF\` directory
 2. type `dotnet user-secrets set "clientId" "<YOUR CLIENT ID>"`
 
@@ -63,6 +62,6 @@ The generated URL will appear in the readonly Url textbox. You can click the Gra
 
 ## Code Architecture
 
-This is a classic WPF MVVM app with Views, ViewModels and Services. ICommand and INotifyPropertyChange are manually implemented.
-Even if Dependency Injection is not implemented, it's a good starting point for whoever wants to call graph from .NET.
+This is a classic WPF MVVM app with Views, ViewModels and Services. ICommand and INotifyPropertyChange are manually implemented.  
+Even if Dependency Injection is not implemented, it's a good starting point for whoever wants to call graph from .NET.  
 Nullable and Code Analysis are enabled to enforce code quality.
