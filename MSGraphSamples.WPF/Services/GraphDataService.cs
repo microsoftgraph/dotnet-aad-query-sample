@@ -60,7 +60,7 @@ namespace MsGraph_Samples.Services
             static QueryOption GetOption(string name, string value)
             {
                 var encodedValue = WebUtility.UrlEncode(value);
-                return new QueryOption($"${name}", name == "search" ? $"\"{encodedValue}\"" : encodedValue);
+                return new QueryOption($"${name}", encodedValue);
             }
         }
 

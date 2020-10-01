@@ -76,7 +76,7 @@ namespace MsGraph_Samples.ViewModels
         public string Filter
         {
             get => _filter;
-            set => Set(ref _filter,value);
+            set => Set(ref _filter, value);
         }
 
         private string _search = string.Empty;
@@ -115,6 +115,10 @@ namespace MsGraph_Samples.ViewModels
         public RelayCommand LoadCommand => new RelayCommand(LoadAction);
         private async void LoadAction()
         {
+            // Quick fix Search syntax
+            if (!string.IsNullOrEmpty(Search) && !Search.StartsWith('\"') && !Search.EndsWith('\"'))
+                Search = $"\"{Search}\"";
+
             IsBusy = true;
             _stopWatch.Restart();
 

@@ -52,7 +52,8 @@ The auth token will be cached for the subsequent runs.
 
 ### Using the app
 
-You can query your tenant using the standard OData `$filter`, `$search`, `$orderBy`, `$select` clauses in the relative textboxes.
+You can query your tenant using the standard OData `$filter`, `$search`, `$orderBy`, `$select` clauses in the relative textboxes.  
+In the screenshot below you can see the $search operator in action:
 ![Screenshot of the App](docs/app1.png)
 
 If you double click on a row, a default drill-down will happen (for example by showing the list of transitive groups a user is part of).  

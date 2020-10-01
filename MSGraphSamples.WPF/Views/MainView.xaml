@@ -26,6 +26,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:helper="clr-namespace:MsGraph_Samples.Helpers"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="MsGraph Samples"
@@ -59,8 +60,18 @@
                 Grid.Column="0"
                 Margin="6,0"
                 VerticalAlignment="Bottom">
-                <TextBlock FontWeight="Bold" Text="Select" />
-                <TextBox Text="{Binding Select, UpdateSourceTrigger=PropertyChanged}" ToolTip="$select" />
+                <TextBlock FontWeight="Bold">
+                    <Hyperlink helper:HyperlinkExtensions.IsWeb="true" NavigateUri="https://docs.microsoft.com/en-us/graph/query-parameters?context=graph%2Fapi%2F1.0#select-parameter">
+                        $select
+                    </Hyperlink>
+                </TextBlock>
+                <TextBox Text="{Binding Select, UpdateSourceTrigger=PropertyChanged}">
+                    <TextBox.ToolTip>
+                        <TextBlock>
+                            <Run Foreground="Green">// List properties you want to select separated by a comma</Run>
+                        </TextBlock>
+                    </TextBox.ToolTip>
+                </TextBox>
             </StackPanel>
 
             <!--  Order By  -->
@@ -68,14 +79,17 @@
                 Grid.Row="1"
                 Grid.Column="0"
                 Margin="6">
-                <TextBlock FontWeight="Bold" Text="Order By" />
+                <TextBlock FontWeight="Bold">
+                    <Hyperlink helper:HyperlinkExtensions.IsWeb="true" NavigateUri="https://docs.microsoft.com/en-us/graph/query-parameters?context=graph%2Fapi%2F1.0#orderby-parameter">
+                        $orderBy
+                    </Hyperlink>
+                </TextBlock>
                 <TextBox Text="{Binding OrderBy, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" ToolTipService.ShowDuration="10000">
                     <TextBox.ToolTip>
                         <TextBlock>
-                            <Run FontWeight="Bold">$orderBy</Run><LineBreak />
-                            property [asc|desc]<LineBreak />
                             <Run Foreground="Green">// Enabled only on few properties, see documentation for details</Run>
-                        </TextBlock>
+                            <LineBreak />
+                            property [asc|desc]</TextBlock>
                     </TextBox.ToolTip>
                 </TextBox>
             </StackPanel>
@@ -86,11 +100,14 @@
                 Grid.Column="1"
                 Margin="6,0"
                 VerticalAlignment="Bottom">
-                <TextBlock FontWeight="Bold" Text="Filter" />
+                <TextBlock FontWeight="Bold">
+                    <Hyperlink helper:HyperlinkExtensions.IsWeb="true" NavigateUri="https://docs.microsoft.com/en-us/graph/query-parameters?context=graph%2Fapi%2F1.0#filter-parameter">
+                        $filter
+                    </Hyperlink>
+                </TextBlock>
                 <TextBox Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" ToolTipService.ShowDuration="10000">
                     <TextBox.ToolTip>
                         <TextBlock>
-                            <Run FontWeight="Bold">$filter</Run><LineBreak />
                             property eq 'filterValue'<LineBreak />
                             property ne 'filterValue'<LineBreak />
                             startsWith(property, 'filterValue')<LineBreak />
@@ -105,14 +122,20 @@
                 Grid.Row="1"
                 Grid.Column="1"
                 Margin="6">
-                <TextBlock FontWeight="Bold" Text="Search" />
+                <TextBlock FontWeight="Bold">
+                    <Hyperlink helper:HyperlinkExtensions.IsWeb="true" NavigateUri="https://docs.microsoft.com/en-us/graph/query-parameters?context=graph%2Fapi%2F1.0#using-search-on-directory-object-collections">
+                        $search
+                    </Hyperlink>
+                </TextBlock>
+
                 <TextBox Text="{Binding Search, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" ToolTipService.ShowDuration="10000">
                     <TextBox.ToolTip>
                         <TextBlock>
-                            <Run FontWeight="Bold">$search</Run><LineBreak />
-                            property:searchValue<LineBreak />
                             <Run Foreground="Green">// Enabled on displayName and Description</Run>
-                        </TextBlock>
+                            <LineBreak />
+                            <Run Foreground="Green">// All the other properties will fallback to startsWith filter behavior</Run>
+                            <LineBreak />
+                            &quot;property1:value1&quot; [AND|OR] &quot;property2:value2&quot;</TextBlock>
                     </TextBox.ToolTip>
                 </TextBox>
             </StackPanel>
