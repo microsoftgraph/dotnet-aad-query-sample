@@ -38,7 +38,7 @@ Use the [Microsoft Application Registration Portal](https://aka.ms/appregistrati
 Add the delegated permissions for `Directory.Read.All`.
 ![Api Permissions](docs/api_permissions.png)
 
-### 3. Configure the App Secret using the Secret Manager
+### 3. Configure the ClientId using the Secret Manager
 
 This application use the [.NET Core Secret Manager](https://docs.microsoft.com/aspnet/core/security/app-secrets?view=aspnetcore-3.1&tabs=windows) to store the ClientId.
 To add the ClientId created on step 1:
