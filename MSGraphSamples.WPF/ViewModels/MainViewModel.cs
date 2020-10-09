@@ -13,7 +13,7 @@ using MsGraph_Samples.Services;
 
 namespace MsGraph_Samples.ViewModels
 {
-    public class MainViewModel : ViewModelBase
+    public class MainViewModel : ObservableObject
     {
         private readonly IAuthService _authService;
         private readonly IGraphDataService _graphDataService;
@@ -93,7 +93,7 @@ namespace MsGraph_Samples.ViewModels
             set => Set(ref _orderBy, value);
         }
 
-        public MainViewModel(IAuthService authService)
+        public MainViewModel(IAuthService authService, IGraphDataService graphDataService)
         {
             _authService = authService;
             _authService.AuthenticationSuccessful += () =>
@@ -102,13 +102,7 @@ namespace MsGraph_Samples.ViewModels
                 LogoutCommand.RaiseCanExecuteChanged();
             };
 
-            if (IsInDesignMode)
-            {
-                _graphDataService = new FakeGraphDataService();
-                return;
-            }
-
-            _graphDataService = new GraphDataService(_authService.GetServiceClient());
+            _graphDataService = graphDataService;
             LoadAction();
         }
 

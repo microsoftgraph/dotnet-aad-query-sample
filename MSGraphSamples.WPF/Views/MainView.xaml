@@ -171,7 +171,9 @@
             <TextBox
                 Margin="6"
                 Background="{DynamicResource {x:Static SystemColors.MenuBrushKey}}"
+                GotFocus="TextBox_SelectAll"
                 IsReadOnly="True"
+                PreviewMouseDown="TextBox_PreviewMouseDown"
                 Text="{Binding LastUrl, Mode=OneWay}" />
             <Button
                 Grid.Column="1"
@@ -216,7 +218,7 @@
                 </ItemsPanelTemplate>
             </StatusBar.ItemsPanel>
             <StatusBarItem Margin="6,0">
-                <TextBlock Text="{Binding UserName, StringFormat=Hello {0}, TargetNullValue='Logging in...'}" />
+                <TextBlock Text="{Binding UserName, StringFormat=Hello {0}, TargetNullValue='Hello User'}" />
             </StatusBarItem>
             <Separator Grid.Column="1" Margin="0,0,6,0" />
             <StatusBarItem Grid.Column="2">

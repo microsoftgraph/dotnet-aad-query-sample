@@ -28,11 +28,9 @@ using System.Windows;
 
 namespace MsGraph_Samples.MVVM
 {
-    public class ViewModelBase : INotifyPropertyChanged
+    public class ObservableObject : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
-        public static bool IsInDesignMode => Application.Current.MainWindow == null;
-
         public void RaisePropertyChanged([CallerMemberName]string? propertyName = null) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
