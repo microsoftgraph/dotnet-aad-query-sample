@@ -2,21 +2,20 @@
 uid: dotnet-aad-query-sample
 title: Microsoft Graph Directory Objects Advanced Queries with .NET SDK
 description: Learn how to use .NET Graph SDK to query Directory Objects
-page\_type: sample
+page_type: sample
 createdDate: 09/22/2020 00:00:00 AM
 languages:
-
-* csharp
+- csharp
 technologies:
-    * Microsoft Graph
-    * Microsoft identity platform
-    authors:
-* id: Licantrop0
-displayName: Luca Spolidoro
+  - Microsoft Graph
+  - Microsoft identity platform
+authors:
+- id: Licantrop0
+  displayName: Luca Spolidoro
 products:
-* ms-graph
-* dotnet-core
-* windows-wpf
+- ms-graph
+- dotnet-core
+- windows-wpf
 codeUrl: https://github.com/microsoftgraph/dotnet-aad-query-sample
 zipUrl: https://github.com/microsoftgraph/dotnet-aad-query-sample/archive/master.zip
 ---

@@ -43,9 +43,9 @@ namespace MsGraph_Samples.Services
         {
             var directoryObjects = new[]
             {
-                new DirectoryObject { Id = "1" },
-                new DirectoryObject { Id = "2" },
-                new DirectoryObject { Id = "3" }
+                new User { Id = "1", DisplayName = "Luca Spolidoro", Mail = "a@b.c" },
+                new User { Id = "2", DisplayName = "Pino Quercia", Mail = "pino@quercia.com" },
+                new User { Id = "3", DisplayName = "Test Test", Mail = "test@test.com" }
             };
 
             return Task.FromResult<IEnumerable<DirectoryObject>?>(directoryObjects);
