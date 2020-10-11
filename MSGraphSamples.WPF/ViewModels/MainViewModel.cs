@@ -124,7 +124,7 @@ namespace MsGraph_Samples.ViewModels
                     "Groups" => await _graphDataService.GetGroupsAsync(Filter, Search, Select, OrderBy),
                     "Applications" => await _graphDataService.GetApplicationsAsync(Filter, Search, Select, OrderBy),
                     "Devices" => await _graphDataService.GetDevicesAsync(Filter, Search, Select, OrderBy),
-                    _ => throw new NotImplementedException("Can't find selected entity"),
+                    _ => throw new NotImplementedException("Can't find selected entity")
                 };
             }
             catch (ServiceException ex)

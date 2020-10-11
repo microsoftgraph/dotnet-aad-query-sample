@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using Microsoft.Graph;
 using Microsoft.Identity.Client;
 using MsGraph_Samples.Helpers;
+using Microsoft.Identity.Client.Extensions.Msal;
+using System.Reflection;
 
 namespace MsGraph_Samples.Services
 {
@@ -49,6 +51,16 @@ namespace MsGraph_Samples.Services
                 .WithAuthority(CloudInstance, Tenant)
                 .WithDefaultRedirectUri() // MAKE SURE YOU SET http://localhost AS REDIRECT URI IN THE AZURE PORTAL
                 .Build();
+
+            //var LocalAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            //var ProjectName = Assembly.GetCallingAssembly().GetName().Name ?? "tokencache";
+            //var CacheFilePath = $"{LocalAppData}\\{ProjectName}\\";
+
+            //var storageCreationProperties = new StorageCreationPropertiesBuilder("msalcache.bin", CacheFilePath, clientId).Build();
+            //var cacheHelper = await MsalCacheHelper.CreateAsync(storageCreationProperties)
+            //    .ConfigureAwait(false);
+            //cacheHelper.RegisterCache(_publicClientApp.UserTokenCache);
+
             TokenCacheHelper.EnableSerialization(_publicClientApp.UserTokenCache);
         }
 
@@ -71,33 +83,43 @@ namespace MsGraph_Samples.Services
             var accounts = await _publicClientApp
                 .GetAccountsAsync().ConfigureAwait(false);
             Account = accounts.FirstOrDefault();
-            
+
             AuthenticationResult authResult;
+
             try
             {
                 authResult = await _publicClientApp
                     .AcquireTokenSilent(_scopes, Account)
                     .ExecuteAsync().ConfigureAwait(false);
             }
-            catch (MsalUiRequiredException ex)
+            catch (MsalUiRequiredException ex1)
             {
                 // A MsalUiRequiredException happened on AcquireTokenSilentAsync.
                 // This indicates you need to call AcquireTokenAsync to acquire a token
-                Debug.WriteLine($"MsalUiRequiredException: {ex.Message}");
+                Debug.WriteLine($"MsalUiRequiredException: {ex1.Message}");
                 try
                 {
                     authResult = await _publicClientApp
-                        .AcquireTokenInteractive(_scopes)
+                        .AcquireTokenByIntegratedWindowsAuth(_scopes)
                         .ExecuteAsync().ConfigureAwait(false);
-
-                    accounts = await _publicClientApp
-                        .GetAccountsAsync().ConfigureAwait(false);
-                    Account = accounts.FirstOrDefault();
                 }
-                catch (MsalException msalex)
+                catch (MsalException ex2)
                 {
-                    Debug.WriteLine($"Error Acquiring Token:{Environment.NewLine}{msalex}");
-                    return null;
+                    Debug.WriteLine($"MsalClientException: {ex2.Message}");
+                    try
+                    {
+                        authResult = await _publicClientApp
+                            .AcquireTokenInteractive(_scopes)
+                            .WithClaims(ex1.Claims)
+                            .ExecuteAsync().ConfigureAwait(false);
+
+                        Account = authResult.Account;
+                    }
+                    catch (MsalException ex3)
+                    {
+                        Debug.WriteLine($"Error Acquiring Token:{Environment.NewLine}{ex3}");
+                        return null;
+                    }
                 }
             }
             catch (Exception ex)

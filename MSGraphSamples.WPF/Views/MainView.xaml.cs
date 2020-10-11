@@ -20,7 +20,7 @@ namespace MsGraph_Samples.Views
             textBox.SelectAll();
         }
 
-        void TextBox_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        private void TextBox_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             var textBox = (TextBox)sender;
             if (!textBox.IsKeyboardFocusWithin)
