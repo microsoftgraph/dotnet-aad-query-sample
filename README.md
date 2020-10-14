@@ -16,13 +16,19 @@ products:
 - ms-graph
 - dotnet-core
 - windows-wpf
+extensions:
+  contentType: samples
+  technologies: 
+    - Microsoft Graph
+    - Microsoft identity platform
+  createdDate: 09/22/2020 00:00:00 AM
 codeUrl: https://github.com/microsoftgraph/dotnet-aad-query-sample
 zipUrl: https://github.com/microsoftgraph/dotnet-aad-query-sample/archive/master.zip
 ---
 
 # Advanced Query Capabilities for Directory Objects with .NET SDK
 
-This sample helps you explore the Microsoft Graph's [new query capabilities](https://aka.ms/BlogPostMezzoGA) of the Identity APIs using the [Microsoft Graph SDK](https://github.com/microsoftgraph/msgraph-sdk-dotnet) to query AAD.
+This sample helps you explore the Microsoft Graph's [new query capabilities](https://aka.ms/BlogPostMezzoGA) of the identity APIs using the [Microsoft Graph SDK](https://github.com/microsoftgraph/msgraph-sdk-dotnet) to query Azure AD.
 The main code is in [GraphDataService.cs](MSGraphSamples.WPF/Services/GraphDataService.cs) file, where every request pass trough `AddAdvancedOptions` function adding the required `$count=true` QueryString parameter and `ConsistencyLevel=eventual` header.
 
 ## Getting Started
