@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Graph;
@@ -109,9 +110,7 @@ namespace MsGraph_Samples.ViewModels
         public RelayCommand LoadCommand => new RelayCommand(LoadAction);
         private async void LoadAction()
         {
-            // Quick fix Search syntax
-            if (!string.IsNullOrEmpty(Search) && !Search.StartsWith('\"') && !Search.EndsWith('\"'))
-                Search = $"\"{Search}\"";
+            FixSearchSyntax();
 
             IsBusy = true;
             _stopWatch.Restart();
@@ -139,6 +138,28 @@ namespace MsGraph_Samples.ViewModels
                 GraphExplorerCommand.RaiseCanExecuteChanged();
                 IsBusy = false;
             }
+        }
+
+        private void FixSearchSyntax()
+        {
+            if (string.IsNullOrEmpty(Search))
+                return;
+            
+            if (Search.Contains('"'))
+                return;
+
+            var elements = Search.Split(' ');
+            var sb = new StringBuilder(elements.Length);
+
+            foreach (var element in elements)
+            {
+                var newElement = element.Contains(':') ?
+                    $"\"{element}\"" :
+                    $" {element.ToUpperInvariant()} ";                
+                sb.Append(newElement);
+            }
+
+            Search = sb.ToString();
         }
 
         private RelayCommand? _drillDownCommand;
