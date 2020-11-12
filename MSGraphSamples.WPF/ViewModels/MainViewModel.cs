@@ -87,7 +87,7 @@ namespace MsGraph_Samples.ViewModels
             set => Set(ref _search, value);
         }
 
-        private string _orderBy;// = "displayName";
+        private string _orderBy;
         public string OrderBy
         {
             get => _orderBy;
