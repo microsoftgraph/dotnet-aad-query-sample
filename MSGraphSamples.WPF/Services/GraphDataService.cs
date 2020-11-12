@@ -33,7 +33,7 @@ namespace MsGraph_Samples.Services
 
         private readonly IGraphServiceClient _graphClient;
 
-        public GraphDataService(IGraphServiceClient graphClient)
+        public GraphDataService(IGraphServiceClient graphClient) 
         {
             _graphClient = graphClient;
         }
@@ -43,16 +43,16 @@ namespace MsGraph_Samples.Services
             request.QueryOptions.Add(OdataCount);
             request.Headers.Add(EventualConsistency);
 
-            if (!string.IsNullOrEmpty(filter))
+            if (!filter.IsNullOrEmpty())
                 request.QueryOptions.Add(GetOption("filter", filter));
 
-            if (!string.IsNullOrEmpty(orderBy))
+            if (!orderBy.IsNullOrEmpty())
                 request.QueryOptions.Add(GetOption("orderBy", orderBy));
 
-            if (!string.IsNullOrEmpty(select))
+            if (!select.IsNullOrEmpty())
                 request.QueryOptions.Add(GetOption("select", select));
 
-            if (!string.IsNullOrEmpty(search))
+            if (!search.IsNullOrEmpty())
                 request.QueryOptions.Add(GetOption("search", search));
 
             LastUrl = WebUtility.UrlDecode(request.GetHttpRequestMessage().RequestUri.AbsoluteUri);

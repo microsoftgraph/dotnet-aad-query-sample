@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Graph;
@@ -86,7 +87,7 @@ namespace MsGraph_Samples.ViewModels
             set => Set(ref _search, value);
         }
 
-        private string _orderBy = "displayName";
+        private string _orderBy;// = "displayName";
         public string OrderBy
         {
             get => _orderBy;
@@ -109,9 +110,7 @@ namespace MsGraph_Samples.ViewModels
         public RelayCommand LoadCommand => new RelayCommand(LoadAction);
         private async void LoadAction()
         {
-            // Quick fix Search syntax
-            if (!string.IsNullOrEmpty(Search) && !Search.StartsWith('\"') && !Search.EndsWith('\"'))
-                Search = $"\"{Search}\"";
+            FixSearchSyntax();
 
             IsBusy = true;
             _stopWatch.Restart();
@@ -124,7 +123,7 @@ namespace MsGraph_Samples.ViewModels
                     "Groups" => await _graphDataService.GetGroupsAsync(Filter, Search, Select, OrderBy),
                     "Applications" => await _graphDataService.GetApplicationsAsync(Filter, Search, Select, OrderBy),
                     "Devices" => await _graphDataService.GetDevicesAsync(Filter, Search, Select, OrderBy),
-                    _ => throw new NotImplementedException("Can't find selected entity"),
+                    _ => throw new NotImplementedException("Can't find selected entity")
                 };
             }
             catch (ServiceException ex)
@@ -139,6 +138,28 @@ namespace MsGraph_Samples.ViewModels
                 GraphExplorerCommand.RaiseCanExecuteChanged();
                 IsBusy = false;
             }
+        }
+
+        private void FixSearchSyntax()
+        {
+            if (Search.IsNullOrEmpty())
+                return;
+
+            if (Search.Contains('"'))
+                return;
+
+            var elements = Search.Split(' ');
+            var sb = new StringBuilder(elements.Length);
+
+            foreach (var element in elements)
+            {
+                var newElement = element.Contains(':') ?
+                    $"\"{element}\"" :
+                    $" {element.ToUpperInvariant()} "; // [AND, OR] operators need to be uppercase
+                sb.Append(newElement);
+            }
+
+            Search = sb.ToString();
         }
 
         private RelayCommand? _drillDownCommand;
@@ -182,7 +203,7 @@ namespace MsGraph_Samples.ViewModels
             new RelayCommand<DataGridAutoGeneratingColumnEventArgs>(AutoGeneratingColumnAction);
         private void AutoGeneratingColumnAction(DataGridAutoGeneratingColumnEventArgs e)
         {
-            if (!string.IsNullOrEmpty(Select))
+            if (!Select.IsNullOrEmpty())
             {
                 e.Cancel = !e.PropertyName.In(Select.Split(','));
                 e.Column.Width = new DataGridLength(1, DataGridLengthUnitType.Star);
