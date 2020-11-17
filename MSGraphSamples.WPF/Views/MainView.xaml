@@ -40,7 +40,6 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -184,30 +183,9 @@
                 Command="{Binding GraphExplorerCommand}"
                 Content="Graph Explorer" />
         </Grid>
-        <Grid Grid.Row="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <TextBox
-                Margin="6"
-                Background="{DynamicResource {x:Static SystemColors.MenuBrushKey}}"
-                GotFocus="TextBox_SelectAll"
-                IsReadOnly="True"
-                PreviewMouseDown="TextBox_PreviewMouseDown"
-                Text="{Binding PSCmdLet, Mode=OneWay}"
-                ToolTip="PowerShell command" />
-            <Button
-                Grid.Column="1"
-                Width="120"
-                Margin="6"
-                Padding="6,0"
-                Command="{Binding RunPowerShellCommand}"
-                Content="Run PS CmdLet" />
-        </Grid>
         <DataGrid
             Name="ResultsDataGrid"
-            Grid.Row="3"
+            Grid.Row="2"
             IsReadOnly="True"
             ItemsSource="{Binding DirectoryObjects}"
             SelectedItem="{Binding SelectedObject}"
@@ -224,7 +202,7 @@
                 </i:EventTrigger>
             </i:Interaction.Triggers>
         </DataGrid>
-        <StatusBar Grid.Row="4">
+        <StatusBar Grid.Row="3">
             <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>
                     <Grid>
