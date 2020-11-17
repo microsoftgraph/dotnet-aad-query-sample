@@ -12,9 +12,12 @@ namespace MsGraph_Samples.Helpers
     static class TokenCacheHelper
     {
         private static readonly object FileLock = new object();
+
         private static readonly string LocalAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         private static readonly string ProjectName = Assembly.GetCallingAssembly().GetName().Name ?? "tokencache";
-        private static readonly string CacheFilePath = $"{LocalAppData}\\{ProjectName}\\msalcache.bin";
+        private static readonly string CacheDirectoryPath = $"{LocalAppData}\\{ProjectName}\\";
+        private static readonly string CacheFileName = "msalcache.bin";
+        private static string CacheFilePath => Path.Combine(CacheDirectoryPath, CacheFileName);
 
         public static void BeforeAccessNotification(TokenCacheNotificationArgs args)
         {
@@ -36,9 +39,8 @@ namespace MsGraph_Samples.Helpers
             // if the access operation resulted in a cache update
             lock (FileLock)
             {
-                var cacheDirectory = Path.GetDirectoryName(CacheFilePath);
-                if (!Directory.Exists(cacheDirectory))
-                    Directory.CreateDirectory(cacheDirectory);
+                if (!Directory.Exists(CacheDirectoryPath))
+                    Directory.CreateDirectory(CacheDirectoryPath);
 
                 var data = ProtectedData.Protect(args.TokenCache.SerializeMsalV3(), null, DataProtectionScope.CurrentUser);
                 File.WriteAllBytes(CacheFilePath, data);

@@ -17,12 +17,12 @@ namespace MsGraph_Samples.MVVM
             _canExecuteMethod = canexecuteMethod;
         }
 
-        public void Execute(object _)
+        public void Execute(object? _)
         {
             _executeMethod();
         }
 
-        public bool CanExecute(object _)
+        public bool CanExecute(object? _)
         {
             if (_canExecuteMethod == null)
                 return true;
@@ -30,7 +30,7 @@ namespace MsGraph_Samples.MVVM
             return _canExecuteMethod();
         }
 
-        public event EventHandler CanExecuteChanged
+        public event EventHandler? CanExecuteChanged
         {
             add
             {
@@ -42,7 +42,7 @@ namespace MsGraph_Samples.MVVM
             }
         }
 
-        public void RaiseCanExecuteChanged()
+        public static void RaiseCanExecuteChanged()
         {
             CommandManager.InvalidateRequerySuggested();
         }
@@ -59,20 +59,24 @@ namespace MsGraph_Samples.MVVM
             _canExecuteMethod = canexecuteMethod;
         }
 
-        public void Execute(object parameter)
+        public void Execute(object? parameter)
         {
-            _executeMethod((T)parameter);
+            if (parameter is T tParam)
+                _executeMethod(tParam);
         }
 
-        public bool CanExecute(object parameter)
+        public bool CanExecute(object? parameter)
         {
             if (_canExecuteMethod == null)
                 return true;
 
-            return _canExecuteMethod((T)parameter);
+            if(parameter is T tParam)
+                return _canExecuteMethod(tParam);
+
+            return false;
         }
 
-        public event EventHandler CanExecuteChanged
+        public event EventHandler? CanExecuteChanged
         {
             add
             {
@@ -83,7 +87,8 @@ namespace MsGraph_Samples.MVVM
                 CommandManager.RequerySuggested -= value;
             }
         }
-        public void RaiseCanExecuteChanged()
+
+        public static void RaiseCanExecuteChanged()
         {
             CommandManager.InvalidateRequerySuggested();
         }

@@ -55,7 +55,7 @@ namespace MsGraph_Samples.Services
             if (!search.IsNullOrEmpty())
                 request.QueryOptions.Add(GetOption("search", search));
 
-            LastUrl = WebUtility.UrlDecode(request.GetHttpRequestMessage().RequestUri.AbsoluteUri);
+            LastUrl = WebUtility.UrlDecode(request.GetHttpRequestMessage().RequestUri?.AbsoluteUri);
 
             static QueryOption GetOption(string name, string value)
             {

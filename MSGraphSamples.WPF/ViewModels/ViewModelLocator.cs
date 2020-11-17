@@ -15,7 +15,7 @@ namespace MsGraph_Samples.ViewModels
 
         public IServiceProvider Services { get; }
 
-        public MainViewModel MainVM => Services.GetService<MainViewModel>();
+        public MainViewModel? MainVM => Services.GetService<MainViewModel>();
 
         public ViewModelLocator()
         {
@@ -24,7 +24,7 @@ namespace MsGraph_Samples.ViewModels
             Services = serviceCollection.BuildServiceProvider();
         }
 
-        private void ConfigureServices(IServiceCollection serviceCollection)
+        private static void ConfigureServices(IServiceCollection serviceCollection)
         {
             if(IsInDesignMode)
             {

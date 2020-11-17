@@ -30,8 +30,9 @@ namespace MsGraph_Samples.ViewModels
 
         public string? UserName => _authService.Account?.Username;
         public string? LastUrl => _graphDataService.LastUrl;
+        public string? PSCmdLet => GeneratePSCmdLet();
 
-        public IReadOnlyList<string> Entities => new[] { "Users", "Groups", "Applications", "Devices" };
+        public static IReadOnlyList<string> Entities => new[] { "Users", "Groups", "Applications", "Devices" };
         private string _selectedEntity = "Users";
         public string SelectedEntity
         {
@@ -87,7 +88,7 @@ namespace MsGraph_Samples.ViewModels
             set => Set(ref _search, value);
         }
 
-        private string _orderBy;
+        private string _orderBy = string.Empty;
         public string OrderBy
         {
             get => _orderBy;
@@ -100,7 +101,7 @@ namespace MsGraph_Samples.ViewModels
             _authService.AuthenticationSuccessful += () =>
             {
                 RaisePropertyChanged(nameof(UserName));
-                LogoutCommand.RaiseCanExecuteChanged();
+                RelayCommand.RaiseCanExecuteChanged();
             };
 
             _graphDataService = graphDataService;
@@ -135,7 +136,8 @@ namespace MsGraph_Samples.ViewModels
                 _stopWatch.Stop();
                 RaisePropertyChanged(nameof(ElapsedMs));
                 RaisePropertyChanged(nameof(LastUrl));
-                GraphExplorerCommand.RaiseCanExecuteChanged();
+                RaisePropertyChanged(nameof(PSCmdLet));
+                RelayCommand.RaiseCanExecuteChanged();
                 IsBusy = false;
             }
         }
@@ -161,6 +163,38 @@ namespace MsGraph_Samples.ViewModels
 
             Search = sb.ToString();
         }
+
+        private string? GeneratePSCmdLet()
+        {
+            var sb = SelectedEntity switch
+            {
+                "Users" => new StringBuilder("Get-MgUser"),
+                "Groups" => new StringBuilder("Get-MgGroup"),
+                "Applications" => new StringBuilder("Get-MgApplication"),
+                "Devices" => new StringBuilder("Get-MgDevice"),
+                _ => throw new NotImplementedException("Can't find selected entity")
+            };
+
+            sb.Append("-ConsistencyLevel eventual ");
+            sb.Append("-count countVar ");
+
+            if (!Filter.IsNullOrEmpty())
+                sb.Append($"-filter {Filter} ");
+
+            if (!OrderBy.IsNullOrEmpty())
+                sb.Append($"-orderBy {OrderBy} ");
+
+            if (!Select.IsNullOrEmpty())
+                sb.Append($"-select {Select} ");
+
+            if (!Search.IsNullOrEmpty())
+                sb.Append($"-search '{Search}' ");
+
+            return sb.ToString();
+        }
+
+        private RelayCommand? _copyPSCmdLetCommand;
+        public RelayCommand CopyPSCmdletCommand => _copyPSCmdLetCommand ??= new RelayCommand(() => Clipboard.SetText(PSCmdLet), () => PSCmdLet != null);
 
         private RelayCommand? _drillDownCommand;
         public RelayCommand DrillDownCommand => _drillDownCommand ??= new RelayCommand(DrillDownAction);
@@ -194,7 +228,8 @@ namespace MsGraph_Samples.ViewModels
                 _stopWatch.Stop();
                 RaisePropertyChanged(nameof(ElapsedMs));
                 RaisePropertyChanged(nameof(LastUrl));
-                GraphExplorerCommand.RaiseCanExecuteChanged();
+                RaisePropertyChanged(nameof(PSCmdLet));
+                RelayCommand.RaiseCanExecuteChanged();
                 IsBusy = false;
             }
         }
@@ -226,10 +261,11 @@ namespace MsGraph_Samples.ViewModels
             if (LastUrl == null) return;
 
             var geBaseUrl = "https://developer.microsoft.com/en-us/graph/graph-explorer";
-            var version = "v1.0";
             var graphUrl = "https://graph.microsoft.com";
-            var encodedUrl = WebUtility.UrlEncode(LastUrl.Substring(LastUrl.NthIndexOf('/', 4) + 1));
-            var encodedHeaders = "W3sibmFtZSI6IkNvbnNpc3RlbmN5TGV2ZWwiLCJ2YWx1ZSI6ImV2ZW50dWFsIn1d";
+            var version = "v1.0";
+            var encodedUrl = WebUtility.UrlEncode(LastUrl[(LastUrl.NthIndexOf('/', 4) + 1)..]);
+            var encodedHeaders = "W3sibmFtZSI6IkNvbnNpc3RlbmN5TGV2ZWwiLCJ2YWx1ZSI6ImV2ZW50dWFsIn1d"; // ConsistencyLevel = eventual
+
             var url = $"{geBaseUrl}?request={encodedUrl}&method=GET&version={version}&GraphUrl={graphUrl}&headers={encodedHeaders}";
 
             var psi = new ProcessStartInfo { FileName = url, UseShellExecute = true };
