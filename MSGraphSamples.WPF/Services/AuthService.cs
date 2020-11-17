@@ -59,7 +59,7 @@ namespace MsGraph_Samples.Services
 
             var storageCreationProperties = new StorageCreationPropertiesBuilder("msalcache.bin", CacheFilePath, clientId).Build();
 
-            // ARGH!!!
+            // .Result is not a best practice, waiting for https://github.com/AzureAD/microsoft-authentication-extensions-for-dotnet/issues/102
             _cacheHelper = MsalCacheHelper.CreateAsync(storageCreationProperties).Result;
             _cacheHelper.RegisterCache(_publicClientApp.UserTokenCache);
         }
@@ -135,8 +135,7 @@ namespace MsGraph_Samples.Services
         {
             _cacheHelper.Clear();
             _graphClient = null;
-            await _publicClientApp.RemoveAsync(Account)
-                .ConfigureAwait(false);
+            await _publicClientApp.RemoveAsync(Account).ConfigureAwait(false);
         }
     }
 }
