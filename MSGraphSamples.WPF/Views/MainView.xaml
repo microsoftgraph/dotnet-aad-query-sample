@@ -43,7 +43,7 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Grid>
+        <Grid Grid.Row="0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <RowDefinition Height="*" />
@@ -183,7 +183,6 @@
                 Command="{Binding GraphExplorerCommand}"
                 Content="Graph Explorer" />
         </Grid>
-
         <DataGrid
             Name="ResultsDataGrid"
             Grid.Row="2"

@@ -31,7 +31,7 @@ namespace MsGraph_Samples.ViewModels
         public string? UserName => _authService.Account?.Username;
         public string? LastUrl => _graphDataService.LastUrl;
 
-        public IReadOnlyList<string> Entities => new[] { "Users", "Groups", "Applications", "Devices" };
+        public static IReadOnlyList<string> Entities => new[] { "Users", "Groups", "Applications", "Devices" };
         private string _selectedEntity = "Users";
         public string SelectedEntity
         {
@@ -87,7 +87,7 @@ namespace MsGraph_Samples.ViewModels
             set => Set(ref _search, value);
         }
 
-        private string _orderBy = "displayName";
+        private string _orderBy = string.Empty;
         public string OrderBy
         {
             get => _orderBy;
@@ -100,7 +100,7 @@ namespace MsGraph_Samples.ViewModels
             _authService.AuthenticationSuccessful += () =>
             {
                 RaisePropertyChanged(nameof(UserName));
-                LogoutCommand.RaiseCanExecuteChanged();
+                RelayCommand.RaiseCanExecuteChanged();
             };
 
             _graphDataService = graphDataService;
@@ -135,16 +135,16 @@ namespace MsGraph_Samples.ViewModels
                 _stopWatch.Stop();
                 RaisePropertyChanged(nameof(ElapsedMs));
                 RaisePropertyChanged(nameof(LastUrl));
-                GraphExplorerCommand.RaiseCanExecuteChanged();
+                RelayCommand.RaiseCanExecuteChanged();
                 IsBusy = false;
             }
         }
 
         private void FixSearchSyntax()
         {
-            if (string.IsNullOrEmpty(Search))
+            if (Search.IsNullOrEmpty())
                 return;
-            
+
             if (Search.Contains('"'))
                 return;
 
@@ -155,7 +155,7 @@ namespace MsGraph_Samples.ViewModels
             {
                 var newElement = element.Contains(':') ?
                     $"\"{element}\"" :
-                    $" {element.ToUpperInvariant()} ";                
+                    $" {element.ToUpperInvariant()} "; // [AND, OR] operators need to be uppercase
                 sb.Append(newElement);
             }
 
@@ -194,7 +194,7 @@ namespace MsGraph_Samples.ViewModels
                 _stopWatch.Stop();
                 RaisePropertyChanged(nameof(ElapsedMs));
                 RaisePropertyChanged(nameof(LastUrl));
-                GraphExplorerCommand.RaiseCanExecuteChanged();
+                RelayCommand.RaiseCanExecuteChanged();
                 IsBusy = false;
             }
         }
@@ -203,7 +203,7 @@ namespace MsGraph_Samples.ViewModels
             new RelayCommand<DataGridAutoGeneratingColumnEventArgs>(AutoGeneratingColumnAction);
         private void AutoGeneratingColumnAction(DataGridAutoGeneratingColumnEventArgs e)
         {
-            if (!string.IsNullOrEmpty(Select))
+            if (!Select.IsNullOrEmpty())
             {
                 e.Cancel = !e.PropertyName.In(Select.Split(','));
                 e.Column.Width = new DataGridLength(1, DataGridLengthUnitType.Star);
@@ -226,10 +226,11 @@ namespace MsGraph_Samples.ViewModels
             if (LastUrl == null) return;
 
             var geBaseUrl = "https://developer.microsoft.com/en-us/graph/graph-explorer";
-            var version = "v1.0";
             var graphUrl = "https://graph.microsoft.com";
-            var encodedUrl = WebUtility.UrlEncode(LastUrl.Substring(LastUrl.NthIndexOf('/', 4) + 1));
-            var encodedHeaders = "W3sibmFtZSI6IkNvbnNpc3RlbmN5TGV2ZWwiLCJ2YWx1ZSI6ImV2ZW50dWFsIn1d";
+            var version = "v1.0";
+            var encodedUrl = WebUtility.UrlEncode(LastUrl[(LastUrl.NthIndexOf('/', 4) + 1)..]);
+            var encodedHeaders = "W3sibmFtZSI6IkNvbnNpc3RlbmN5TGV2ZWwiLCJ2YWx1ZSI6ImV2ZW50dWFsIn1d"; // ConsistencyLevel = eventual
+
             var url = $"{geBaseUrl}?request={encodedUrl}&method=GET&version={version}&GraphUrl={graphUrl}&headers={encodedHeaders}";
 
             var psi = new ProcessStartInfo { FileName = url, UseShellExecute = true };
