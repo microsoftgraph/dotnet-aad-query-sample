@@ -26,31 +26,31 @@ codeUrl: https://github.com/microsoftgraph/dotnet-aad-query-sample
 zipUrl: https://github.com/microsoftgraph/dotnet-aad-query-sample/archive/master.zip
 ---
 
-# Advanced Query Capabilities for Directory Objects with .NET SDK
+# Explore advanced Microsoft Graph Query Capabilities for Directory Objects with .NET SDK
 
 This sample helps you explore the Microsoft Graph's [new query capabilities](https://aka.ms/BlogPostMezzoGA) of the identity APIs using the [Microsoft Graph SDK](https://github.com/microsoftgraph/msgraph-sdk-dotnet) to query Azure AD.
 The main code is in [GraphDataService.cs](MSGraphSamples.WPF/Services/GraphDataService.cs) file, where every request pass trough `AddAdvancedOptions` function adding the required `$count=true` QueryString parameter and `ConsistencyLevel=eventual` header.
 
 ## Getting Started
 
-### 1\. Register your application
+### 1. Register your application
 
 Use the [Microsoft Application Registration Portal](https://aka.ms/appregistrations) to register your application with the Microsoft Graph APIs.
 ![Application Registration](docs/register_app.png)
 **Note:** Make sure to set the right Redirect URI for .NET Core apps: `http://localhost`.
 
-### 2\. Set the Permissions
+### 1. Set the Permissions
 
 Add the delegated permissions for `Directory.Read.All`.
 ![Api Permissions](docs/api_permissions.png)
 
-### 3\. Configure the ClientId using the Secret Manager
+### 1. Configure the ClientId using the Secret Manager
 
 This application use the [.NET Core Secret Manager](https://docs.microsoft.com/aspnet/core/security/app-secrets?view=aspnetcore-3.1&tabs=windows) to store the ClientId.
 To add the ClientId created on step 1:
 
 1. Open the Developer Command Prompt under `dotnet-aad-query-sample\MSGraphSamples.WPF\` directory
-2. type `dotnet user-secrets set "clientId" "<YOUR CLIENT ID>"`
+1. type `dotnet user-secrets set "clientId" "<YOUR CLIENT ID>"`
 
 ## Build & Run
 
