@@ -25,33 +25,55 @@ codeUrl: https://github.com/microsoftgraph/dotnet-aad-query-sample
 zipUrl: https://github.com/microsoftgraph/dotnet-aad-query-sample/archive/master.zip
 description: "This sample demonstrates a .NET Desktop (WPF) application showcasing advanced Microsoft Graph Query Capabilities for Directory Objects with .NET"
 ---
-
 # Explore advanced Microsoft Graph Query Capabilities for Directory Objects with .NET SDK
+
+- [Explore advanced Microsoft Graph Query Capabilities for Directory Objects with .NET SDK](#explore-advanced-microsoft-graph-query-capabilities-for-directory-objects-with-net-sdk)
+  - [Overview](#overview)
+  - [Prerequisites](#prerequisites)
+  - [Setup](#setup)
+    - [Step 1: Register your application](#step-1-register-your-application)
+    - [Step 2: Set the permissions](#step-2-set-the-permissions)
+    - [Step 3: Configure the ClientId using the Secret Manager](#step-3-configure-the-clientid-using-the-secret-manager)
+  - [Build & Run](#build--run)
+    - [Using the app](#using-the-app)
+  - [Code Architecture](#code-architecture)
+
+## Overview
 
 This sample helps you explore the Microsoft Graph's [new query capabilities](https://aka.ms/BlogPostMezzoGA) of the identity APIs using the [Microsoft Graph SDK](https://github.com/microsoftgraph/msgraph-sdk-dotnet) to query Azure AD.
 The main code is in [GraphDataService.cs](MSGraphSamples.WPF/Services/GraphDataService.cs) file, where every request pass trough `AddAdvancedOptions` function adding the required `$count=true` QueryString parameter and `ConsistencyLevel=eventual` header.
 
-## Getting Started
+## Prerequisites
 
-### 1\. Register your application
+- Visual Studio or just the .NET Core SDK
+- An Internet connection
+- A Windows machine (necessary if you want to run the app on Windows)
+- An OS X machine (necessary if you want to run the app on Mac)
+- A Linux machine (necessary if you want to run the app on Linux)
+- An Azure Active Directory (Azure AD) tenant. For more information on how to get an Azure AD tenant, see How to get an Azure AD tenant
+- A user account in your Azure AD tenant. This sample will not work with a Microsoft account (formerly Windows Live account). Therefore, if you signed in to the Azure portal with a Microsoft account and have never created a user account in your directory before, you need to do that now.
+
+## Setup
+
+### Step 1: Register your application
 
 Use the [Microsoft Application Registration Portal](https://aka.ms/appregistrations) to register your application with the Microsoft Graph APIs.
 ![Application Registration](docs/register_app.png)
 **Note:** Make sure to set the right Redirect URI for .NET Core apps: `http://localhost`.
 
-### 2\. Set the Permissions
+### Step 2: Set the permissions
 
 Add the delegated permissions for `Directory.Read.All`. We advise you register and use this sample on a Dev/Test tenant and not on your production tenant.
 
 ![Api Permissions](docs/api_permissions.png)
 
-### 3\. Configure the ClientId using the Secret Manager
+### Step 3: Configure the ClientId using the Secret Manager
 
 This application use the [.NET Core Secret Manager](https://docs.microsoft.com/aspnet/core/security/app-secrets) to store the ClientId.
 To add the ClientId created on step 1:
 
 1. Open the Developer Command Prompt under `dotnet-aad-query-sample\MSGraphSamples.WPF\` directory
-2. type `dotnet user-secrets set "clientId" "<YOUR CLIENT ID>"`
+1. type `dotnet user-secrets set "clientId" "<YOUR CLIENT ID>"`
 
 ## Build & Run
 
