@@ -31,9 +31,9 @@ zipUrl: https://github.com/microsoftgraph/dotnet-aad-query-sample/archive/master
   - [Overview](#overview)
   - [Prerequisites](#prerequisites)
   - [Setup](#setup)
-    - [1. Register your application](#1-register-your-application)
-    - [1. Set the Permissions](#1-set-the-permissions)
-    - [1. Configure the ClientId using the Secret Manager](#1-configure-the-clientid-using-the-secret-manager)
+    - [Step 1: Register your application](#step-1-register-your-application)
+    - [Step 2: Set the permissions](#step-2-set-the-permissions)
+    - [Step 3: Configure the ClientId using the Secret Manager](#step-3-configure-the-clientid-using-the-secret-manager)
   - [Build & Run](#build--run)
     - [Using the app](#using-the-app)
   - [Code Architecture](#code-architecture)
@@ -48,18 +48,19 @@ The main code is in [GraphDataService.cs](MSGraphSamples.WPF/Services/GraphDataS
 
 ## Setup
 
-### 1. Register your application
+### Step 1: Register your application
 
 Use the [Microsoft Application Registration Portal](https://aka.ms/appregistrations) to register your application with the Microsoft Graph APIs.
 ![Application Registration](docs/register_app.png)
 **Note:** Make sure to set the right Redirect URI for .NET Core apps: `http://localhost`.
 
-### 1. Set the Permissions
+### Step 2: Set the permissions
 
+**please explicitly tell the user which tab they should go to to set up the permissions**
 Add the delegated permissions for `Directory.Read.All`.
 ![Api Permissions](docs/api_permissions.png)
 
-### 1. Configure the ClientId using the Secret Manager
+### Step 3: Configure the ClientId using the Secret Manager
 
 This application use the [.NET Core Secret Manager](https://docs.microsoft.com/aspnet/core/security/app-secrets?view=aspnetcore-3.1&tabs=windows) to store the ClientId.
 To add the ClientId created on step 1:
