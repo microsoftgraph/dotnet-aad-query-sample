@@ -25,13 +25,28 @@ extensions:
 codeUrl: https://github.com/microsoftgraph/dotnet-aad-query-sample
 zipUrl: https://github.com/microsoftgraph/dotnet-aad-query-sample/archive/master.zip
 ---
-
 # Explore advanced Microsoft Graph Query Capabilities for Directory Objects with .NET SDK
 
+- [Explore advanced Microsoft Graph Query Capabilities for Directory Objects with .NET SDK](#explore-advanced-microsoft-graph-query-capabilities-for-directory-objects-with-net-sdk)
+  - [Overview](#overview)
+  - [Prerequisites](#prerequisites)
+  - [Setup](#setup)
+    - [1. Register your application](#1-register-your-application)
+    - [1. Set the Permissions](#1-set-the-permissions)
+    - [1. Configure the ClientId using the Secret Manager](#1-configure-the-clientid-using-the-secret-manager)
+  - [Build & Run](#build--run)
+    - [Using the app](#using-the-app)
+  - [Code Architecture](#code-architecture)
+
+## Overview
 This sample helps you explore the Microsoft Graph's [new query capabilities](https://aka.ms/BlogPostMezzoGA) of the identity APIs using the [Microsoft Graph SDK](https://github.com/microsoftgraph/msgraph-sdk-dotnet) to query Azure AD.
 The main code is in [GraphDataService.cs](MSGraphSamples.WPF/Services/GraphDataService.cs) file, where every request pass trough `AddAdvancedOptions` function adding the required `$count=true` QueryString parameter and `ConsistencyLevel=eventual` header.
 
-## Getting Started
+## Prerequisites
+
+- some things here in bullet form
+
+## Setup
 
 ### 1. Register your application
 
