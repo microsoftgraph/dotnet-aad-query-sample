@@ -1,6 +1,5 @@
 ---
 uid: dotnet-aad-query-sample
-title: Microsoft Graph Directory Objects Advanced Queries with .NET SDK
 description: Learn how to use .NET Graph SDK to query Directory Objects
 page_type: sample
 createdDate: 09/22/2020 00:00:00 AM
@@ -39,6 +38,7 @@ zipUrl: https://github.com/microsoftgraph/dotnet-aad-query-sample/archive/master
   - [Code Architecture](#code-architecture)
 
 ## Overview
+
 This sample helps you explore the Microsoft Graph's [new query capabilities](https://aka.ms/BlogPostMezzoGA) of the identity APIs using the [Microsoft Graph SDK](https://github.com/microsoftgraph/msgraph-sdk-dotnet) to query Azure AD.
 The main code is in [GraphDataService.cs](MSGraphSamples.WPF/Services/GraphDataService.cs) file, where every request pass trough `AddAdvancedOptions` function adding the required `$count=true` QueryString parameter and `ConsistencyLevel=eventual` header.
 
