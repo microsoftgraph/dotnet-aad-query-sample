@@ -55,8 +55,9 @@ The main code is in [GraphDataService.cs](MSGraphSamples.WPF/Services/GraphDataS
 ### Step 1: Register your application
 
 Use the [Microsoft Application Registration Portal](https://aka.ms/appregistrations) to register your application with the Microsoft Graph APIs.
+
 ![Application Registration](docs/register_app.png)
-**Note:** Make sure to set the right **Redirect URI**: `http://localhost`.
+**Note:** Make sure to set the right **Redirect URI** (`http://localhost`) and application type is **Mobile and desktop applications**.
 
 ### Step 2: Set the MS Graph permissions
 
@@ -80,7 +81,7 @@ or download and extract the repository .zip file.
 
 This application use the [.NET Core Secret Manager](https://docs.microsoft.com/aspnet/core/security/app-secrets) to store the **ClientId**. To add the **ClientId** created on step 1 of registration:
 
-1. Open a **Developer Command Prompt** or an **integrated terminal** and locate the `dotnet-aad-query-sample\MSGraphSamples.WPF\` directory.
+1. Open a **Developer Command Prompt** or an **Integrated Terminal** and locate the `dotnet-aad-query-sample\MSGraphSamples.WPF\` directory.
 1. Type `dotnet user-secrets set "clientId" "<YOUR CLIENT ID>"`
 
 ## Run the sample
