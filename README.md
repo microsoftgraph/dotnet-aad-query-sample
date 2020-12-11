@@ -65,7 +65,7 @@ or download and extract the repository .zip file.
 
 Use the [Microsoft Application Registration Portal](https://aka.ms/appregistrations) to register your application with the Microsoft Graph APIs.
 ![Application Registration](docs/register_app.png)
-**Note:** Make sure to set the right Redirect URI for .NET Core apps: `http://localhost`.
+**Note:** Make sure to set the right Redirect URI for .NET Core apps: `http://localhost` and application type is 'Mobile and desktop applications'.
 
 ### Step 3: Set the MS Graph permissions
 
