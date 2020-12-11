@@ -27,16 +27,15 @@ description: "This sample demonstrates a .NET Desktop (WPF) application showcasi
 ---
 # Explore advanced Microsoft Graph Query Capabilities for Directory Objects with .NET SDK
 
-- [Explore advanced Microsoft Graph Query Capabilities for Directory Objects with .NET SDK](#explore-advanced-microsoft-graph-query-capabilities-for-directory-objects-with-net-sdk)
-  - [Overview](#overview)
-  - [How to run this sample](#how-to-run-this-sample)
-    - [Step 1:  Clone or download this repository](#step-1--clone-or-download-this-repository)
-    - [Step 2: Register your application](#step-2-register-your-application)
-    - [Step 3: Set the MS Graph permissions](#step-3-set-the-ms-graph-permissions)
-    - [Step 4: Configure the ClientId using the Secret Manager](#step-4-configure-the-clientid-using-the-secret-manager)
-  - [Build & Run](#build--run)
-    - [Using the app](#using-the-app)
-  - [Code Architecture](#code-architecture)
+- [Overview](#overview)
+- [How to run this sample](#how-to-run-this-sample)
+  - [Step 1:  Clone or download this repository](#step-1--clone-or-download-this-repository)
+  - [Step 2: Register your application](#step-2-register-your-application)
+  - [Step 3: Set the MS Graph permissions](#step-3-set-the-ms-graph-permissions)
+  - [Step 4: Configure the ClientId using the Secret Manager](#step-4-configure-the-clientid-using-the-secret-manager)
+- [Build & Run](#build--run)
+  - [Using the app](#using-the-app)
+- [Code Architecture](#code-architecture)
 
 ## Overview
 
