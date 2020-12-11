@@ -13,40 +13,42 @@ namespace MsGraph_Samples.Helpers
     {
         private static readonly object FileLock = new object();
 
-        private static readonly string LocalAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        private static readonly string ProjectName = Assembly.GetCallingAssembly().GetName().Name ?? "tokencache";
-        private static readonly string CacheDirectoryPath = $"{LocalAppData}\\{ProjectName}\\";
-        private static readonly string CacheFileName = "msalcache.bin";
-        private static string CacheFilePath => Path.Combine(CacheDirectoryPath, CacheFileName);
+        //private static readonly string LocalAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        //private static readonly string ProjectName = Assembly.GetCallingAssembly().GetName().Name ?? "tokencache";
+        //private static readonly string CacheDirectoryPath = $"{LocalAppData}\\{ProjectName}\\";
+        //private static readonly string CacheFileName = "msalcache.bin";
+        //private static string CacheFilePath => Path.Combine(CacheDirectoryPath, CacheFileName);
 
-        public static void BeforeAccessNotification(TokenCacheNotificationArgs args)
+        private static readonly string CacheFilePath = System.Reflection.Assembly.GetExecutingAssembly().Location + ".msalcache.bin";
+
+        private static void BeforeAccessNotification(TokenCacheNotificationArgs args)
         {
-            if (!File.Exists(CacheFilePath))
-                return;
-
             lock (FileLock)
             {
-                var data = ProtectedData.Unprotect(File.ReadAllBytes(CacheFilePath), null, DataProtectionScope.CurrentUser);
-                args.TokenCache.DeserializeMsalV3(data);
+                args.TokenCache.DeserializeMsalV3(File.Exists(CacheFilePath)
+                        ? ProtectedData.Unprotect(File.ReadAllBytes(CacheFilePath),
+                                                  null,
+                                                  DataProtectionScope.CurrentUser)
+                        : null);
             }
         }
 
-        public static void AfterAccessNotification(TokenCacheNotificationArgs args)
+        private static void AfterAccessNotification(TokenCacheNotificationArgs args)
         {
-            if (!args.HasStateChanged)
-                return;
-
             // if the access operation resulted in a cache update
-            lock (FileLock)
+            if (args.HasStateChanged)
             {
-                if (!Directory.Exists(CacheDirectoryPath))
-                    Directory.CreateDirectory(CacheDirectoryPath);
-
-                var data = ProtectedData.Protect(args.TokenCache.SerializeMsalV3(), null, DataProtectionScope.CurrentUser);
-                File.WriteAllBytes(CacheFilePath, data);
+                lock (FileLock)
+                {
+                    // reflect changes in the persistent store
+                    File.WriteAllBytes(CacheFilePath,
+                                        ProtectedData.Protect(args.TokenCache.SerializeMsalV3(),
+                                                                null,
+                                                                DataProtectionScope.CurrentUser)
+                                        );
+                }
             }
         }
-
         public static void Clear()
         {
             lock (FileLock)
