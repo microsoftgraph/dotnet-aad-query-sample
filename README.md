@@ -30,12 +30,14 @@ description: "This sample demonstrates a .NET Desktop (WPF) application showcasi
 - [Overview](#overview)
 - [Prerequisites](#prerequisites)
 - [Registration](#registration)
-  - [Step 1: Register your application](#step-2-register-your-application)
-  - [Step 2: Set the MS Graph permissions](#step-3-set-the-ms-graph-permissions)
+  - [Step 1: Register your application](#step-1-register-your-application)
+  - [Step 2: Set the MS Graph permissions](#step-2-set-the-ms-graph-permissions)
 - [Setup](#setup)
-  - [Step 1:  Clone or download this repository](#step-1-clone-or-download-this-repository)
+  - [Step 1:  Clone or download this repository](#step-1--clone-or-download-this-repository)
   - [Step 2: Configure the ClientId using the Secret Manager](#step-2-configure-the-clientid-using-the-secret-manager)
 - [Run the sample](#run-the-sample)
+  - [On Visual Studio](#on-visual-studio)
+  - [On Visual Studio Code](#on-visual-studio-code)
   - [Using the app](#using-the-app)
 - [Code Architecture](#code-architecture)
 
@@ -99,14 +101,14 @@ Shortly after you open the project folder in VS Code, a prompt by C# extension w
 Once this is done, open an integrated terminal in VS Code, then type:
 
 ```console
-    dotnet restore
     cd MSGraphSamples.WPF
+    dotnet build
     dotnet run
 ```
 
 ### Using the app
 
-You can query your tenant using the standard OData `$filter`, `$search`, `$orderBy`, `$select` clauses in the relative text boxes. In the screenshot below you can see the $search operator in action:
+You can query your tenant by typing the arguments of the standard OData `$filter`, `$search`, `$orderBy`, `$select` clauses in the relative text boxes. In the screenshot below you can see the $search operator in action:
 
 ![Screenshot of the App](docs/app1.png)
 

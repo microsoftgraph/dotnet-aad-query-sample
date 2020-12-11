@@ -15,36 +15,30 @@ namespace MsGraph_Samples.Helpers
 
         private static readonly string LocalAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         private static readonly string ProjectName = Assembly.GetCallingAssembly().GetName().Name ?? "tokencache";
-        private static readonly string CacheDirectoryPath = $"{LocalAppData}\\{ProjectName}\\";
         private static readonly string CacheFileName = "msalcache.bin";
-        private static string CacheFilePath => Path.Combine(CacheDirectoryPath, CacheFileName);
+        private static string CacheFilePath => Path.Combine(LocalAppData, ProjectName, CacheFileName);
 
         private static void BeforeAccessNotification(TokenCacheNotificationArgs args)
         {
+            if (!File.Exists(CacheFilePath))
+                return;
+
             lock (FileLock)
             {
-                args.TokenCache.DeserializeMsalV3(File.Exists(CacheFilePath)
-                        ? ProtectedData.Unprotect(File.ReadAllBytes(CacheFilePath),
-                                                  null,
-                                                  DataProtectionScope.CurrentUser)
-                        : null);
+                var data = ProtectedData.Unprotect(File.ReadAllBytes(CacheFilePath), null, DataProtectionScope.CurrentUser);
+                args.TokenCache.DeserializeMsalV3(data);
             }
         }
 
         private static void AfterAccessNotification(TokenCacheNotificationArgs args)
         {
-            // if the access operation resulted in a cache update
-            if (args.HasStateChanged)
+            if (!args.HasStateChanged)
+                return;
+
+            lock (FileLock)
             {
-                lock (FileLock)
-                {
-                    // reflect changes in the persistent store
-                    File.WriteAllBytes(CacheFilePath,
-                                        ProtectedData.Protect(args.TokenCache.SerializeMsalV3(),
-                                                                null,
-                                                                DataProtectionScope.CurrentUser)
-                                        );
-                }
+                var data = ProtectedData.Protect(args.TokenCache.SerializeMsalV3(), null, DataProtectionScope.CurrentUser);
+                File.WriteAllBytes(CacheFilePath, data);
             }
         }
         public static void Clear()

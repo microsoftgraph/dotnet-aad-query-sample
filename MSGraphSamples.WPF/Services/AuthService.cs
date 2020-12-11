@@ -113,7 +113,6 @@ namespace MsGraph_Samples.Services
             return authResult?.AccessToken;
         }
 
-
         public async Task Logout()
         {
             TokenCacheHelper.Clear();
