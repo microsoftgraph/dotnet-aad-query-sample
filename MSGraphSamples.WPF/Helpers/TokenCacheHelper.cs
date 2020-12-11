@@ -16,7 +16,9 @@ namespace MsGraph_Samples.Helpers
         private static readonly string LocalAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         private static readonly string ProjectName = Assembly.GetCallingAssembly().GetName().Name ?? "tokencache";
         private static readonly string CacheFileName = "msalcache.bin";
-        private static string CacheFilePath => Path.Combine(LocalAppData, ProjectName, CacheFileName);
+
+        private static readonly string CacheDirectoryPath = Path.Combine(LocalAppData, ProjectName);
+        private static readonly string CacheFilePath = Path.Combine(CacheDirectoryPath, CacheFileName);
 
         private static void BeforeAccessNotification(TokenCacheNotificationArgs args)
         {
@@ -35,8 +37,11 @@ namespace MsGraph_Samples.Helpers
             if (!args.HasStateChanged)
                 return;
 
+            // if the access operation resulted in a cache update
             lock (FileLock)
             {
+                Directory.CreateDirectory(CacheDirectoryPath);
+                                        
                 var data = ProtectedData.Protect(args.TokenCache.SerializeMsalV3(), null, DataProtectionScope.CurrentUser);
                 File.WriteAllBytes(CacheFilePath, data);
             }
