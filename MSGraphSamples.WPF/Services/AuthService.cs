@@ -86,7 +86,7 @@ namespace MsGraph_Samples.Services
 
             AuthenticationResult authResult;
 
-            try
+            try //Trying to acquire token silently
             {
                 authResult = await _publicClientApp
                     .AcquireTokenSilent(_scopes, Account)
@@ -94,10 +94,8 @@ namespace MsGraph_Samples.Services
             }
             catch (MsalUiRequiredException ex1)
             {
-                // A MsalUiRequiredException happened on AcquireTokenSilentAsync.
-                // This indicates you need to call AcquireTokenAsync to acquire a token
                 Debug.WriteLine($"MsalUiRequiredException: {ex1.Message}");
-                try
+                try //Trying to acquire token using Integrated Windows Auth
                 {
                     authResult = await _publicClientApp
                         .AcquireTokenByIntegratedWindowsAuth(_scopes)
@@ -106,7 +104,7 @@ namespace MsGraph_Samples.Services
                 catch (MsalException ex2)
                 {
                     Debug.WriteLine($"MsalClientException: {ex2.Message}");
-                    try
+                    try //Trying to acquire token via Web page
                     {
                         authResult = await _publicClientApp
                             .AcquireTokenInteractive(_scopes)
