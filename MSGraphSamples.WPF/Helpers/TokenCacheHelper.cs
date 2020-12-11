@@ -13,13 +13,11 @@ namespace MsGraph_Samples.Helpers
     {
         private static readonly object FileLock = new object();
 
-        //private static readonly string LocalAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        //private static readonly string ProjectName = Assembly.GetCallingAssembly().GetName().Name ?? "tokencache";
-        //private static readonly string CacheDirectoryPath = $"{LocalAppData}\\{ProjectName}\\";
-        //private static readonly string CacheFileName = "msalcache.bin";
-        //private static string CacheFilePath => Path.Combine(CacheDirectoryPath, CacheFileName);
-
-        private static readonly string CacheFilePath = System.Reflection.Assembly.GetExecutingAssembly().Location + ".msalcache.bin";
+        private static readonly string LocalAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        private static readonly string ProjectName = Assembly.GetCallingAssembly().GetName().Name ?? "tokencache";
+        private static readonly string CacheDirectoryPath = $"{LocalAppData}\\{ProjectName}\\";
+        private static readonly string CacheFileName = "msalcache.bin";
+        private static string CacheFilePath => Path.Combine(CacheDirectoryPath, CacheFileName);
 
         private static void BeforeAccessNotification(TokenCacheNotificationArgs args)
         {
