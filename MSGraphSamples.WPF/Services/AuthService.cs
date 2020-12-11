@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.Graph;
+using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
 using MsGraph_Samples.Helpers;
 
@@ -54,8 +55,11 @@ namespace MsGraph_Samples.Services
 
         public GraphServiceClient GetServiceClient()
         {
-            var authProvider = new DelegateAuthenticationProvider(AuthenticateRequestAsync);
-            return _graphClient ??= new GraphServiceClient(authProvider);
+            //var authProvider = new DelegateAuthenticationProvider(AuthenticateRequestAsync);
+            //return _graphClient ??= new GraphServiceClient(authProvider);
+
+            InteractiveAuthenticationProvider authenticationProvider = new InteractiveAuthenticationProvider(_publicClientApp, _scopes);
+            return _graphClient ??= new GraphServiceClient(authenticationProvider);
         }
 
         public async Task AuthenticateRequestAsync(HttpRequestMessage requestMessage)
@@ -108,6 +112,7 @@ namespace MsGraph_Samples.Services
 
             return authResult?.AccessToken;
         }
+
 
         public async Task Logout()
         {
