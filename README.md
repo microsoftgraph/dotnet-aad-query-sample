@@ -69,7 +69,7 @@ Use the [Microsoft Application Registration Portal](https://aka.ms/appregistrati
 
 ### Step 3: Set the MS Graph permissions
 
-Add the delegated permissions for `Directory.Read.All`. We advise you register and use this sample on a Dev/Test tenant and not on your production tenant.
+Add the [delegated permissions](https://docs.microsoft.com/graph/permissions-reference#delegated-permissions-20) for `Directory.Read.All`. We advise you register and use this sample on a Dev/Test tenant and not on your production tenant.
 
 ![Api Permissions](docs/api_permissions.png)
 
