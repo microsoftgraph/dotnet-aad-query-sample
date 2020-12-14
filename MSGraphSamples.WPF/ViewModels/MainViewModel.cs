@@ -28,7 +28,13 @@ namespace MsGraph_Samples.ViewModels
             set => Set(ref _isBusy, value);
         }
 
-        public string? UserName => _authService.Account?.Username;
+        private string? _userName;
+        public string? UserName
+        {
+            get => _userName;
+            set => Set(ref _userName, value);
+        }
+
         public string? LastUrl => _graphDataService.LastUrl;
 
         public static IReadOnlyList<string> Entities => new[] { "Users", "Groups", "Applications", "Devices" };
@@ -97,15 +103,10 @@ namespace MsGraph_Samples.ViewModels
         public MainViewModel(IAuthService authService, IGraphDataService graphDataService)
         {
             _authService = authService;
-            _authService.AuthenticationSuccessful += () =>
-            {
-                RaisePropertyChanged(nameof(UserName));
-                RelayCommand.RaiseCanExecuteChanged();
-            };
-
-            _graphDataService = graphDataService;
+            _graphDataService = graphDataService;            
             LoadAction();
         }
+
 
         public RelayCommand LoadCommand => new RelayCommand(LoadAction);
         private async void LoadAction()
@@ -137,6 +138,12 @@ namespace MsGraph_Samples.ViewModels
                 RaisePropertyChanged(nameof(LastUrl));
                 RelayCommand.RaiseCanExecuteChanged();
                 IsBusy = false;
+            }
+
+            if(UserName == null)
+            {
+                var account = await _authService.GetAccount();
+                UserName = account?.Username;
             }
         }
 
@@ -239,6 +246,8 @@ namespace MsGraph_Samples.ViewModels
 
         private RelayCommand? _logoutCommand;
         public RelayCommand LogoutCommand => _logoutCommand ??= new RelayCommand(LogoutAction, () => UserName != null);
+
+
         private async void LogoutAction()
         {
             await _authService.Logout();
