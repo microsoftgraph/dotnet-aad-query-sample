@@ -15,11 +15,12 @@ namespace MsGraph_Samples.Helpers
 
         private static readonly string LocalAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         private static readonly string ProjectName = Assembly.GetCallingAssembly().GetName().Name ?? "tokencache";
-        private static readonly string CacheDirectoryPath = $"{LocalAppData}\\{ProjectName}\\";
         private static readonly string CacheFileName = "msalcache.bin";
-        private static string CacheFilePath => Path.Combine(CacheDirectoryPath, CacheFileName);
 
-        public static void BeforeAccessNotification(TokenCacheNotificationArgs args)
+        private static readonly string CacheDirectoryPath = Path.Combine(LocalAppData, ProjectName);
+        private static readonly string CacheFilePath = Path.Combine(CacheDirectoryPath, CacheFileName);
+
+        private static void BeforeAccessNotification(TokenCacheNotificationArgs args)
         {
             if (!File.Exists(CacheFilePath))
                 return;
@@ -31,7 +32,7 @@ namespace MsGraph_Samples.Helpers
             }
         }
 
-        public static void AfterAccessNotification(TokenCacheNotificationArgs args)
+        private static void AfterAccessNotification(TokenCacheNotificationArgs args)
         {
             if (!args.HasStateChanged)
                 return;
@@ -39,14 +40,12 @@ namespace MsGraph_Samples.Helpers
             // if the access operation resulted in a cache update
             lock (FileLock)
             {
-                if (!Directory.Exists(CacheDirectoryPath))
-                    Directory.CreateDirectory(CacheDirectoryPath);
-
+                Directory.CreateDirectory(CacheDirectoryPath);
+                                        
                 var data = ProtectedData.Protect(args.TokenCache.SerializeMsalV3(), null, DataProtectionScope.CurrentUser);
                 File.WriteAllBytes(CacheFilePath, data);
             }
         }
-
         public static void Clear()
         {
             lock (FileLock)
