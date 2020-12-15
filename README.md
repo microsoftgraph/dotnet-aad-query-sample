@@ -72,5 +72,5 @@ The generated URL will appear in the readonly Url textbox. You can click the Gra
 
 This app provides a good starting point for enterprise desktop applications that connects to Microsoft Graph.  
 The implementation is a classic WPF MVVM app with Views, ViewModels and Services. ICommand and INotifyPropertyChanged are manually implemented.
-Dependency Injection is implemented using [`Microsoft.Extensions.DependencyInjection`](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-3.1), supporting design-time data.  
+Dependency Injection is implemented using [`Microsoft.Extensions.DependencyInjection`](https://docs.microsoft.com/aspnet/core/fundamentals/dependency-injection), supporting design-time data.  
 Nullable and Code Analysis are enabled to enforce code quality.

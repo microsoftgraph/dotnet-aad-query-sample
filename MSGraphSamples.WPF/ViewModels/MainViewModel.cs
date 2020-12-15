@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Graph;
@@ -103,13 +104,20 @@ namespace MsGraph_Samples.ViewModels
         public MainViewModel(IAuthService authService, IGraphDataService graphDataService)
         {
             _authService = authService;
-            _graphDataService = graphDataService;            
-            LoadAction();
+            _graphDataService = graphDataService;
+            Init().Await();
         }
 
+        public async Task Init()
+        {
+            await LoadAction();
+            var account = await _authService.GetAccount();
+            UserName = account?.Username;
+        }
 
-        public RelayCommand LoadCommand => new RelayCommand(LoadAction);
-        private async void LoadAction()
+        private AsyncRelayCommand? _loadCommand;
+        public AsyncRelayCommand LoadCommand => _loadCommand ??= new AsyncRelayCommand(LoadAction);
+        private async Task LoadAction()
         {
             FixSearchSyntax();
 
@@ -139,12 +147,6 @@ namespace MsGraph_Samples.ViewModels
                 RelayCommand.RaiseCanExecuteChanged();
                 IsBusy = false;
             }
-
-            if(UserName == null)
-            {
-                var account = await _authService.GetAccount();
-                UserName = account?.Username;
-            }
         }
 
         private void FixSearchSyntax()
@@ -161,7 +163,7 @@ namespace MsGraph_Samples.ViewModels
             foreach (var element in elements)
             {
                 var newElement = element.Contains(':') ?
-                    $"\"{element}\"" :
+                    $"\"{element}\"" : // Search clause needs to be wrapped by double quotes
                     $" {element.ToUpperInvariant()} "; // [AND, OR] operators need to be uppercase
                 sb.Append(newElement);
             }
@@ -169,9 +171,9 @@ namespace MsGraph_Samples.ViewModels
             Search = sb.ToString();
         }
 
-        private RelayCommand? _drillDownCommand;
-        public RelayCommand DrillDownCommand => _drillDownCommand ??= new RelayCommand(DrillDownAction);
-        private async void DrillDownAction()
+        private AsyncRelayCommand? _drillDownCommand;
+        public AsyncRelayCommand DrillDownCommand => _drillDownCommand ??= new AsyncRelayCommand(DrillDownAction);
+        private async Task DrillDownAction()
         {
             if (SelectedObject == null) return;
 
@@ -201,7 +203,7 @@ namespace MsGraph_Samples.ViewModels
                 _stopWatch.Stop();
                 RaisePropertyChanged(nameof(ElapsedMs));
                 RaisePropertyChanged(nameof(LastUrl));
-                RelayCommand.RaiseCanExecuteChanged();
+                AsyncRelayCommand.RaiseCanExecuteChanged();
                 IsBusy = false;
             }
         }
@@ -217,17 +219,17 @@ namespace MsGraph_Samples.ViewModels
             }
         }
 
-        private RelayCommand<DataGridSortingEventArgs>? _sortCommand;
-        public RelayCommand<DataGridSortingEventArgs> SortCommand => _sortCommand ??= new RelayCommand<DataGridSortingEventArgs>(SortAction);
-        private void SortAction(DataGridSortingEventArgs e)
+        private AsyncRelayCommand<DataGridSortingEventArgs>? _sortCommand;
+        public AsyncRelayCommand<DataGridSortingEventArgs> SortCommand => _sortCommand ??= new AsyncRelayCommand<DataGridSortingEventArgs>(SortAction);
+        private Task SortAction(DataGridSortingEventArgs e)
         {
             OrderBy = $"{e.Column.Header}";
             e.Handled = true;
-            LoadAction();
+            return LoadAction();
         }
 
         private RelayCommand? _graphExplorerCommand;
-        public RelayCommand GraphExplorerCommand => _graphExplorerCommand ??= new RelayCommand(GraphExplorerAction, () => LastUrl != null);
+        public RelayCommand GraphExplorerCommand => _graphExplorerCommand ??= new RelayCommand(GraphExplorerAction, () => LastUrl is not null);
         private void GraphExplorerAction()
         {
             if (LastUrl == null) return;
@@ -244,11 +246,10 @@ namespace MsGraph_Samples.ViewModels
             System.Diagnostics.Process.Start(psi);
         }
 
-        private RelayCommand? _logoutCommand;
-        public RelayCommand LogoutCommand => _logoutCommand ??= new RelayCommand(LogoutAction, () => UserName != null);
+        private AsyncRelayCommand? _logoutCommand;
+        public AsyncRelayCommand LogoutCommand => _logoutCommand ??= new AsyncRelayCommand(LogoutAction, () => UserName is not null);
 
-
-        private async void LogoutAction()
+        private async Task LogoutAction()
         {
             await _authService.Logout();
             App.Current.Shutdown();
