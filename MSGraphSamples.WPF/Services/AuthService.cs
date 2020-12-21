@@ -1,32 +1,25 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using System;
-using System.Diagnostics;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.Graph;
+using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Client.Extensions.Msal;
 using System.Reflection;
 
 namespace MsGraph_Samples.Services
 {
-    public interface IAuthService : IAuthenticationProvider
+    public interface IAuthService 
     {
-        IAccount? Account { get; }
-        event Action? AuthenticationSuccessful;
         GraphServiceClient GetServiceClient();
+        Task<IAccount?> GetAccount();
         Task Logout();
     }
 
     public class AuthService : IAuthService
     {
-        public IAccount? Account { get; private set; }
-        public event Action? AuthenticationSuccessful;
-
         /// <summary>
         /// The content of Tenant by the information about the accounts allowed to sign-in in your application:
         /// - for Work or School account in your org, use your tenant ID, or domain
@@ -66,74 +59,23 @@ namespace MsGraph_Samples.Services
 
         public GraphServiceClient GetServiceClient()
         {
-            var authProvider = new DelegateAuthenticationProvider(AuthenticateRequestAsync);
-            return _graphClient ??= new GraphServiceClient(authProvider);
+            var authenticationProvider = new InteractiveAuthenticationProvider(_publicClientApp, _scopes);
+            return _graphClient ??= new GraphServiceClient(authenticationProvider);
         }
 
-        public async Task AuthenticateRequestAsync(HttpRequestMessage requestMessage)
+        public async Task<IAccount?> GetAccount()
         {
-            var accessToken = await AcquireTokenAsync();
-            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-            if (accessToken != null)
-                AuthenticationSuccessful?.Invoke();
-        }
-
-        private async Task<string?> AcquireTokenAsync()
-        {
-            var accounts = await _publicClientApp
-                .GetAccountsAsync().ConfigureAwait(false);
-            Account = accounts.FirstOrDefault();
-
-            AuthenticationResult authResult;
-
-            try //Trying to acquire token silently
-            {
-                authResult = await _publicClientApp
-                    .AcquireTokenSilent(_scopes, Account)
-                    .ExecuteAsync().ConfigureAwait(false);
-            }
-            catch (MsalUiRequiredException ex1)
-            {
-                Debug.WriteLine($"MsalUiRequiredException: {ex1.Message}");
-                try //Trying to acquire token using Integrated Windows Auth
-                {
-                    authResult = await _publicClientApp
-                        .AcquireTokenByIntegratedWindowsAuth(_scopes)
-                        .ExecuteAsync().ConfigureAwait(false);
-                }
-                catch (MsalException ex2)
-                {
-                    Debug.WriteLine($"MsalClientException: {ex2.Message}");
-                    try //Trying to acquire token via Web page
-                    {
-                        authResult = await _publicClientApp
-                            .AcquireTokenInteractive(_scopes)
-                            .WithClaims(ex1.Claims)
-                            .ExecuteAsync().ConfigureAwait(false);
-
-                        Account = authResult.Account;
-                    }
-                    catch (MsalException ex3)
-                    {
-                        Debug.WriteLine($"Error Acquiring Token:{Environment.NewLine}{ex3}");
-                        return null;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error Acquiring Token Silently:{Environment.NewLine}{ex}");
-                return null;
-            }
-
-            return authResult?.AccessToken;
+            var accounts = await _publicClientApp.GetAccountsAsync();
+            return accounts.FirstOrDefault();
         }
 
         public async Task Logout()
         {
-            _cacheHelper.Clear();
             _graphClient = null;
-            await _publicClientApp.RemoveAsync(Account).ConfigureAwait(false);
+            _cacheHelper.Clear();
+
+            var account = await GetAccount();
+            await _publicClientApp.RemoveAsync(account);
         }
     }
 }
