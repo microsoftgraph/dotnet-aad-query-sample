@@ -111,8 +111,9 @@ namespace MsGraph_Samples.ViewModels
         public async Task Init()
         {
             await LoadAction();
-            var account = await _authService.GetAccount();
-            UserName = account?.Username;
+
+            var user = await _graphDataService.GetMe();
+            UserName = user.DisplayName;
         }
 
         private AsyncRelayCommand? _loadCommand;

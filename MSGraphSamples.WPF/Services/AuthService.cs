@@ -1,12 +1,15 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Graph;
 using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
-using MsGraph_Samples.Helpers;
+using Microsoft.Identity.Client.Extensions.Msal;
 
 namespace MsGraph_Samples.Services
 {
@@ -19,6 +22,11 @@ namespace MsGraph_Samples.Services
 
     public class AuthService : IAuthService
     {
+        private static readonly string LocalAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        private static readonly string ProjectName = Assembly.GetCallingAssembly().GetName().Name ?? "tokencache";
+        private static readonly string CacheDirectoryPath = Path.Combine(LocalAppData, ProjectName);
+        private const string CacheFileName = "msalcache.bin";
+
         /// <summary>
         /// The content of Tenant by the information about the accounts allowed to sign-in in your application:
         /// - for Work or School account in your org, use your tenant ID, or domain
@@ -33,7 +41,9 @@ namespace MsGraph_Samples.Services
 
         // Make sure the user you login with has "Directory.Read.All" permissions
         private readonly string[] _scopes = { "Directory.Read.All" };
+
         private readonly IPublicClientApplication _publicClientApp;
+        private MsalCacheHelper? _cacheHelper;
         private GraphServiceClient? _graphClient;
 
         public AuthService(string clientId)
@@ -43,7 +53,16 @@ namespace MsGraph_Samples.Services
                 .WithDefaultRedirectUri()
                 .Build();
 
-            TokenCacheHelper.EnableSerialization(_publicClientApp.UserTokenCache);
+            var storageCreationProperties = new StorageCreationPropertiesBuilder(CacheFileName, CacheDirectoryPath, clientId).Build();
+
+            // Waiting for https://github.com/AzureAD/microsoft-authentication-extensions-for-dotnet/issues/102
+            MsalCacheHelper.CreateAsync(storageCreationProperties).Await(CacheHelperCreated);
+        }
+
+        private void CacheHelperCreated(MsalCacheHelper cacheHelper)
+        {
+            _cacheHelper = cacheHelper;
+            _cacheHelper.RegisterCache(_publicClientApp.UserTokenCache);
         }
 
         public GraphServiceClient GetServiceClient()
@@ -61,7 +80,7 @@ namespace MsGraph_Samples.Services
         public async Task Logout()
         {
             _graphClient = null;
-            TokenCacheHelper.Clear();
+            _cacheHelper?.Clear();
 
             var account = await GetAccount();
             await _publicClientApp.RemoveAsync(account);
