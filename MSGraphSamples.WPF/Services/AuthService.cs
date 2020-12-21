@@ -1,13 +1,15 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Graph;
 using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Client.Extensions.Msal;
-using System.Reflection;
 
 namespace MsGraph_Samples.Services
 {
@@ -20,6 +22,11 @@ namespace MsGraph_Samples.Services
 
     public class AuthService : IAuthService
     {
+        private static readonly string LocalAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        private static readonly string ProjectName = Assembly.GetCallingAssembly().GetName().Name ?? "tokencache";
+        private static readonly string CacheDirectoryPath = Path.Combine(LocalAppData, ProjectName);
+        private const string CacheFileName = "msalcache.bin";
+
         /// <summary>
         /// The content of Tenant by the information about the accounts allowed to sign-in in your application:
         /// - for Work or School account in your org, use your tenant ID, or domain
@@ -36,7 +43,7 @@ namespace MsGraph_Samples.Services
         private readonly string[] _scopes = { "Directory.Read.All" };
 
         private readonly IPublicClientApplication _publicClientApp;
-        private readonly MsalCacheHelper _cacheHelper;
+        private MsalCacheHelper? _cacheHelper;
         private GraphServiceClient? _graphClient;
 
         public AuthService(string clientId)
@@ -46,14 +53,15 @@ namespace MsGraph_Samples.Services
                 .WithDefaultRedirectUri()
                 .Build();
 
-            var LocalAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var ProjectName = Assembly.GetCallingAssembly().GetName().Name ?? "tokencache";
-            var CacheFilePath = $"{LocalAppData}\\{ProjectName}\\";
+            var storageCreationProperties = new StorageCreationPropertiesBuilder(CacheFileName, CacheDirectoryPath, clientId).Build();
 
-            var storageCreationProperties = new StorageCreationPropertiesBuilder("msalcache.bin", CacheFilePath, clientId).Build();
+            // Waiting for https://github.com/AzureAD/microsoft-authentication-extensions-for-dotnet/issues/102
+            MsalCacheHelper.CreateAsync(storageCreationProperties).Await(CacheHelperCreated);
+        }
 
-            // .Result is not a best practice, waiting for https://github.com/AzureAD/microsoft-authentication-extensions-for-dotnet/issues/102
-            _cacheHelper = MsalCacheHelper.CreateAsync(storageCreationProperties).Result;
+        private void CacheHelperCreated(MsalCacheHelper cacheHelper)
+        {
+            _cacheHelper = cacheHelper;
             _cacheHelper.RegisterCache(_publicClientApp.UserTokenCache);
         }
 
@@ -72,7 +80,7 @@ namespace MsGraph_Samples.Services
         public async Task Logout()
         {
             _graphClient = null;
-            _cacheHelper.Clear();
+            _cacheHelper?.Clear();
 
             var account = await GetAccount();
             await _publicClientApp.RemoveAsync(account);

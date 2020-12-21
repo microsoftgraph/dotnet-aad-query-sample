@@ -9,12 +9,18 @@ namespace MsGraph_Samples.Services
     public class FakeGraphDataService : IGraphDataService
     {
         public string? LastUrl => "https://graph.microsoft.com/beta/users?$count=true";
-        private IEnumerable<DirectoryObject> Users => new[]
+        private static IList<DirectoryObject> Users => new[]
         {
             new User { Id = "1", DisplayName = "Luca Spolidoro", Mail = "a@b.c" },
             new User { Id = "2", DisplayName = "Pino Quercia", Mail = "pino@quercia.com" },
             new User { Id = "3", DisplayName = "Test Test", Mail = "test@test.com" }
         };
+
+        public Task<User> GetMe()
+        {
+            return Task.FromResult((User)Users[0]);
+        }
+
 
         public Task<IEnumerable<DirectoryObject>?> GetApplicationsAsync(string filter, string search, string select, string orderBy)
         {
