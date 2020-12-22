@@ -36,7 +36,7 @@
     Icon="/Assets/MSGraph.png"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
-    
+
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Loaded">
             <i:InvokeCommandAction Command="{Binding LoadCommand}" />
@@ -72,7 +72,7 @@
                         $select
                     </Hyperlink>
                 </TextBlock>
-                <TextBox Text="{Binding Select, UpdateSourceTrigger=PropertyChanged}">
+                <TextBox Text="{Binding Select, Mode=TwoWay}" ToolTipService.ShowDuration="10000">
                     <TextBox.ToolTip>
                         <TextBlock>
                             <Run Foreground="Green">// List properties you want to select separated by a comma</Run>
@@ -91,7 +91,7 @@
                         $orderBy
                     </Hyperlink>
                 </TextBlock>
-                <TextBox Text="{Binding OrderBy, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" ToolTipService.ShowDuration="10000">
+                <TextBox Text="{Binding OrderBy, Mode=TwoWay}" ToolTipService.ShowDuration="10000">
                     <TextBox.ToolTip>
                         <TextBlock>
                             <Run Foreground="Green">// Enabled only on few properties, see documentation for details</Run>
@@ -112,7 +112,7 @@
                         $filter
                     </Hyperlink>
                 </TextBlock>
-                <TextBox Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" ToolTipService.ShowDuration="10000">
+                <TextBox Text="{Binding Filter, Mode=TwoWay}" ToolTipService.ShowDuration="10000">
                     <TextBox.ToolTip>
                         <TextBlock>
                             property eq 'filterValue'<LineBreak />
@@ -135,7 +135,7 @@
                     </Hyperlink>
                 </TextBlock>
 
-                <TextBox Text="{Binding Search, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" ToolTipService.ShowDuration="10000">
+                <TextBox Text="{Binding Search, Mode=TwoWay}" ToolTipService.ShowDuration="10000">
                     <TextBox.ToolTip>
                         <TextBlock>
                             <Run Foreground="Green">// Enabled on displayName and Description</Run>
@@ -165,6 +165,7 @@
                 Grid.Column="2"
                 Margin="6"
                 Padding="6,0"
+                Click="LoadButton_Click"
                 Command="{Binding LoadCommand}"
                 Content="Load"
                 IsDefault="True" />

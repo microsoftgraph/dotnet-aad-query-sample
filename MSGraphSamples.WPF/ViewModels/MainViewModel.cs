@@ -20,7 +20,7 @@ namespace MsGraph_Samples.ViewModels
         private readonly IAuthService _authService;
         private readonly IGraphDataService _graphDataService;
 
-        private readonly Stopwatch _stopWatch = new Stopwatch();
+        private readonly Stopwatch _stopWatch = new();
 
         private bool _isBusy;
         public bool IsBusy
@@ -73,6 +73,8 @@ namespace MsGraph_Samples.ViewModels
             }
         }
 
+        #region OData Operators
+
         private string _select = "id, displayName, mail, userPrincipalName";
         public string Select
         {
@@ -87,19 +89,28 @@ namespace MsGraph_Samples.ViewModels
             set => Set(ref _filter, value);
         }
 
-        private string _search = string.Empty;
-        public string Search
-        {
-            get => _search;
-            set => Set(ref _search, value);
-        }
-
         private string _orderBy = string.Empty;
         public string OrderBy
         {
             get => _orderBy;
             set => Set(ref _orderBy, value);
         }
+
+        private string _search = string.Empty;
+        public string Search
+        {
+            get => _search;
+            set
+            {
+                if (_search == value)
+                    return;
+
+                _search = FixSearchSyntax(value);
+                RaisePropertyChanged();
+            }
+        }
+
+        #endregion
 
         public MainViewModel(IAuthService authService, IGraphDataService graphDataService)
         {
@@ -116,12 +127,9 @@ namespace MsGraph_Samples.ViewModels
             UserName = user.DisplayName;
         }
 
-        private AsyncRelayCommand? _loadCommand;
-        public AsyncRelayCommand LoadCommand => _loadCommand ??= new AsyncRelayCommand(LoadAction);
+        public AsyncRelayCommand LoadCommand => new(LoadAction);
         private async Task LoadAction()
         {
-            FixSearchSyntax();
-
             IsBusy = true;
             _stopWatch.Restart();
 
@@ -150,30 +158,32 @@ namespace MsGraph_Samples.ViewModels
             }
         }
 
-        private void FixSearchSyntax()
+        private static string FixSearchSyntax(string searchValue)
         {
-            if (Search.IsNullOrEmpty())
-                return;
+            if (searchValue.Contains('"'))
+                return searchValue; // Assume already correctly formatted
 
-            if (Search.Contains('"'))
-                return;
-
-            var elements = Search.Split(' ');
+            var elements = searchValue.Trim().Split(' ');
             var sb = new StringBuilder(elements.Length);
 
             foreach (var element in elements)
             {
-                var newElement = element.Contains(':') ?
-                    $"\"{element}\"" : // Search clause needs to be wrapped by double quotes
-                    $" {element.ToUpperInvariant()} "; // [AND, OR] operators need to be uppercase
+                string? newElement;
+
+                if (element.Contains(':'))
+                    newElement = $"\"{element}\""; // Search clause needs to be wrapped by double quotes
+                else if (element.In("AND", "OR"))
+                    newElement = $" {element.ToUpperInvariant()} "; // [AND, OR] Operators need to be uppercase
+                else
+                    newElement = element;
+
                 sb.Append(newElement);
             }
 
-            Search = sb.ToString();
+            return sb.ToString();
         }
 
-        private AsyncRelayCommand? _drillDownCommand;
-        public AsyncRelayCommand DrillDownCommand => _drillDownCommand ??= new AsyncRelayCommand(DrillDownAction);
+        private AsyncRelayCommand DrillDownCommand => new(DrillDownAction);
         private async Task DrillDownAction()
         {
             if (SelectedObject == null) return;
@@ -209,8 +219,7 @@ namespace MsGraph_Samples.ViewModels
             }
         }
 
-        public RelayCommand<DataGridAutoGeneratingColumnEventArgs> AutoGeneratingColumn =>
-            new RelayCommand<DataGridAutoGeneratingColumnEventArgs>(AutoGeneratingColumnAction);
+        public RelayCommand<DataGridAutoGeneratingColumnEventArgs> AutoGeneratingColumn => new(AutoGeneratingColumnAction);
         private void AutoGeneratingColumnAction(DataGridAutoGeneratingColumnEventArgs e)
         {
             if (!Select.IsNullOrEmpty())
@@ -220,8 +229,7 @@ namespace MsGraph_Samples.ViewModels
             }
         }
 
-        private AsyncRelayCommand<DataGridSortingEventArgs>? _sortCommand;
-        public AsyncRelayCommand<DataGridSortingEventArgs> SortCommand => _sortCommand ??= new AsyncRelayCommand<DataGridSortingEventArgs>(SortAction);
+        public AsyncRelayCommand<DataGridSortingEventArgs> SortCommand => new(SortAction);
         private Task SortAction(DataGridSortingEventArgs e)
         {
             OrderBy = $"{e.Column.Header}";
@@ -229,8 +237,7 @@ namespace MsGraph_Samples.ViewModels
             return LoadAction();
         }
 
-        private RelayCommand? _graphExplorerCommand;
-        public RelayCommand GraphExplorerCommand => _graphExplorerCommand ??= new RelayCommand(GraphExplorerAction, () => LastUrl is not null);
+        public RelayCommand GraphExplorerCommand => new(GraphExplorerAction, () => LastUrl is not null);
         private void GraphExplorerAction()
         {
             if (LastUrl == null) return;
@@ -247,8 +254,7 @@ namespace MsGraph_Samples.ViewModels
             System.Diagnostics.Process.Start(psi);
         }
 
-        private AsyncRelayCommand? _logoutCommand;
-        public AsyncRelayCommand LogoutCommand => _logoutCommand ??= new AsyncRelayCommand(LogoutAction, () => UserName is not null);
+        public AsyncRelayCommand LogoutCommand => new(LogoutAction, () => UserName is not null);
 
         private async Task LogoutAction()
         {

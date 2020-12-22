@@ -9,12 +9,9 @@ namespace MsGraph_Samples
 {
     public static class ExtensionMethods
     {
-        public static bool In(this string s, params string[] items)
-        {
-            return items.Any(i => i.Trim().Equals(s, StringComparison.InvariantCultureIgnoreCase));
-        }
-
         public static bool IsNullOrEmpty(this string? s) => string.IsNullOrEmpty(s);
+
+        public static bool In(this string s, params string[] items) => items.Any(i => i.Trim().Equals(s, StringComparison.InvariantCultureIgnoreCase));
 
         public static int NthIndexOf(this string input, char value, int nth, int startIndex = 0)
         {
@@ -25,7 +22,6 @@ namespace MsGraph_Samples
 
             return input.NthIndexOf(value, --nth, input.IndexOf(value, startIndex) + 1);
         }
-
 
         /// <summary>
         /// Awaits a task without blocking the main thread. (From PRISM framework)
@@ -68,6 +64,5 @@ namespace MsGraph_Samples
                 errorCallback?.Invoke(ex);
             }
         }
-
     }
 }

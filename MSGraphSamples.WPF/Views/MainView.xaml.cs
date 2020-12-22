@@ -29,5 +29,12 @@ namespace MsGraph_Samples.Views
                 e.Handled = true;
             }
         }
+
+        private void LoadButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Workaround to prevent IsDefault button to execute before TextBox Bindings
+            var button = (Button)sender;
+            button.Focus();
+        }
     }
 }
