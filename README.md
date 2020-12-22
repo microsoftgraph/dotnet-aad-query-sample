@@ -25,7 +25,7 @@ codeUrl: https://github.com/microsoftgraph/dotnet-aad-query-sample
 zipUrl: https://github.com/microsoftgraph/dotnet-aad-query-sample/archive/master.zip
 description: "This sample demonstrates a .NET Desktop (WPF) application showcasing advanced Microsoft Graph Query Capabilities for Directory Objects with .NET"
 ---
-# Explore advanced Microsoft Graph Query Capabilities for Directory Objects with .NET SDK
+# Explore advanced Microsoft Graph Query Capabilities for Directory Objects (AAD) with .NET SDK
 
 - [Overview](#overview)
 - [Prerequisites](#prerequisites)
