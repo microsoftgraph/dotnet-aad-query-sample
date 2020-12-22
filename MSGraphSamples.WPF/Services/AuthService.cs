@@ -13,10 +13,9 @@ using Microsoft.Identity.Client.Extensions.Msal;
 
 namespace MsGraph_Samples.Services
 {
-    public interface IAuthService 
+    public interface IAuthService
     {
         GraphServiceClient GetServiceClient();
-        Task<IAccount?> GetAccount();
         Task Logout();
     }
 
@@ -45,6 +44,7 @@ namespace MsGraph_Samples.Services
         private readonly IPublicClientApplication _publicClientApp;
         private MsalCacheHelper? _cacheHelper;
         private GraphServiceClient? _graphClient;
+        private InteractiveAuthenticationProvider AuthProvider => new(_publicClientApp, _scopes);
 
         public AuthService(string clientId)
         {
@@ -55,9 +55,11 @@ namespace MsGraph_Samples.Services
 
             var storageCreationProperties = new StorageCreationPropertiesBuilder(CacheFileName, CacheDirectoryPath, clientId).Build();
 
-            // Waiting for https://github.com/AzureAD/microsoft-authentication-extensions-for-dotnet/issues/102
+            // Workaround for Async creation, waiting for https://github.com/AzureAD/microsoft-authentication-extensions-for-dotnet/issues/102
             MsalCacheHelper.CreateAsync(storageCreationProperties).Await(CacheHelperCreated);
         }
+
+        public GraphServiceClient GetServiceClient() => _graphClient ??= new GraphServiceClient(AuthProvider);
 
         private void CacheHelperCreated(MsalCacheHelper cacheHelper)
         {
@@ -65,13 +67,7 @@ namespace MsGraph_Samples.Services
             _cacheHelper.RegisterCache(_publicClientApp.UserTokenCache);
         }
 
-        public GraphServiceClient GetServiceClient()
-        {
-            var authenticationProvider = new InteractiveAuthenticationProvider(_publicClientApp, _scopes);
-            return _graphClient ??= new GraphServiceClient(authenticationProvider);
-        }
-
-        public async Task<IAccount?> GetAccount()
+        private async Task<IAccount?> GetAccount()
         {
             var accounts = await _publicClientApp.GetAccountsAsync();
             return accounts.FirstOrDefault();

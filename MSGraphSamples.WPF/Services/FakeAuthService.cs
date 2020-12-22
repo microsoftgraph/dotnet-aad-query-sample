@@ -9,8 +9,6 @@ namespace MsGraph_Samples.Services
     {
         public GraphServiceClient GetServiceClient() => throw new NotImplementedException();
 
-        public Task<IAccount?> GetAccount() => Task.FromResult<IAccount?>(null);
-
         public Task Logout() => throw new NotImplementedException();
     }
 }

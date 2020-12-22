@@ -26,10 +26,10 @@ namespace MsGraph_Samples.Services
     public class GraphDataService : IGraphDataService
     {
         // Required for Advanced Queries
-        private readonly QueryOption OdataCount = new QueryOption("$count", "true");
+        private readonly QueryOption OdataCount = new("$count", "true");
 
         // Required for Advanced Queries
-        private readonly HeaderOption EventualConsistency = new HeaderOption("ConsistencyLevel", "eventual");
+        private readonly HeaderOption EventualConsistency = new("ConsistencyLevel", "eventual");
 
         public string? LastUrl { get; private set; } = null;
 

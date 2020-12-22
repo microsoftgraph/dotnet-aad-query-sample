@@ -110,7 +110,6 @@ namespace MsGraph_Samples.MVVM
 
     }
 
-
     public class AsyncRelayCommand<T> : BaseRelayCommand
     {
         private bool _isExecuting;
