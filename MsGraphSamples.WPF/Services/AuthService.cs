@@ -55,17 +55,17 @@ namespace MsGraph_Samples.Services
 
             var storageCreationProperties = new StorageCreationPropertiesBuilder(CacheFileName, CacheDirectoryPath, clientId).Build();
 
-            // Workaround for Async creation, waiting for https://github.com/AzureAD/microsoft-authentication-extensions-for-dotnet/issues/102
-            MsalCacheHelper.CreateAsync(storageCreationProperties).Await(CacheHelperCreated);
+            // Workaround for Async creation, waiting for
+            // https://github.com/AzureAD/microsoft-authentication-extensions-for-dotnet/issues/102
+            MsalCacheHelper.CreateAsync(storageCreationProperties)
+                .Await(cacheHelper =>
+                {
+                    _cacheHelper = cacheHelper;
+                    _cacheHelper.RegisterCache(_publicClientApp.UserTokenCache);
+                });
         }
 
         public GraphServiceClient GetServiceClient() => _graphClient ??= new GraphServiceClient(AuthProvider);
-
-        private void CacheHelperCreated(MsalCacheHelper cacheHelper)
-        {
-            _cacheHelper = cacheHelper;
-            _cacheHelper.RegisterCache(_publicClientApp.UserTokenCache);
-        }
 
         private async Task<IAccount?> GetAccount()
         {

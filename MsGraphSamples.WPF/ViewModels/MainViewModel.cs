@@ -183,7 +183,7 @@ namespace MsGraph_Samples.ViewModels
             return sb.ToString();
         }
 
-        private AsyncRelayCommand DrillDownCommand => new(DrillDownAction);
+        public AsyncRelayCommand DrillDownCommand => new(DrillDownAction);
         private async Task DrillDownAction()
         {
             if (SelectedObject == null) return;
