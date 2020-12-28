@@ -41,7 +41,7 @@ namespace MsGraph_Samples.Services
         // Make sure the user you login with has "Directory.Read.All" permissions
         private readonly string[] _scopes = { "Directory.Read.All" };
 
-        private MsalCacheHelper _cacheHelper;
+        private MsalCacheHelper? _cacheHelper;
         private readonly IPublicClientApplication _publicClientApp;
         private InteractiveAuthenticationProvider AuthProvider => new(_publicClientApp, _scopes);
         private GraphServiceClient? _graphClient;
