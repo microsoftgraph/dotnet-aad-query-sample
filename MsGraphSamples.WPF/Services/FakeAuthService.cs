@@ -7,7 +7,7 @@ namespace MsGraph_Samples.Services
 {
     public class FakeAuthService : IAuthService
     {
-        public GraphServiceClient GetServiceClient() => throw new NotImplementedException();
+        public IGraphServiceClient GetServiceClient() => throw new NotImplementedException();
 
         public Task Logout() => throw new NotImplementedException();
     }

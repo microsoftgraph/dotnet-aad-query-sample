@@ -15,7 +15,7 @@ namespace MsGraph_Samples.Services
 {
     public interface IAuthService
     {
-        GraphServiceClient GetServiceClient();
+        IGraphServiceClient GetServiceClient();
         Task Logout();
     }
 
@@ -41,11 +41,12 @@ namespace MsGraph_Samples.Services
         // Make sure the user you login with has "Directory.Read.All" permissions
         private readonly string[] _scopes = { "Directory.Read.All" };
 
-        private MsalCacheHelper? _cacheHelper;
         private readonly IPublicClientApplication _publicClientApp;
+
         private InteractiveAuthenticationProvider AuthProvider => new(_publicClientApp, _scopes);
-        private GraphServiceClient? _graphClient;
-        public GraphServiceClient GetServiceClient() => _graphClient ??= new GraphServiceClient(AuthProvider);
+        
+        private IGraphServiceClient? _graphClient;
+        public IGraphServiceClient GetServiceClient() => _graphClient ??= new GraphServiceClient(AuthProvider);
 
         public AuthService(string clientId)
         {
@@ -58,28 +59,23 @@ namespace MsGraph_Samples.Services
 
             // Workaround for Async creation, waiting for
             // https://github.com/AzureAD/microsoft-authentication-extensions-for-dotnet/issues/102
-            MsalCacheHelper.CreateAsync(storageCreationProperties)
-                .Await(cacheHelper =>
-                {
-                    _cacheHelper = cacheHelper;
-                    _cacheHelper.RegisterCache(_publicClientApp.UserTokenCache);
-                });
-        }
-
-
-        private async Task<IAccount?> GetAccount()
-        {
-            var accounts = await _publicClientApp.GetAccountsAsync();
-            return accounts.FirstOrDefault();
+            MsalCacheHelper
+                .CreateAsync(storageCreationProperties)
+                .Await(ch => ch.RegisterCache(_publicClientApp.UserTokenCache));
         }
 
         public async Task Logout()
         {
             _graphClient = null;
-            _cacheHelper?.Clear();
 
             var account = await GetAccount();
             await _publicClientApp.RemoveAsync(account);
+        }
+
+        private async Task<IAccount?> GetAccount()
+        {
+            var accounts = await _publicClientApp.GetAccountsAsync();
+            return accounts.FirstOrDefault();
         }
     }
 }
