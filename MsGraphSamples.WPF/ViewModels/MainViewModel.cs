@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
 using System.Text;
@@ -37,6 +38,40 @@ namespace MsGraph_Samples.ViewModels
         }
 
         public string? LastUrl => _graphDataService.LastUrl;
+        public string PowerShellCmdLet
+        {
+            get
+            {
+                StringBuilder cmdLet = new();
+                
+                //TODO: handle links (drilldown command)
+                cmdLet.Append(SelectedEntity switch
+                {
+                    "Users" => "Get-MgUser ",
+                    "Groups" => "Get-MgGroup ",
+                    "Applications" => "Get-MgApplication ",
+                    "Devices" => "Get-MgDevice ",
+                    _ => throw new NotImplementedException("Can't find selected entity")
+                });
+
+                cmdLet.Append("-consistencyLevel eventual ");
+                cmdLet.Append("-count userCount ");
+
+                if (!Select.IsNullOrEmpty())
+                    cmdLet.Append($"-select {Select} ");
+
+                if (!Filter.IsNullOrEmpty())
+                    cmdLet.Append($"-filter {Filter} ");
+
+                if (!OrderBy.IsNullOrEmpty())
+                    cmdLet.Append($"-orderBy {OrderBy} ");
+
+                if (!Search.IsNullOrEmpty())
+                    cmdLet.Append($"-search '{Search}' ");
+
+                return cmdLet.ToString();
+            }
+        }
 
         public static IReadOnlyList<string> Entities => new[] { "Users", "Groups", "Applications", "Devices" };
         private string _selectedEntity = "Users";
@@ -149,6 +184,7 @@ namespace MsGraph_Samples.ViewModels
                 _stopWatch.Stop();
                 RaisePropertyChanged(nameof(ElapsedMs));
                 RaisePropertyChanged(nameof(LastUrl));
+                RaisePropertyChanged(nameof(PowerShellCmdLet));
                 RelayCommand.RaiseCanExecuteChanged();
                 IsBusy = false;
             }
@@ -219,6 +255,7 @@ namespace MsGraph_Samples.ViewModels
                 _stopWatch.Stop();
                 RaisePropertyChanged(nameof(ElapsedMs));
                 RaisePropertyChanged(nameof(LastUrl));
+                RaisePropertyChanged(nameof(PowerShellCmdLet));
                 AsyncRelayCommand.RaiseCanExecuteChanged();
                 IsBusy = false;
             }
@@ -247,6 +284,22 @@ namespace MsGraph_Samples.ViewModels
 
             var psi = new ProcessStartInfo { FileName = url, UseShellExecute = true };
             System.Diagnostics.Process.Start(psi);
+        }
+
+        public RelayCommand OpenPowerShellCommand => new(OpenPowerShellAction);
+        private void OpenPowerShellAction()
+        {
+            var psi = new ProcessStartInfo { FileName = "pwsh.exe", Arguments = $"-NoExit -Command \"Connect-Graph -Scopes 'Directory.Read.All'; {PowerShellCmdLet}\"" };
+            try
+            {
+                System.Diagnostics.Process.Start(psi);
+            }
+            catch (Win32Exception ex) when (ex.ErrorCode == -2147467259)
+            {
+                // Can't find pwsh.exe, redirect to Store to install
+                psi = new ProcessStartInfo { FileName = "https://www.microsoft.com/store/productId/9MZ1SNWT0N5D", UseShellExecute = true };
+                System.Diagnostics.Process.Start(psi);
+            }
         }
 
         public AsyncRelayCommand LogoutCommand => new(LogoutAction, () => UserName is not null);

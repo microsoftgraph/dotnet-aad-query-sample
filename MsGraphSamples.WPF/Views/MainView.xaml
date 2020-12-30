@@ -146,7 +146,7 @@
                 Grid.Row="0"
                 Grid.Column="2"
                 Margin="6,0">
-                <!-- I can bind AdditionalData property thanks to IEnumerable covariance support -->
+                <!--  I can bind AdditionalData property thanks to IEnumerable covariance support  -->
                 <TextBlock FontWeight="Bold" Text="{Binding DirectoryObjects.AdditionalData[@odata.count], StringFormat=Entities ({0}), FallbackValue=Entities}" />
                 <ComboBox
                     Width="120"
@@ -167,6 +167,10 @@
         </Grid>
 
         <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -185,6 +189,23 @@
                 Padding="6,0"
                 Command="{Binding GraphExplorerCommand}"
                 Content="Graph Explorer" />
+            <TextBox
+                Grid.Row="1"
+                Margin="6"
+                Background="{DynamicResource {x:Static SystemColors.MenuBrushKey}}"
+                GotFocus="TextBox_SelectAll"
+                IsReadOnly="True"
+                PreviewMouseDown="TextBox_PreviewMouseDown"
+                Text="{Binding PowerShellCmdLet, Mode=OneWay}" />
+            <Button
+                Grid.Row="1"
+                Grid.Column="1"
+                Width="120"
+                Margin="6"
+                Padding="6,0"
+                Command="{Binding OpenPowerShellCommand}"
+                Content="Open PowerShell" />
+
         </Grid>
         <DataGrid
             Grid.Row="2"
