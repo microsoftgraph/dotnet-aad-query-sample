@@ -19,14 +19,14 @@ namespace MsGraph_Samples.ViewModels
 
         public ViewModelLocator()
         {
-            IServiceCollection serviceCollection = new ServiceCollection();
-            ConfigureServices(serviceCollection);
-            Services = serviceCollection.BuildServiceProvider();
+            Services = GetServices();
         }
 
-        private static void ConfigureServices(IServiceCollection serviceCollection)
+        private static IServiceProvider GetServices()
         {
-            if(IsInDesignMode)
+            IServiceCollection serviceCollection = new ServiceCollection();
+
+            if (IsInDesignMode)
             {
                 serviceCollection.AddSingleton<IAuthService, FakeAuthService>();
                 serviceCollection.AddSingleton<IGraphDataService, FakeGraphDataService>();
@@ -41,6 +41,8 @@ namespace MsGraph_Samples.ViewModels
             }
 
             serviceCollection.AddSingleton<MainViewModel>();
+
+            return serviceCollection.BuildServiceProvider();
         }
     }
 }
