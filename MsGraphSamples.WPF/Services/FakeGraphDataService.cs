@@ -9,7 +9,7 @@ namespace MsGraph_Samples.Services
     public class FakeGraphDataService : IGraphDataService
     {
         public string? LastUrl => "https://graph.microsoft.com/beta/users?$count=true";
-        private static IList<DirectoryObject> Users => new[]
+        private static IList<User> Users => new[]
         {
             new User { Id = "1", DisplayName = "Luca Spolidoro", Mail = "a@b.c" },
             new User { Id = "2", DisplayName = "Pino Quercia", Mail = "pino@quercia.com" },
@@ -18,48 +18,47 @@ namespace MsGraph_Samples.Services
 
         public Task<User> GetMe()
         {
-            return Task.FromResult((User)Users[0]);
+            return Task.FromResult(Users[0]);
         }
 
-
-        public Task<IEnumerable<DirectoryObject>?> GetApplicationsAsync(string filter, string search, string select, string orderBy)
+        public Task<IGraphServiceApplicationsCollectionPage> GetApplicationsAsync(string filter, string search, string select, string orderBy)
         {
-            return Task.FromResult<IEnumerable<DirectoryObject>?>(null);
+            return Task.FromResult((IGraphServiceApplicationsCollectionPage)new GraphServiceApplicationsCollectionPage());
         }
 
-        public Task<IEnumerable<DirectoryObject>?> GetDevicesAsync(string filter, string search, string select, string orderBy)
+        public Task<IGraphServiceDevicesCollectionPage> GetDevicesAsync(string filter, string search, string select, string orderBy)
         {
-            return Task.FromResult<IEnumerable<DirectoryObject>?>(null);
+            return Task.FromResult((IGraphServiceDevicesCollectionPage)new GraphServiceDevicesCollectionPage());
         }
 
-        public Task<IEnumerable<DirectoryObject>?> GetGroupsAsync(string filter, string search, string select, string orderBy)
+        public Task<IGraphServiceGroupsCollectionPage> GetGroupsAsync(string filter, string search, string select, string orderBy)
         {
-            return Task.FromResult<IEnumerable<DirectoryObject>?>(null);
+            return Task.FromResult((IGraphServiceGroupsCollectionPage)new GraphServiceGroupsCollectionPage());
         }
 
-        public Task<IEnumerable<DirectoryObject>?> GetAppOwnersAsUsersAsync(string id)
+        public Task<IGraphServiceUsersCollectionPage> GetAppOwnersAsUsersAsync(string id)
         {
-            return Task.FromResult<IEnumerable<DirectoryObject>?>(null);
+            return Task.FromResult((IGraphServiceUsersCollectionPage)new GraphServiceUsersCollectionPage());
         }
 
-        public Task<IEnumerable<DirectoryObject>?> GetTransitiveMemberOfAsGroupsAsync(string id)
+        public Task<IGraphServiceGroupsCollectionPage> GetTransitiveMemberOfAsGroupsAsync(string id)
         {
-            return Task.FromResult<IEnumerable<DirectoryObject>?>(null);
+            return Task.FromResult((IGraphServiceGroupsCollectionPage)new GraphServiceGroupsCollectionPage());
         }
 
-        public Task<IEnumerable<DirectoryObject>?> GetTransitiveMembersAsUsersAsync(string id)
+        public Task<IGraphServiceUsersCollectionPage> GetTransitiveMembersAsUsersAsync(string id)
         {
-            return Task.FromResult<IEnumerable<DirectoryObject>?>(null);
+            return Task.FromResult((IGraphServiceUsersCollectionPage)new GraphServiceUsersCollectionPage());
         }
 
-        public Task<IEnumerable<DirectoryObject>?> GetUsersAsync(string filter, string search, string select, string orderBy)
+        public Task<IGraphServiceUsersCollectionPage> GetUsersAsync(string filter, string search, string select, string orderBy)
         {
-            return Task.FromResult<IEnumerable<DirectoryObject>?>(Users);
+            return Task.FromResult((IGraphServiceUsersCollectionPage)new GraphServiceUsersCollectionPage());
         }
 
-        public Task<long> GetUsersRawCountAsync(string filter, string search)
+        public Task<int> GetUsersRawCountAsync(string filter, string search)
         {
-            return Task.FromResult(Users.LongCount());
+            return Task.FromResult(Users.Count);
         }
     }
 }

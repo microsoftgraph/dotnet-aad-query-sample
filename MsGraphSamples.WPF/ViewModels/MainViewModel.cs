@@ -59,27 +59,23 @@ namespace MsGraph_Samples.ViewModels
         public IEnumerable<DirectoryObject>? DirectoryObjects
         {
             get => _directoryObjects;
-            set
-            {
-                Set(ref _directoryObjects, value);
-                SelectedEntity = DirectoryObjects switch
-                {
-                    GraphServiceUsersCollectionPage _ => "Users",
-                    GraphServiceGroupsCollectionPage _ => "Groups",
-                    GraphServiceApplicationsCollectionPage _ => "Applications",
-                    GraphServiceDevicesCollectionPage _ => "Devices",
-                    _ => SelectedEntity,
-                };
-            }
+            set => Set(ref _directoryObjects, value);
         }
 
         #region OData Operators
 
-        private string _select = "id, displayName, mail, userPrincipalName";
+        private const string SelectDefaultValue = "id, displayName, mail, userPrincipalName";
+        public string[] SplittedSelect { get; private set; } = SelectDefaultValue.Split(',', StringSplitOptions.TrimEntries);
+
+        private string _select = SelectDefaultValue;
         public string Select
         {
             get => _select;
-            set => Set(ref _select, value);
+            set
+            {
+                if (Set(ref _select, value))
+                    SplittedSelect = Select.Split(',', StringSplitOptions.TrimEntries);
+            }
         }
 
         private string _filter = string.Empty;
@@ -204,6 +200,15 @@ namespace MsGraph_Samples.ViewModels
                     "Devices" => await _graphDataService.GetTransitiveMemberOfAsGroupsAsync(SelectedObject.Id),
                     _ => null
                 };
+
+                SelectedEntity = DirectoryObjects switch
+                {
+                    IGraphServiceUsersCollectionPage => "Users",
+                    IGraphServiceGroupsCollectionPage => "Groups",
+                    IGraphServiceApplicationsCollectionPage => "Applications",
+                    IGraphServiceDevicesCollectionPage => "Devices",
+                    _ => SelectedEntity,
+                };
             }
             catch (ServiceException ex)
             {
@@ -216,16 +221,6 @@ namespace MsGraph_Samples.ViewModels
                 RaisePropertyChanged(nameof(LastUrl));
                 AsyncRelayCommand.RaiseCanExecuteChanged();
                 IsBusy = false;
-            }
-        }
-
-        public RelayCommand<DataGridAutoGeneratingColumnEventArgs> AutoGeneratingColumn => new(AutoGeneratingColumnAction);
-        private void AutoGeneratingColumnAction(DataGridAutoGeneratingColumnEventArgs e)
-        {
-            if (!Select.IsNullOrEmpty())
-            {
-                e.Cancel = !e.PropertyName.In(Select.Split(','));
-                e.Column.Width = new DataGridLength(1, DataGridLengthUnitType.Star);
             }
         }
 

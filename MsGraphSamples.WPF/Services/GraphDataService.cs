@@ -11,14 +11,14 @@ namespace MsGraph_Samples.Services
     public interface IGraphDataService
     {
         Task<User> GetMe();
-        Task<IEnumerable<DirectoryObject>?> GetApplicationsAsync(string filter, string search, string select, string orderBy);
-        Task<IEnumerable<DirectoryObject>?> GetDevicesAsync(string filter, string search, string select, string orderBy);
-        Task<IEnumerable<DirectoryObject>?> GetGroupsAsync(string filter, string search, string select, string orderBy);
-        Task<IEnumerable<DirectoryObject>?> GetUsersAsync(string filter, string search, string select, string orderBy);
-        Task<IEnumerable<DirectoryObject>?> GetTransitiveMemberOfAsGroupsAsync(string id);
-        Task<IEnumerable<DirectoryObject>?> GetTransitiveMembersAsUsersAsync(string id);
-        Task<IEnumerable<DirectoryObject>?> GetAppOwnersAsUsersAsync(string id);
-        Task<long> GetUsersRawCountAsync(string filter, string search);
+        Task<IGraphServiceApplicationsCollectionPage> GetApplicationsAsync(string filter, string search, string select, string orderBy);
+        Task<IGraphServiceDevicesCollectionPage> GetDevicesAsync(string filter, string search, string select, string orderBy);
+        Task<IGraphServiceGroupsCollectionPage> GetGroupsAsync(string filter, string search, string select, string orderBy);
+        Task<IGraphServiceUsersCollectionPage> GetUsersAsync(string filter, string search, string select, string orderBy);
+        Task<IGraphServiceGroupsCollectionPage> GetTransitiveMemberOfAsGroupsAsync(string id);
+        Task<IGraphServiceUsersCollectionPage> GetTransitiveMembersAsUsersAsync(string id);
+        Task<IGraphServiceUsersCollectionPage> GetAppOwnersAsUsersAsync(string id);
+        Task<int> GetUsersRawCountAsync(string filter, string search);
 
         string? LastUrl { get; }
     }
@@ -35,7 +35,7 @@ namespace MsGraph_Samples.Services
 
         private readonly IGraphServiceClient _graphClient;
 
-        public GraphDataService(IGraphServiceClient graphClient) 
+        public GraphDataService(IGraphServiceClient graphClient)
         {
             _graphClient = graphClient;
         }
@@ -71,69 +71,68 @@ namespace MsGraph_Samples.Services
             return _graphClient.Me.Request().GetAsync();
         }
 
-        public async Task<IEnumerable<DirectoryObject>?> GetDevicesAsync(string filter, string search, string select, string orderBy)
-        {
-            var request = _graphClient.Devices.Request();
-            AddAdvancedOptions(request, filter, search, select, orderBy);
-
-            return await request.GetAsync();
-        }
-
-        public async Task<IEnumerable<DirectoryObject>?> GetUsersAsync(string filter, string search, string select, string orderBy)
-        {
-            var request = _graphClient.Users.Request();
-            AddAdvancedOptions(request, filter, search, select, orderBy);
-
-            return await request.GetAsync();
-        }
-
-        public async Task<IEnumerable<DirectoryObject>?> GetGroupsAsync(string filter, string search, string select, string orderBy)
-        {
-            var request = _graphClient.Groups.Request();
-            AddAdvancedOptions(request, filter, search, select, orderBy);
-
-            return await request.GetAsync();
-        }
-
-        public async Task<IEnumerable<DirectoryObject>?> GetApplicationsAsync(string filter, string search, string select, string orderBy)
+        public Task<IGraphServiceApplicationsCollectionPage> GetApplicationsAsync(string filter, string search, string select, string orderBy)
         {
             var request = _graphClient.Applications.Request();
             AddAdvancedOptions(request, filter, search, select, orderBy);
 
-            return await request.GetAsync();
+            return request.GetAsync();
         }
 
-        public async Task<IEnumerable<DirectoryObject>?> GetTransitiveMemberOfAsGroupsAsync(string id)
+        public Task<IGraphServiceDevicesCollectionPage> GetDevicesAsync(string filter, string search, string select, string orderBy)
+        {
+            var request = _graphClient.Devices.Request();
+            AddAdvancedOptions(request, filter, search, select, orderBy);
+
+            return request.GetAsync();
+        }
+        public Task<IGraphServiceGroupsCollectionPage> GetGroupsAsync(string filter, string search, string select, string orderBy)
+        {
+            var request = _graphClient.Groups.Request();
+            AddAdvancedOptions(request, filter, search, select, orderBy);
+
+            return request.GetAsync();
+        }
+
+        public Task<IGraphServiceUsersCollectionPage> GetUsersAsync(string filter, string search, string select, string orderBy)
+        {
+            var request = _graphClient.Users.Request();
+            AddAdvancedOptions(request, filter, search, select, orderBy);
+
+            return request.GetAsync();
+        }
+
+        public Task<IGraphServiceGroupsCollectionPage> GetTransitiveMemberOfAsGroupsAsync(string id)
         {
             var requestUrl = _graphClient.Users[id].TransitiveMemberOf
                 .AppendSegmentToRequestUrl("microsoft.graph.group"); // OData Cast
             var request = new GraphServiceGroupsCollectionRequestBuilder(requestUrl, _graphClient).Request();
             AddAdvancedOptions(request);
 
-            return await request.GetAsync();
+            return request.GetAsync();
         }
 
-        public async Task<IEnumerable<DirectoryObject>?> GetTransitiveMembersAsUsersAsync(string id)
+        public Task<IGraphServiceUsersCollectionPage> GetTransitiveMembersAsUsersAsync(string id)
         {
             var requestUrl = _graphClient.Groups[id].TransitiveMembers
                 .AppendSegmentToRequestUrl("microsoft.graph.user"); // OData Cast
             var request = new GraphServiceUsersCollectionRequestBuilder(requestUrl, _graphClient).Request();
             AddAdvancedOptions(request);
 
-            return await request.GetAsync();
+            return request.GetAsync();
         }
 
-        public async Task<IEnumerable<DirectoryObject>?> GetAppOwnersAsUsersAsync(string id)
+        public Task<IGraphServiceUsersCollectionPage> GetAppOwnersAsUsersAsync(string id)
         {
             var requestUrl = _graphClient.Applications[id].Owners
                 .AppendSegmentToRequestUrl("microsoft.graph.user"); // OData Cast
             var request = new GraphServiceUsersCollectionRequestBuilder(requestUrl, _graphClient).Request();
             AddAdvancedOptions(request);
 
-            return await request.GetAsync();
+            return request.GetAsync();
         }
 
-        public async Task<long> GetUsersRawCountAsync(string filter, string search)
+        public async Task<int> GetUsersRawCountAsync(string filter, string search)
         {
             var requestUrl = _graphClient.Users.AppendSegmentToRequestUrl("$count");
             var request = new BaseRequest(requestUrl, _graphClient);
@@ -142,7 +141,7 @@ namespace MsGraph_Samples.Services
             var response = await _graphClient.HttpProvider.SendAsync(request.GetHttpRequestMessage());
             var userCount = await response.Content.ReadAsStringAsync();
 
-            return long.Parse(userCount);
+            return int.Parse(userCount);
         }
     }
 }
