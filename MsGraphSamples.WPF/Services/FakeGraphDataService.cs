@@ -21,17 +21,17 @@ namespace MsGraph_Samples.Services
             return Task.FromResult(Users[0]);
         }
 
-        public Task<IGraphServiceApplicationsCollectionPage> GetApplicationsAsync(string filter, string search, string select, string orderBy)
+        public Task<IGraphServiceApplicationsCollectionPage> GetApplicationsAsync(string select, string filter, string orderBy, string search)
         {
             return Task.FromResult((IGraphServiceApplicationsCollectionPage)new GraphServiceApplicationsCollectionPage());
         }
 
-        public Task<IGraphServiceDevicesCollectionPage> GetDevicesAsync(string filter, string search, string select, string orderBy)
+        public Task<IGraphServiceDevicesCollectionPage> GetDevicesAsync(string select, string filter, string orderBy, string search)
         {
             return Task.FromResult((IGraphServiceDevicesCollectionPage)new GraphServiceDevicesCollectionPage());
         }
 
-        public Task<IGraphServiceGroupsCollectionPage> GetGroupsAsync(string filter, string search, string select, string orderBy)
+        public Task<IGraphServiceGroupsCollectionPage> GetGroupsAsync(string select, string filter, string orderBy, string search)
         {
             return Task.FromResult((IGraphServiceGroupsCollectionPage)new GraphServiceGroupsCollectionPage());
         }
@@ -51,7 +51,7 @@ namespace MsGraph_Samples.Services
             return Task.FromResult((IGraphServiceUsersCollectionPage)new GraphServiceUsersCollectionPage());
         }
 
-        public Task<IGraphServiceUsersCollectionPage> GetUsersAsync(string filter, string search, string select, string orderBy)
+        public Task<IGraphServiceUsersCollectionPage> GetUsersAsync(string select, string filter, string orderBy, string search)
         {
             return Task.FromResult((IGraphServiceUsersCollectionPage)new GraphServiceUsersCollectionPage());
         }

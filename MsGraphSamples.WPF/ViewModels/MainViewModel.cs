@@ -133,10 +133,10 @@ namespace MsGraph_Samples.ViewModels
             {
                 DirectoryObjects = SelectedEntity switch
                 {
-                    "Users" => await _graphDataService.GetUsersAsync(Filter, Search, Select, OrderBy),
-                    "Groups" => await _graphDataService.GetGroupsAsync(Filter, Search, Select, OrderBy),
-                    "Applications" => await _graphDataService.GetApplicationsAsync(Filter, Search, Select, OrderBy),
-                    "Devices" => await _graphDataService.GetDevicesAsync(Filter, Search, Select, OrderBy),
+                    "Users" => await _graphDataService.GetUsersAsync(Select, Filter, OrderBy, Search),
+                    "Groups" => await _graphDataService.GetGroupsAsync(Select, Filter, OrderBy, Search),
+                    "Applications" => await _graphDataService.GetApplicationsAsync(Select, Filter, OrderBy, Search),
+                    "Devices" => await _graphDataService.GetDevicesAsync(Select, Filter, OrderBy, Search),
                     _ => throw new NotImplementedException("Can't find selected entity")
                 };
             }

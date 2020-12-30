@@ -11,10 +11,10 @@ namespace MsGraph_Samples.Services
     public interface IGraphDataService
     {
         Task<User> GetMe();
-        Task<IGraphServiceApplicationsCollectionPage> GetApplicationsAsync(string filter, string search, string select, string orderBy);
-        Task<IGraphServiceDevicesCollectionPage> GetDevicesAsync(string filter, string search, string select, string orderBy);
-        Task<IGraphServiceGroupsCollectionPage> GetGroupsAsync(string filter, string search, string select, string orderBy);
-        Task<IGraphServiceUsersCollectionPage> GetUsersAsync(string filter, string search, string select, string orderBy);
+        Task<IGraphServiceApplicationsCollectionPage> GetApplicationsAsync(string select, string filter, string orderBy, string search);
+        Task<IGraphServiceDevicesCollectionPage> GetDevicesAsync(string select, string filter, string orderBy, string search);
+        Task<IGraphServiceGroupsCollectionPage> GetGroupsAsync(string select, string filter, string orderBy, string search);
+        Task<IGraphServiceUsersCollectionPage> GetUsersAsync(string select, string filter, string orderBy, string search);
         Task<IGraphServiceGroupsCollectionPage> GetTransitiveMemberOfAsGroupsAsync(string id);
         Task<IGraphServiceUsersCollectionPage> GetTransitiveMembersAsUsersAsync(string id);
         Task<IGraphServiceUsersCollectionPage> GetAppOwnersAsUsersAsync(string id);
@@ -40,19 +40,19 @@ namespace MsGraph_Samples.Services
             _graphClient = graphClient;
         }
 
-        private void AddAdvancedOptions(IBaseRequest request, string filter = "", string search = "", string select = "", string orderBy = "")
+        private void AddAdvancedOptions(IBaseRequest request, string select = "", string filter = "", string orderBy = "", string search = "")
         {
             request.QueryOptions.Add(OdataCount);
             request.Headers.Add(EventualConsistency);
+
+            if (!select.IsNullOrEmpty())
+                request.QueryOptions.Add(GetOption("select", select));
 
             if (!filter.IsNullOrEmpty())
                 request.QueryOptions.Add(GetOption("filter", filter));
 
             if (!orderBy.IsNullOrEmpty())
                 request.QueryOptions.Add(GetOption("orderBy", orderBy));
-
-            if (!select.IsNullOrEmpty())
-                request.QueryOptions.Add(GetOption("select", select));
 
             if (!search.IsNullOrEmpty())
                 request.QueryOptions.Add(GetOption("search", search));
@@ -71,33 +71,33 @@ namespace MsGraph_Samples.Services
             return _graphClient.Me.Request().GetAsync();
         }
 
-        public Task<IGraphServiceApplicationsCollectionPage> GetApplicationsAsync(string filter, string search, string select, string orderBy)
+        public Task<IGraphServiceApplicationsCollectionPage> GetApplicationsAsync(string select, string filter, string orderBy, string search)
         {
             var request = _graphClient.Applications.Request();
-            AddAdvancedOptions(request, filter, search, select, orderBy);
+            AddAdvancedOptions(request, select, filter, orderBy, search);
 
             return request.GetAsync();
         }
 
-        public Task<IGraphServiceDevicesCollectionPage> GetDevicesAsync(string filter, string search, string select, string orderBy)
+        public Task<IGraphServiceDevicesCollectionPage> GetDevicesAsync(string select, string filter, string orderBy, string search)
         {
             var request = _graphClient.Devices.Request();
-            AddAdvancedOptions(request, filter, search, select, orderBy);
+            AddAdvancedOptions(request, select, filter, orderBy, search);
 
             return request.GetAsync();
         }
-        public Task<IGraphServiceGroupsCollectionPage> GetGroupsAsync(string filter, string search, string select, string orderBy)
+        public Task<IGraphServiceGroupsCollectionPage> GetGroupsAsync(string select, string filter, string orderBy, string search)
         {
             var request = _graphClient.Groups.Request();
-            AddAdvancedOptions(request, filter, search, select, orderBy);
+            AddAdvancedOptions(request, select, filter, orderBy, search);
 
             return request.GetAsync();
         }
 
-        public Task<IGraphServiceUsersCollectionPage> GetUsersAsync(string filter, string search, string select, string orderBy)
+        public Task<IGraphServiceUsersCollectionPage> GetUsersAsync(string select, string filter, string orderBy, string search)
         {
             var request = _graphClient.Users.Request();
-            AddAdvancedOptions(request, filter, search, select, orderBy);
+            AddAdvancedOptions(request, select, filter, orderBy, search);
 
             return request.GetAsync();
         }
@@ -136,7 +136,7 @@ namespace MsGraph_Samples.Services
         {
             var requestUrl = _graphClient.Users.AppendSegmentToRequestUrl("$count");
             var request = new BaseRequest(requestUrl, _graphClient);
-            AddAdvancedOptions(request, filter, search);
+            AddAdvancedOptions(request, filter: filter, search: search);
 
             var response = await _graphClient.HttpProvider.SendAsync(request.GetHttpRequestMessage());
             var userCount = await response.Content.ReadAsStringAsync();
