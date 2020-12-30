@@ -146,6 +146,7 @@
                 Grid.Row="0"
                 Grid.Column="2"
                 Margin="6,0">
+                <!-- I can bind AdditionalData property thanks to IEnumerable covariance support -->
                 <TextBlock FontWeight="Bold" Text="{Binding DirectoryObjects.AdditionalData[@odata.count], StringFormat=Entities ({0}), FallbackValue=Entities}" />
                 <ComboBox
                     Width="120"
