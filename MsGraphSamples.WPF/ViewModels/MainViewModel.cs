@@ -230,10 +230,10 @@ namespace MsGraph_Samples.ViewModels
             {
                 DirectoryObjects = SelectedEntity switch
                 {
-                    "Users" => await _graphDataService.GetTransitiveMemberOfAsGroupsAsync(SelectedObject.Id),
-                    "Groups" => await _graphDataService.GetTransitiveMembersAsUsersAsync(SelectedObject.Id),
-                    "Applications" => await _graphDataService.GetAppOwnersAsUsersAsync(SelectedObject.Id),
-                    "Devices" => await _graphDataService.GetTransitiveMemberOfAsGroupsAsync(SelectedObject.Id),
+                    "Users" => await _graphDataService.GetTransitiveMemberOfAsGroupsAsync(SelectedObject.Id), //Get-MgUserTransitiveMember -UserId <String>
+                    "Groups" => await _graphDataService.GetTransitiveMembersAsUsersAsync(SelectedObject.Id), //Get-MgGroupTransitiveMember -GroupId <String>
+                    "Applications" => await _graphDataService.GetAppOwnersAsUsersAsync(SelectedObject.Id), //Get-MgApplicationOwner -ApplicationId <String>
+                    "Devices" => await _graphDataService.GetTransitiveMemberOfAsGroupsAsync(SelectedObject.Id), //Get-MgDeviceTransitiveMember -DeviceId <String>
                     _ => null
                 };
 
