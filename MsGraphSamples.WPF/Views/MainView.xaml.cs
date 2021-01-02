@@ -41,6 +41,7 @@ namespace MsGraph_Samples.Views
             var button = (Button)sender;
             button.Focus();
         }
+
         private void ResultsDataGrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
         {
             if (!ViewModel.SplittedSelect.Any())

@@ -37,41 +37,8 @@ namespace MsGraph_Samples.ViewModels
             set => Set(ref _userName, value);
         }
 
-        public string? LastUrl => _graphDataService.LastUrl;
-        public string PowerShellCmdLet
-        {
-            get
-            {
-                StringBuilder cmdLet = new();
-                
-                //TODO: handle links (drilldown command)
-                cmdLet.Append(SelectedEntity switch
-                {
-                    "Users" => "Get-MgUser ",
-                    "Groups" => "Get-MgGroup ",
-                    "Applications" => "Get-MgApplication ",
-                    "Devices" => "Get-MgDevice ",
-                    _ => throw new NotImplementedException("Can't find selected entity")
-                });
-
-                cmdLet.Append("-consistencyLevel eventual ");
-                cmdLet.Append("-count userCount ");
-
-                if (!Select.IsNullOrEmpty())
-                    cmdLet.Append($"-select {Select} ");
-
-                if (!Filter.IsNullOrEmpty())
-                    cmdLet.Append($"-filter {Filter} ");
-
-                if (!OrderBy.IsNullOrEmpty())
-                    cmdLet.Append($"-orderBy {OrderBy} ");
-
-                if (!Search.IsNullOrEmpty())
-                    cmdLet.Append($"-search '{Search}' ");
-
-                return cmdLet.ToString();
-            }
-        }
+        public string? LastUrl => _graphDataService.LastUrl.Decode();
+        public string? PowerShellCmdLet => _graphDataService.PowerShellCmdLet;
 
         public static IReadOnlyList<string> Entities => new[] { "Users", "Groups", "Applications", "Devices" };
         private string _selectedEntity = "Users";
@@ -230,10 +197,10 @@ namespace MsGraph_Samples.ViewModels
             {
                 DirectoryObjects = SelectedEntity switch
                 {
-                    "Users" => await _graphDataService.GetTransitiveMemberOfAsGroupsAsync(SelectedObject.Id), //Get-MgUserTransitiveMember -UserId <String>
-                    "Groups" => await _graphDataService.GetTransitiveMembersAsUsersAsync(SelectedObject.Id), //Get-MgGroupTransitiveMember -GroupId <String>
-                    "Applications" => await _graphDataService.GetAppOwnersAsUsersAsync(SelectedObject.Id), //Get-MgApplicationOwner -ApplicationId <String>
-                    "Devices" => await _graphDataService.GetTransitiveMemberOfAsGroupsAsync(SelectedObject.Id), //Get-MgDeviceTransitiveMember -DeviceId <String>
+                    "Users" => await _graphDataService.GetTransitiveMemberOfAsGroupsAsync(SelectedObject.Id, Select, Filter, OrderBy, Search),
+                    "Groups" => await _graphDataService.GetTransitiveMembersAsUsersAsync(SelectedObject.Id, Select, Filter, OrderBy, Search),
+                    "Applications" => await _graphDataService.GetAppOwnersAsUsersAsync(SelectedObject.Id, Select, Filter, OrderBy, Search),
+                    "Devices" => await _graphDataService.GetTransitiveMemberOfAsGroupsAsync(SelectedObject.Id, Select, Filter, OrderBy, Search),
                     _ => null
                 };
 

@@ -8,7 +8,8 @@ namespace MsGraph_Samples.Services
 {
     public class FakeGraphDataService : IGraphDataService
     {
-        public string? LastUrl => "https://graph.microsoft.com/beta/users?$count=true";
+        public Uri? LastUrl => new("https://graph.microsoft.com/beta/users?$count=true");
+        public string? PowerShellCmdLet => "Get-MgUser -ConsistencyLevel eventual -count countVariable";
         private static IList<User> Users => new[]
         {
             new User { Id = "1", DisplayName = "Luca Spolidoro", Mail = "a@b.c" },
@@ -36,17 +37,17 @@ namespace MsGraph_Samples.Services
             return Task.FromResult((IGraphServiceGroupsCollectionPage)new GraphServiceGroupsCollectionPage());
         }
 
-        public Task<IGraphServiceUsersCollectionPage> GetAppOwnersAsUsersAsync(string id)
+        public Task<IGraphServiceUsersCollectionPage> GetAppOwnersAsUsersAsync(string id, string select, string filter, string orderBy, string search)
         {
             return Task.FromResult((IGraphServiceUsersCollectionPage)new GraphServiceUsersCollectionPage());
         }
 
-        public Task<IGraphServiceGroupsCollectionPage> GetTransitiveMemberOfAsGroupsAsync(string id)
+        public Task<IGraphServiceGroupsCollectionPage> GetTransitiveMemberOfAsGroupsAsync(string id, string select, string filter, string orderBy, string search)
         {
             return Task.FromResult((IGraphServiceGroupsCollectionPage)new GraphServiceGroupsCollectionPage());
         }
 
-        public Task<IGraphServiceUsersCollectionPage> GetTransitiveMembersAsUsersAsync(string id)
+        public Task<IGraphServiceUsersCollectionPage> GetTransitiveMembersAsUsersAsync(string id, string select, string filter, string orderBy, string search)
         {
             return Task.FromResult((IGraphServiceUsersCollectionPage)new GraphServiceUsersCollectionPage());
         }

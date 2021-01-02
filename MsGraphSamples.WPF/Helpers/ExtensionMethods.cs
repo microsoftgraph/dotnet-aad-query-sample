@@ -2,8 +2,11 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Specialized;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace MsGraph_Samples
 {
@@ -22,6 +25,9 @@ namespace MsGraph_Samples
 
             return input.NthIndexOf(value, --nth, input.IndexOf(value, startIndex) + 1);
         }
+
+        public static string? Decode(this Uri? uri) => HttpUtility.UrlDecode(uri?.ToString());
+        public static NameValueCollection ParseQueryString(this Uri uri) => HttpUtility.ParseQueryString(uri.Query);
 
         /// <summary>
         /// Awaits a task without blocking the main thread. (From PRISM framework)
