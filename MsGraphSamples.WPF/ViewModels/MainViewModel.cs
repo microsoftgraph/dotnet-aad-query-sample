@@ -256,14 +256,18 @@ namespace MsGraph_Samples.ViewModels
         public RelayCommand OpenPowerShellCommand => new(OpenPowerShellAction);
         private void OpenPowerShellAction()
         {
-            var psi = new ProcessStartInfo { FileName = "pwsh.exe", Arguments = $"-NoExit -Command \"Connect-Graph -Scopes 'Directory.Read.All'; {PowerShellCmdLet}\"" };
+            var psi = new ProcessStartInfo
+            {
+                FileName = "pwsh.exe",
+                Arguments = $"-NoExit -Command \"Connect-Graph -Scopes '{string.Join(',', AuthService.Scopes)}'; {PowerShellCmdLet}\""
+            };
+
             try
             {
                 System.Diagnostics.Process.Start(psi);
             }
-            catch (Win32Exception ex) when (ex.ErrorCode == -2147467259)
+            catch (Win32Exception ex) when (ex.ErrorCode == -2147467259) // Can't find PowerShell Core, redirect to Store to install
             {
-                // Can't find pwsh.exe, redirect to Store to install
                 psi = new ProcessStartInfo { FileName = "https://www.microsoft.com/store/productId/9MZ1SNWT0N5D", UseShellExecute = true };
                 System.Diagnostics.Process.Start(psi);
             }

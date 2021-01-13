@@ -39,11 +39,11 @@ namespace MsGraph_Samples.Services
         private const AzureCloudInstance CloudInstance = AzureCloudInstance.AzurePublic;
 
         // Make sure the user you login with has "Directory.Read.All" permissions
-        private readonly string[] _scopes = { "Directory.Read.All" };
+        public static readonly string[] Scopes = { "Directory.Read.All" };
 
         private readonly IPublicClientApplication _publicClientApp;
 
-        private InteractiveAuthenticationProvider AuthProvider => new(_publicClientApp, _scopes);
+        private InteractiveAuthenticationProvider AuthProvider => new(_publicClientApp, Scopes);
         
         private IGraphServiceClient? _graphClient;
         public IGraphServiceClient GetServiceClient() => _graphClient ??= new GraphServiceClient(AuthProvider);
