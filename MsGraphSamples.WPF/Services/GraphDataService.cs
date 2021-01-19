@@ -117,7 +117,7 @@ namespace MsGraph_Samples.Services
                 var queryString = LastUrl.ParseQueryString();
                 foreach (string param in queryString)
                 {
-                    if (string.IsNullOrEmpty(queryString[param]))
+                    if (queryString[param].IsNullOrEmpty())
                         continue;
 
                     cmdLet.Append(param switch
@@ -166,10 +166,13 @@ namespace MsGraph_Samples.Services
         public Task<IGraphServiceApplicationsCollectionPage> GetApplicationsAsync(string select, string filter, string orderBy, string search)
         {
             var request = _graphClient.Applications
-                .Request(GetAdvancedOptions(search))
-                .Select(select)
-                .Filter(filter)
-                .OrderBy(orderBy);
+                .Request(GetAdvancedOptions(search));
+            if (!select.IsNullOrEmpty())
+                request.Select(select);
+            if (!filter.IsNullOrEmpty())
+                request.Filter(filter);
+            if(!orderBy.IsNullOrEmpty())
+                request.OrderBy(orderBy);            
 
             LastUrl = request.GetHttpRequestMessage().RequestUri;
             return request.GetAsync();
@@ -178,21 +181,28 @@ namespace MsGraph_Samples.Services
         public Task<IGraphServiceDevicesCollectionPage> GetDevicesAsync(string select, string filter, string orderBy, string search)
         {
             var request = _graphClient.Devices
-                .Request(GetAdvancedOptions(search))
-                .Select(select)
-                .Filter(filter)
-                .OrderBy(orderBy);
+                .Request(GetAdvancedOptions(search));
+            if (!select.IsNullOrEmpty())
+                request.Select(select);
+            if (!filter.IsNullOrEmpty())
+                request.Filter(filter);
+            if (!orderBy.IsNullOrEmpty())
+                request.OrderBy(orderBy);
 
             LastUrl = request.GetHttpRequestMessage().RequestUri;
             return request.GetAsync();
         }
+
         public Task<IGraphServiceGroupsCollectionPage> GetGroupsAsync(string select, string filter, string orderBy, string search)
         {
             var request = _graphClient.Groups
-                .Request(GetAdvancedOptions(search))
-                .Select(select)
-                .Filter(filter)
-                .OrderBy(orderBy);
+                .Request(GetAdvancedOptions(search));
+            if (!select.IsNullOrEmpty())
+                request.Select(select);
+            if (!filter.IsNullOrEmpty())
+                request.Filter(filter);
+            if (!orderBy.IsNullOrEmpty())
+                request.OrderBy(orderBy);
 
             LastUrl = request.GetHttpRequestMessage().RequestUri;
             return request.GetAsync();
@@ -201,14 +211,20 @@ namespace MsGraph_Samples.Services
         public Task<IGraphServiceUsersCollectionPage> GetUsersAsync(string select, string filter, string orderBy, string search)
         {
             var request = _graphClient.Users
-                .Request(GetAdvancedOptions(search))
-                .Select(select)
-                .Filter(filter)
-                .OrderBy(orderBy);
+                .Request(GetAdvancedOptions(search));
+            if (!select.IsNullOrEmpty())
+                request.Select(select);
+            if (!filter.IsNullOrEmpty())
+                request.Filter(filter);
+            if (!orderBy.IsNullOrEmpty())
+                request.OrderBy(orderBy);
 
             LastUrl = request.GetHttpRequestMessage().RequestUri;
+
             return request.GetAsync();
         }
+
+
 
         public Task<IGraphServiceGroupsCollectionPage> GetTransitiveMemberOfAsGroupsAsync(string id, string select, string filter, string orderBy, string search)
         {
@@ -216,10 +232,13 @@ namespace MsGraph_Samples.Services
                 .AppendSegmentToRequestUrl("microsoft.graph.group"); // OData Cast
 
             var request = new GraphServiceGroupsCollectionRequestBuilder(requestUrl, _graphClient)
-                .Request(GetAdvancedOptions(search))
-                .Select(select)
-                .Filter(filter)
-                .OrderBy(orderBy);
+                .Request(GetAdvancedOptions(search));
+            if (!select.IsNullOrEmpty())
+                request.Select(select);
+            if (!filter.IsNullOrEmpty())
+                request.Filter(filter);
+            if (!orderBy.IsNullOrEmpty())
+                request.OrderBy(orderBy);
 
             LastUrl = request.GetHttpRequestMessage().RequestUri;
             return request.GetAsync();
@@ -231,10 +250,13 @@ namespace MsGraph_Samples.Services
                 .AppendSegmentToRequestUrl("microsoft.graph.user"); // OData Cast
 
             var request = new GraphServiceUsersCollectionRequestBuilder(requestUrl, _graphClient)
-                .Request(GetAdvancedOptions(search))
-                .Select(select)
-                .Filter(filter)
-                .OrderBy(orderBy);
+                .Request(GetAdvancedOptions(search));
+            if (!select.IsNullOrEmpty())
+                request.Select(select);
+            if (!filter.IsNullOrEmpty())
+                request.Filter(filter);
+            if (!orderBy.IsNullOrEmpty())
+                request.OrderBy(orderBy);
 
             LastUrl = request.GetHttpRequestMessage().RequestUri;
             return request.GetAsync();
@@ -246,10 +268,13 @@ namespace MsGraph_Samples.Services
                 .AppendSegmentToRequestUrl("microsoft.graph.user"); // OData Cast
 
             var request = new GraphServiceUsersCollectionRequestBuilder(requestUrl, _graphClient)
-                .Request(GetAdvancedOptions(search))
-                .Select(select)
-                .Filter(filter)
-                .OrderBy(orderBy);
+                .Request(GetAdvancedOptions(search));
+            if (!select.IsNullOrEmpty())
+                request.Select(select);
+            if (!filter.IsNullOrEmpty())
+                request.Filter(filter);
+            if (!orderBy.IsNullOrEmpty())
+                request.OrderBy(orderBy);
 
             LastUrl = request.GetHttpRequestMessage().RequestUri;
             return request.GetAsync();
@@ -257,10 +282,13 @@ namespace MsGraph_Samples.Services
 
         public async Task<int> GetUsersRawCountAsync(string filter, string search)
         {
-            var requestUrl = _graphClient.Users.AppendSegmentToRequestUrl("$count");
+            var requestUrl = _graphClient.Users
+                .AppendSegmentToRequestUrl("$count");
+
             var request = new GraphServiceUsersCollectionRequestBuilder(requestUrl, _graphClient)
-                .Request(GetAdvancedOptions(search))
-                .Filter(filter);
+                .Request(GetAdvancedOptions(search));
+            if (!filter.IsNullOrEmpty())
+                request.Filter(filter);
 
             var response = await _graphClient.HttpProvider.SendAsync(request.GetHttpRequestMessage());
             var userCount = await response.Content.ReadAsStringAsync();
