@@ -109,7 +109,7 @@ Once this is done, open an integrated terminal in VS Code, then type:
 ### Using the app
 
 If everything was configured correctly, you should be able to see the first login prompt. The auth token will be cached thanks to [MSAL token cache extension](https://github.com/AzureAD/microsoft-authentication-extensions-for-dotnet) for the subsequent runs.  
-You can query your tenant by typing the arguments of the standard OData `$filter`, `$search`, `$orderBy`, `$select` clauses in the relative text boxes. In the screenshot below you can see the $search operator in action:
+You can query your tenant by typing the arguments of the standard OData `$select`, `$filter`, `$orderBy`, `$search` clauses in the relative text boxes. In the screenshot below you can see the $search operator in action:
 
 ![Screenshot of the App](docs/app1.png)
 
@@ -122,6 +122,6 @@ The generated URL will appear in the readonly Url textbox. You can click the Gra
 ## Code Architecture
 
 This app provides a good starting point for enterprise desktop applications that connects to Microsoft Graph.  
-The implementation is a classic **WPF** [MVVM](https://docs.microsoft.com/en-us/windows/uwp/data-binding/data-binding-and-mvvm) app with *Views*, *ViewModels* and *Services*. `ICommand` and `INotifyPropertyChanged` are manually implemented.
+The implementation is a classic **WPF** [MVVM](https://docs.microsoft.com/en-us/windows/uwp/data-binding/data-binding-and-mvvm) app with *Views*, *ViewModels* and *Services*, using [MVVM Toolkit framework](https://github.com/windows-toolkit/MVVM-Samples).  
 Dependency Injection is implemented using [Microsoft.Extensions.DependencyInjection](https://docs.microsoft.com/aspnet/core/fundamentals/dependency-injection), supporting design-time data.  
 **Nullable** and **Code Analysis** are enabled to enforce code quality.

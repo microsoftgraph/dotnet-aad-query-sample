@@ -10,7 +10,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Graph;
-using MsGraph_Samples.MVVM;
+using Microsoft.Toolkit.Mvvm.ComponentModel;
+using Microsoft.Toolkit.Mvvm.Input;
 using MsGraph_Samples.Services;
 
 namespace MsGraph_Samples.ViewModels
@@ -26,14 +27,14 @@ namespace MsGraph_Samples.ViewModels
         public bool IsBusy
         {
             get => _isBusy;
-            set => Set(ref _isBusy, value);
+            set => SetProperty(ref _isBusy, value);
         }
 
         private string? _userName;
         public string? UserName
         {
             get => _userName;
-            set => Set(ref _userName, value);
+            set => SetProperty(ref _userName, value);
         }
 
         public string? LastUrl => _graphDataService.LastUrl;
@@ -43,14 +44,14 @@ namespace MsGraph_Samples.ViewModels
         public string SelectedEntity
         {
             get => _selectedEntity;
-            set => Set(ref _selectedEntity, value);
+            set => SetProperty(ref _selectedEntity, value);
         }
 
         private DirectoryObject? _selectedObject = null;
         public DirectoryObject? SelectedObject
         {
             get => _selectedObject;
-            set => Set(ref _selectedObject, value);
+            set => SetProperty(ref _selectedObject, value);
         }
 
         public long ElapsedMs => _stopWatch.ElapsedMilliseconds;
@@ -59,7 +60,7 @@ namespace MsGraph_Samples.ViewModels
         public IEnumerable<DirectoryObject>? DirectoryObjects
         {
             get => _directoryObjects;
-            set => Set(ref _directoryObjects, value);
+            set => SetProperty(ref _directoryObjects, value);
         }
 
         #region OData Operators
@@ -73,7 +74,7 @@ namespace MsGraph_Samples.ViewModels
             get => _select;
             set
             {
-                if (Set(ref _select, value))
+                if (SetProperty(ref _select, value))
                     SplittedSelect = Select.Split(',', StringSplitOptions.TrimEntries);
             }
         }
@@ -82,14 +83,14 @@ namespace MsGraph_Samples.ViewModels
         public string Filter
         {
             get => _filter;
-            set => Set(ref _filter, value);
+            set => SetProperty(ref _filter, value);
         }
 
         private string _orderBy = string.Empty;
         public string OrderBy
         {
             get => _orderBy;
-            set => Set(ref _orderBy, value);
+            set => SetProperty(ref _orderBy, value);
         }
 
         private string _search = string.Empty;
@@ -102,7 +103,7 @@ namespace MsGraph_Samples.ViewModels
                     return;
 
                 _search = FixSearchSyntax(value);
-                RaisePropertyChanged();
+                OnPropertyChanged();
             }
         }
 
@@ -147,9 +148,9 @@ namespace MsGraph_Samples.ViewModels
             finally
             {
                 _stopWatch.Stop();
-                RaisePropertyChanged(nameof(ElapsedMs));
-                RaisePropertyChanged(nameof(LastUrl));
-                RelayCommand.RaiseCanExecuteChanged();
+                OnPropertyChanged(nameof(ElapsedMs));
+                OnPropertyChanged(nameof(LastUrl));
+                GraphExplorerCommand.NotifyCanExecuteChanged();
                 IsBusy = false;
             }
         }
@@ -217,9 +218,9 @@ namespace MsGraph_Samples.ViewModels
             finally
             {
                 _stopWatch.Stop();
-                RaisePropertyChanged(nameof(ElapsedMs));
-                RaisePropertyChanged(nameof(LastUrl));
-                AsyncRelayCommand.RaiseCanExecuteChanged();
+                OnPropertyChanged(nameof(ElapsedMs));
+                OnPropertyChanged(nameof(LastUrl));
+                GraphExplorerCommand.NotifyCanExecuteChanged();
                 IsBusy = false;
             }
         }
