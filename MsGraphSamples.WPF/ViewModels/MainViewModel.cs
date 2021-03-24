@@ -183,7 +183,8 @@ namespace MsGraph_Samples.ViewModels
         public AsyncRelayCommand DrillDownCommand => new(DrillDownAction);
         private async Task DrillDownAction()
         {
-            if (SelectedObject == null) return;
+            if (SelectedObject is null)
+                return;
 
             IsBusy = true;
             _stopWatch.Restart();
@@ -226,8 +227,11 @@ namespace MsGraph_Samples.ViewModels
         }
 
         public AsyncRelayCommand<DataGridSortingEventArgs> SortCommand => new(SortAction);
-        private Task SortAction(DataGridSortingEventArgs e)
+        private Task SortAction(DataGridSortingEventArgs? e)
         {
+            if (e is null)
+                throw new ArgumentNullException(nameof(e));
+
             OrderBy = $"{e.Column.Header}";
             e.Handled = true;
             return LoadAction();

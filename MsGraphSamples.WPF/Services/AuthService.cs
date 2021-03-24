@@ -55,10 +55,7 @@ namespace MsGraph_Samples.Services
                 .WithDefaultRedirectUri()
                 .Build();
 
-            var storageCreationProperties = new StorageCreationPropertiesBuilder(CacheFileName, CacheDirectoryPath, clientId).Build();
-
-            // Workaround for Async creation, waiting for
-            // https://github.com/AzureAD/microsoft-authentication-extensions-for-dotnet/issues/102
+            var storageCreationProperties = new StorageCreationPropertiesBuilder(CacheFileName, CacheDirectoryPath).Build();
             MsalCacheHelper
                 .CreateAsync(storageCreationProperties)
                 .Await(ch => ch.RegisterCache(_publicClientApp.UserTokenCache));
