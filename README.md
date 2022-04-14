@@ -83,7 +83,8 @@ or download and extract the repository .zip file.
 
 ### Step 2: Configure the ClientId using the Secret Manager
 
-This application use the [.NET Core Secret Manager](https://docs.microsoft.com/aspnet/core/security/app-secrets) to store the **ClientId**. To add the **ClientId** created on step 1 of registration:
+This application use the [.NET Core Secret Manager](https://docs.microsoft.com/aspnet/core/security/app-secrets) to store the **ClientId**.  
+To add the **ClientId** created on step 1 of registration:
 
 1. Open a **Developer Command Prompt** or an **Integrated Terminal** and locate the `dotnet-aad-query-sample\MSGraphSamples.WPF\` directory.
 1. Type `dotnet user-secrets set "clientId" "<YOUR CLIENT ID>"`
@@ -110,8 +111,10 @@ Once this is done, open an integrated terminal in VS Code, then type:
 
 ### Using the app
 
-If everything was configured correctly, you should be able to see the first login prompt. The auth token will be cached thanks to [MSAL token cache extension](https://github.com/AzureAD/microsoft-authentication-extensions-for-dotnet) for the subsequent runs.  
-You can query your tenant by typing the arguments of the standard OData `$select`, `$filter`, `$orderBy`, `$search` clauses in the relative text boxes. In the screenshot below you can see the $search operator in action:
+If everything was configured correctly, you should be able to see the login prompt opening in a web browser.  
+The auth token will be cached in a file for the subsequent runs.  
+You can query your tenant by typing the arguments of the standard OData `$select`, `$filter`, `$orderBy`, `$search` clauses in the relative text boxes.  
+In the screenshot below you can see the $search operator in action:
 
 ![Screenshot of the App](docs/app1.png)
 
