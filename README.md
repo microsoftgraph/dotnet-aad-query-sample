@@ -57,7 +57,7 @@ The main code is in [GraphDataService.cs](MSGraphSamples.WPF/Services/GraphDataS
 ### Step 1: Register your application
 
 Use the [Microsoft Application Registration Portal](https://aka.ms/appregistrations) to register your application with the Microsoft Graph APIs.  
-Click New Application.
+Click New Registration.
 
 ![Application Registration](docs/register_app.png)
 **Note:** Make sure to set the right **Redirect URI** (`http://localhost`) and application type is **Public client/native (mobile & desktop)**.
