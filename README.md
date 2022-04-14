@@ -56,14 +56,16 @@ The main code is in [GraphDataService.cs](MSGraphSamples.WPF/Services/GraphDataS
 
 ### Step 1: Register your application
 
-Use the [Microsoft Application Registration Portal](https://aka.ms/appregistrations) to register your application with the Microsoft Graph APIs.
+Use the [Microsoft Application Registration Portal](https://aka.ms/appregistrations) to register your application with the Microsoft Graph APIs.  
+Click New Application.
 
 ![Application Registration](docs/register_app.png)
-**Note:** Make sure to set the right **Redirect URI** (`http://localhost`) and application type is **Mobile and desktop applications**.
+**Note:** Make sure to set the right **Redirect URI** (`http://localhost`) and application type is **Public client/native (mobile & desktop)**.
 
 ### Step 2: Set the MS Graph permissions
 
-Add the [delegated permissions](https://docs.microsoft.com/graph/permissions-reference#delegated-permissions-20) for `Directory.Read.All`. We advise you to register and use this sample on a Dev/Test tenant and not on your production tenant.
+Add the [delegated permissions](https://docs.microsoft.com/graph/permissions-reference#delegated-permissions-20) for `Directory.Read.All`, and grant admin consent.  
+We advise you to register and use this sample on a Dev/Test tenant and not on your production tenant.
 
 ![Api Permissions](docs/api_permissions.png)
 

@@ -1,78 +1,59 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using System;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
+using Azure.Core;
+using Azure.Identity;
 using Microsoft.Graph;
-using Microsoft.Graph.Auth;
-using Microsoft.Identity.Client;
-using Microsoft.Identity.Client.Extensions.Msal;
+using MsGraph_Samples.Helpers;
 
 namespace MsGraph_Samples.Services
 {
     public interface IAuthService
     {
-        IGraphServiceClient GetServiceClient();
-        Task Logout();
+        GraphServiceClient GraphClient { get; }
+        void Logout();
     }
 
     public class AuthService : IAuthService
     {
-        private static readonly string LocalAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        private static readonly string ProjectName = Assembly.GetCallingAssembly().GetName().Name ?? "tokencache";
-        private static readonly string CacheDirectoryPath = Path.Combine(LocalAppData, ProjectName);
-        private const string CacheFileName = "msalcache.bin";
+        private const string _tokenPath = "authToken.bin";
+        private static readonly string[] _scopes = { "Directory.Read.All" };
 
-        /// <summary>
-        /// The content of Tenant by the information about the accounts allowed to sign-in in your application:
-        /// - for Work or School account in your org, use your tenant ID, or domain
-        /// - for any Work or School accounts, use organizations
-        /// - for any Work or School accounts, or Microsoft personal account, use common
-        /// - for Microsoft Personal account, use consumers
-        /// </summary>
-        private const string Tenant = "organizations";
+        private GraphServiceClient? _graphClient;
+        public GraphServiceClient GraphClient => _graphClient ??= new GraphServiceClient(GetBrowserCredential());
 
-        // To change from Microsoft public cloud to a national cloud, use another value of AzureCloudInstance
-        private const AzureCloudInstance CloudInstance = AzureCloudInstance.AzurePublic;
-
-        // Make sure the user you login with has "Directory.Read.All" permissions
-        private readonly string[] _scopes = { "Directory.Read.All" };
-
-        private readonly IPublicClientApplication _publicClientApp;
-
-        private InteractiveAuthenticationProvider AuthProvider => new(_publicClientApp, _scopes);
-        
-        private IGraphServiceClient? _graphClient;
-        public IGraphServiceClient GetServiceClient() => _graphClient ??= new GraphServiceClient(AuthProvider);
-
-        public AuthService(string clientId)
+        public void Logout()
         {
-            _publicClientApp = PublicClientApplicationBuilder.Create(clientId)
-                .WithAuthority(CloudInstance, Tenant)
-                .WithDefaultRedirectUri()
-                .Build();
-
-            var storageCreationProperties = new StorageCreationPropertiesBuilder(CacheFileName, CacheDirectoryPath).Build();
-            MsalCacheHelper
-                .CreateAsync(storageCreationProperties)
-                .Await(ch => ch.RegisterCache(_publicClientApp.UserTokenCache));
-        }
-
-        public async Task Logout()
-        {
+            System.IO.File.Delete(_tokenPath);
             _graphClient = null;
-
-            var account = await GetAccount();
-            await _publicClientApp.RemoveAsync(account);
         }
 
-        private async Task<IAccount?> GetAccount()
+        private static InteractiveBrowserCredential GetBrowserCredential()
         {
-            var accounts = await _publicClientApp.GetAccountsAsync();
-            return accounts.FirstOrDefault();
+            var credentialOptions = new InteractiveBrowserCredentialOptions
+            {
+                ClientId = SecretConfig.ClientId,
+                TokenCachePersistenceOptions = new TokenCachePersistenceOptions() { UnsafeAllowUnencryptedStorage = true }
+            };
+
+            if (System.IO.File.Exists(_tokenPath))
+            {
+                // use the cached token
+                using var authRecordStream = System.IO.File.OpenRead(_tokenPath);
+                var authRecord = AuthenticationRecord.Deserialize(authRecordStream);
+                credentialOptions.AuthenticationRecord = authRecord;
+                return new InteractiveBrowserCredential(credentialOptions);
+            }
+            else
+            {
+                // create and cache the token
+                var browserCredential = new InteractiveBrowserCredential(credentialOptions);
+                var tokenRequestContext = new TokenRequestContext(_scopes);
+                var authRecord = browserCredential.Authenticate(tokenRequestContext);
+                using var authRecordStream = System.IO.File.OpenWrite(_tokenPath);
+                authRecord.Serialize(authRecordStream);
+                return browserCredential;
+            }
         }
     }
 }

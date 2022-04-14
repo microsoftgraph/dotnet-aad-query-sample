@@ -1,97 +1,59 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
 using Microsoft.Graph;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
 using MsGraph_Samples.Services;
+using System.Diagnostics;
+using System.Net;
+using System.Text;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace MsGraph_Samples.ViewModels
 {
-    public class MainViewModel : ObservableObject
+    [ObservableObject]
+    public partial class MainViewModel
     {
         private readonly IAuthService _authService;
         private readonly IGraphDataService _graphDataService;
 
         private readonly Stopwatch _stopWatch = new();
+        public long ElapsedMs => _stopWatch.ElapsedMilliseconds;
 
-        private bool _isBusy;
-        public bool IsBusy
-        {
-            get => _isBusy;
-            set => SetProperty(ref _isBusy, value);
-        }
+        [ObservableProperty]
+        public bool _isBusy;
 
-        private string? _userName;
-        public string? UserName
-        {
-            get => _userName;
-            set => SetProperty(ref _userName, value);
-        }
+        [ObservableProperty]
+        public string? _userName;
 
         public string? LastUrl => _graphDataService.LastUrl;
 
         public static IReadOnlyList<string> Entities => new[] { "Users", "Groups", "Applications", "Devices" };
-        private string _selectedEntity = "Users";
-        public string SelectedEntity
-        {
-            get => _selectedEntity;
-            set => SetProperty(ref _selectedEntity, value);
-        }
 
-        private DirectoryObject? _selectedObject = null;
-        public DirectoryObject? SelectedObject
-        {
-            get => _selectedObject;
-            set => SetProperty(ref _selectedObject, value);
-        }
+        [ObservableProperty]
+        public string _selectedEntity = "Users";
 
-        public long ElapsedMs => _stopWatch.ElapsedMilliseconds;
+        [ObservableProperty]
+        public DirectoryObject? _selectedObject;
 
-        private IEnumerable<DirectoryObject>? _directoryObjects;
-        public IEnumerable<DirectoryObject>? DirectoryObjects
-        {
-            get => _directoryObjects;
-            set => SetProperty(ref _directoryObjects, value);
-        }
+        [ObservableProperty]
+        public IEnumerable<DirectoryObject>? _directoryObjects;
 
         #region OData Operators
 
-        private const string SelectDefaultValue = "id, displayName, mail, userPrincipalName";
-        public string[] SplittedSelect { get; private set; } = SelectDefaultValue.Split(',', StringSplitOptions.TrimEntries);
+        public string[] SplittedSelect => Select.Split(',', StringSplitOptions.TrimEntries);
 
-        private string _select = SelectDefaultValue;
-        public string Select
-        {
-            get => _select;
-            set
-            {
-                if (SetProperty(ref _select, value))
-                    SplittedSelect = Select.Split(',', StringSplitOptions.TrimEntries);
-            }
-        }
+        [ObservableProperty]
+        public string _select = "id,displayName,mail,userPrincipalName";
 
-        private string _filter = string.Empty;
-        public string Filter
-        {
-            get => _filter;
-            set => SetProperty(ref _filter, value);
-        }
+        [ObservableProperty]
+        public string _filter = string.Empty;
 
-        private string _orderBy = string.Empty;
-        public string OrderBy
-        {
-            get => _orderBy;
-            set => SetProperty(ref _orderBy, value);
-        }
+        [ObservableProperty]
+        public string _orderBy = string.Empty;
 
         private string _search = string.Empty;
         public string Search
@@ -104,54 +66,6 @@ namespace MsGraph_Samples.ViewModels
 
                 _search = FixSearchSyntax(value);
                 OnPropertyChanged();
-            }
-        }
-
-        #endregion
-
-        public MainViewModel(IAuthService authService, IGraphDataService graphDataService)
-        {
-            _authService = authService;
-            _graphDataService = graphDataService;
-            Init().Await();
-        }
-
-        public async Task Init()
-        {
-            await LoadAction();
-
-            var user = await _graphDataService.GetMe();
-            UserName = user.DisplayName;
-        }
-
-        public AsyncRelayCommand LoadCommand => new(LoadAction);
-        private async Task LoadAction()
-        {
-            IsBusy = true;
-            _stopWatch.Restart();
-
-            try
-            {
-                DirectoryObjects = SelectedEntity switch
-                {
-                    "Users" => await _graphDataService.GetUsersAsync(Select, Filter, OrderBy, Search),
-                    "Groups" => await _graphDataService.GetGroupsAsync(Select, Filter, OrderBy, Search),
-                    "Applications" => await _graphDataService.GetApplicationsAsync(Select, Filter, OrderBy, Search),
-                    "Devices" => await _graphDataService.GetDevicesAsync(Select, Filter, OrderBy, Search),
-                    _ => throw new NotImplementedException("Can't find selected entity")
-                };
-            }
-            catch (ServiceException ex)
-            {
-                MessageBox.Show(ex.Message, ex.Error.Message);
-            }
-            finally
-            {
-                _stopWatch.Stop();
-                OnPropertyChanged(nameof(ElapsedMs));
-                OnPropertyChanged(nameof(LastUrl));
-                GraphExplorerCommand.NotifyCanExecuteChanged();
-                IsBusy = false;
             }
         }
 
@@ -180,19 +94,48 @@ namespace MsGraph_Samples.ViewModels
             return sb.ToString();
         }
 
-        public AsyncRelayCommand DrillDownCommand => new(DrillDownAction);
-        private async Task DrillDownAction()
+        #endregion
+
+        public MainViewModel(IAuthService authService, IGraphDataService graphDataService)
+        {
+            _authService = authService;
+            _graphDataService = graphDataService;
+            Init().Await();
+        }
+
+        public async Task Init()
+        {
+            var user = await _graphDataService.GetMe();
+            UserName = user.DisplayName;
+            await Load();
+        }
+
+
+        [ICommand]
+        //TODO implement [AlsoNotifyCanExecuteFor(nameof(GraphExplorerCommand))] when upgrading to MMVM Toolkit 8.0
+        private async Task Load()
+        {
+            await IsBusyWrapper(async () =>
+            {
+                DirectoryObjects = SelectedEntity switch
+                {
+                    "Users" => await _graphDataService.GetUsersAsync(Select, Filter, OrderBy, Search),
+                    "Groups" => await _graphDataService.GetGroupsAsync(Select, Filter, OrderBy, Search),
+                    "Applications" => await _graphDataService.GetApplicationsAsync(Select, Filter, OrderBy, Search),
+                    "Devices" => await _graphDataService.GetDevicesAsync(Select, Filter, OrderBy, Search),
+                    _ => throw new NotImplementedException("Can't find selected entity")
+                };
+            });
+        }
+
+        [ICommand]
+        //TODO: implement [ICommand(CanExecute = SelectedObject is not null)] after upgrade to MVVM Toolkit 8.0
+        private async Task DrillDown()
         {
             if (SelectedObject is null)
                 return;
 
-            IsBusy = true;
-            _stopWatch.Restart();
-
-            Filter = string.Empty;
-            Search = string.Empty;
-
-            try
+            await IsBusyWrapper(async () =>
             {
                 DirectoryObjects = SelectedEntity switch
                 {
@@ -211,36 +154,23 @@ namespace MsGraph_Samples.ViewModels
                     IGraphServiceDevicesCollectionPage => "Devices",
                     _ => SelectedEntity,
                 };
-            }
-            catch (ServiceException ex)
-            {
-                MessageBox.Show(ex.Message, ex.Error.Message);
-            }
-            finally
-            {
-                _stopWatch.Stop();
-                OnPropertyChanged(nameof(ElapsedMs));
-                OnPropertyChanged(nameof(LastUrl));
-                GraphExplorerCommand.NotifyCanExecuteChanged();
-                IsBusy = false;
-            }
+            });
         }
 
-        public AsyncRelayCommand<DataGridSortingEventArgs> SortCommand => new(SortAction);
-        private Task SortAction(DataGridSortingEventArgs? e)
+        [ICommand]
+        private Task Sort(DataGridSortingEventArgs? e)
         {
-            if (e is null)
-                throw new ArgumentNullException(nameof(e));
+            ArgumentNullException.ThrowIfNull(e);
 
             OrderBy = $"{e.Column.Header}";
             e.Handled = true;
-            return LoadAction();
+            return Load();
         }
 
-        public RelayCommand GraphExplorerCommand => new(GraphExplorerAction, () => LastUrl is not null);
-        private void GraphExplorerAction()
+        [ICommand] //TODO: implement [ICommand(CanExecute = LastUrl is not null)] after upgrade to MVVM Toolkit 8.0
+        private void GraphExplorer()
         {
-            if (LastUrl == null) return;
+            if (LastUrl is null) return;
 
             var geBaseUrl = "https://developer.microsoft.com/en-us/graph/graph-explorer";
             var graphUrl = "https://graph.microsoft.com";
@@ -254,12 +184,33 @@ namespace MsGraph_Samples.ViewModels
             System.Diagnostics.Process.Start(psi);
         }
 
-        public AsyncRelayCommand LogoutCommand => new(LogoutAction, () => UserName is not null);
-
-        private async Task LogoutAction()
+        [ICommand]
+        private void Logout()
         {
-            await _authService.Logout();
+            _authService.Logout();
             App.Current.Shutdown();
+        }
+
+        private async Task IsBusyWrapper(Func<Task> task)
+        {
+            IsBusy = true;
+            _stopWatch.Restart();
+
+            try
+            {
+                await task();
+            }
+            catch (ServiceException ex)
+            {
+                MessageBox.Show(ex.Message, ex.Error.Message);
+            }
+            finally
+            {
+                _stopWatch.Stop();
+                OnPropertyChanged(nameof(ElapsedMs));
+                OnPropertyChanged(nameof(LastUrl));
+                IsBusy = false;
+            }
         }
     }
 }

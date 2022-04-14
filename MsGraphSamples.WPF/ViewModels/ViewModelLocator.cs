@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Toolkit.Mvvm.DependencyInjection;
-using MsGraph_Samples.Helpers;
 using MsGraph_Samples.Services;
 
 namespace MsGraph_Samples.ViewModels
@@ -34,10 +32,10 @@ namespace MsGraph_Samples.ViewModels
             }
             else
             {
-                var authService = new AuthService(SecretConfig.ClientId);
+                var authService = new AuthService();
                 serviceCollection.AddSingleton<IAuthService>(authService);
-
-                var graphDataService = new GraphDataService(authService.GetServiceClient());
+                
+                var graphDataService = new GraphDataService(authService.GraphClient);
                 serviceCollection.AddSingleton<IGraphDataService>(graphDataService);
             }
 
