@@ -17,6 +17,7 @@ namespace MsGraph_Samples.Services
         Task<IGraphServiceUsersCollectionPage> GetTransitiveMembersAsUsersAsync(string id);
         Task<IGraphServiceUsersCollectionPage> GetAppOwnersAsUsersAsync(string id);
         Task<int> GetUsersRawCountAsync(string filter, string search);
+        Task<User> GetUser(string id, string select);
 
         string? LastUrl { get; }
     }
@@ -45,6 +46,13 @@ namespace MsGraph_Samples.Services
             return _graphClient.Me
                 .Request()
                 .GetAsync();
+        }
+        public Task<User> GetUser(string id, string select)
+        {
+            return _graphClient.Users[id]
+                    .Request()
+                    .Select(select)
+                    .GetAsync();
         }
 
         public Task<IGraphServiceApplicationsCollectionPage> GetApplicationsAsync(string select, string filter, string orderBy, string search)
@@ -102,6 +110,7 @@ namespace MsGraph_Samples.Services
         {
             var requestUrl = _graphClient.Users[id].TransitiveMemberOf
                 .AppendSegmentToRequestUrl("microsoft.graph.group"); // OData Cast
+            
             var request = new GraphServiceGroupsCollectionRequestBuilder(requestUrl, _graphClient)
                 .Request(GetAdvancedOptions(null))
                 .Header("ConsistencyLevel", "eventual");
@@ -114,6 +123,7 @@ namespace MsGraph_Samples.Services
         {
             var requestUrl = _graphClient.Groups[id].TransitiveMembers
                 .AppendSegmentToRequestUrl("microsoft.graph.user"); // OData Cast
+            
             var request = new GraphServiceUsersCollectionRequestBuilder(requestUrl, _graphClient)
                 .Request(GetAdvancedOptions(null))
                 .Header("ConsistencyLevel", "eventual");

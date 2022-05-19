@@ -56,5 +56,10 @@ namespace MsGraph_Samples.Services
         {
             return Task.FromResult(Users.Count);
         }
+
+        public Task<User> GetUser(string id, string select)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

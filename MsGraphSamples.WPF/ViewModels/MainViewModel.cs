@@ -24,23 +24,23 @@ namespace MsGraph_Samples.ViewModels
         public long ElapsedMs => _stopWatch.ElapsedMilliseconds;
 
         [ObservableProperty]
-        public bool _isBusy;
+        private bool _isBusy;
 
         [ObservableProperty]
-        public string? _userName;
+        private string? _userName;
 
         public string? LastUrl => _graphDataService.LastUrl;
 
         public static IReadOnlyList<string> Entities => new[] { "Users", "Groups", "Applications", "Devices" };
 
         [ObservableProperty]
-        public string _selectedEntity = "Users";
+        private string _selectedEntity = "Users";
 
         [ObservableProperty]
-        public DirectoryObject? _selectedObject;
+        private DirectoryObject? _selectedObject;
 
         [ObservableProperty]
-        public IEnumerable<DirectoryObject>? _directoryObjects;
+        private IEnumerable<DirectoryObject>? _directoryObjects;
 
         #region OData Operators
 
@@ -109,7 +109,7 @@ namespace MsGraph_Samples.ViewModels
             UserName = user.DisplayName;
             await Load();
         }
-
+        
 
         [ICommand]
         //TODO implement [AlsoNotifyCanExecuteFor(nameof(GraphExplorerCommand))] when upgrading to MMVM Toolkit 8.0

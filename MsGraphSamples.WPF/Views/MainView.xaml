@@ -112,7 +112,7 @@
                             property eq 'filterValue'<LineBreak />
                             property ne 'filterValue'<LineBreak />
                             startsWith(property, 'filterValue')<LineBreak />
-                            endsWith(property, 'filterValue')<Run Foreground="Green" Text=" // Enabled on Mail and UserPrincipalName" />
+                            endsWith(property, 'filterValue')<Run Foreground="Green" Text=" // Enabled on mail, userPrincipalName and proxyAddresses" />
                         </TextBlock>
                     </TextBox.ToolTip>
                 </TextBox>
@@ -146,7 +146,7 @@
                 Grid.Row="0"
                 Grid.Column="2"
                 Margin="6,0">
-                <!-- AdditionalData property supports binding thanks to IEnumerable covariance -->
+                <!--  AdditionalData property supports binding thanks to IEnumerable covariance  -->
                 <TextBlock FontWeight="Bold" Text="{Binding DirectoryObjects.AdditionalData[@odata.count], StringFormat=Entities ({0}), FallbackValue=Entities}" />
                 <ComboBox
                     Width="120"
