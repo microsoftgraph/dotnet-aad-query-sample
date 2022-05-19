@@ -62,17 +62,16 @@
                 Margin="6,0"
                 VerticalAlignment="Bottom">
                 <TextBlock FontWeight="Bold">
-                    <Hyperlink helper:HyperlinkExtensions.IsWeb="true" NavigateUri="https://docs.microsoft.com/en-us/graph/query-parameters?context=graph%2Fapi%2F1.0#select-parameter">
+                    <Hyperlink helper:HyperlinkExtensions.IsWeb="true" NavigateUri="https://docs.microsoft.com/graph/query-parameters?context=graph%2Fapi%2F1.0#select-parameter">
                         $select
+                        <Hyperlink.ToolTip>
+                            <TextBlock>
+                                <Run Foreground="Green">// List properties you want to select separated by a comma</Run>
+                            </TextBlock>
+                        </Hyperlink.ToolTip>
                     </Hyperlink>
                 </TextBlock>
-                <TextBox Text="{Binding Select, Mode=TwoWay}" ToolTipService.ShowDuration="10000">
-                    <TextBox.ToolTip>
-                        <TextBlock>
-                            <Run Foreground="Green">// List properties you want to select separated by a comma</Run>
-                        </TextBlock>
-                    </TextBox.ToolTip>
-                </TextBox>
+                <TextBox Text="{Binding Select, Mode=TwoWay}" ToolTipService.ShowDuration="10000" />
             </StackPanel>
 
             <!--  Order By  -->
@@ -81,18 +80,17 @@
                 Grid.Column="0"
                 Margin="6">
                 <TextBlock FontWeight="Bold">
-                    <Hyperlink helper:HyperlinkExtensions.IsWeb="true" NavigateUri="https://docs.microsoft.com/en-us/graph/query-parameters?context=graph%2Fapi%2F1.0#orderby-parameter">
+                    <Hyperlink helper:HyperlinkExtensions.IsWeb="true" NavigateUri="https://docs.microsoft.com/graph/query-parameters?context=graph%2Fapi%2F1.0#orderby-parameter">
                         $orderBy
+                        <Hyperlink.ToolTip>
+                            <TextBlock>
+                                <Run Foreground="Green">// Enabled only on few properties, see documentation for details</Run>
+                                <LineBreak />
+                                property [asc|desc]</TextBlock>
+                        </Hyperlink.ToolTip>
                     </Hyperlink>
                 </TextBlock>
-                <TextBox Text="{Binding OrderBy, Mode=TwoWay}" ToolTipService.ShowDuration="10000">
-                    <TextBox.ToolTip>
-                        <TextBlock>
-                            <Run Foreground="Green">// Enabled only on few properties, see documentation for details</Run>
-                            <LineBreak />
-                            property [asc|desc]</TextBlock>
-                    </TextBox.ToolTip>
-                </TextBox>
+                <TextBox Text="{Binding OrderBy, Mode=TwoWay}" ToolTipService.ShowDuration="10000" />
             </StackPanel>
 
             <!--  Filter  -->
@@ -102,20 +100,20 @@
                 Margin="6,0"
                 VerticalAlignment="Bottom">
                 <TextBlock FontWeight="Bold">
-                    <Hyperlink helper:HyperlinkExtensions.IsWeb="true" NavigateUri="https://docs.microsoft.com/en-us/graph/query-parameters?context=graph%2Fapi%2F1.0#filter-parameter">
+                    <Hyperlink helper:HyperlinkExtensions.IsWeb="true" NavigateUri="https://docs.microsoft.com/graph/aad-advanced-queries?tabs=http#support-for-filter-on-properties-of-azure-ad-directory-objects">
                         $filter
+                        <Hyperlink.ToolTip>
+                            <TextBlock>
+                                property eq 'filterValue'<LineBreak />
+                                property ne 'filterValue'<LineBreak />
+                                not propertyCollection/any(p:p eq 'filterValue')<LineBreak />
+                                startsWith(property, 'filterValue')<LineBreak />
+                                endsWith(property, 'filterValue')<Run Foreground="Green" Text=" // Enabled on mail, userPrincipalName and proxyAddresses" />
+                            </TextBlock>
+                        </Hyperlink.ToolTip>
                     </Hyperlink>
                 </TextBlock>
-                <TextBox Text="{Binding Filter, Mode=TwoWay}" ToolTipService.ShowDuration="10000">
-                    <TextBox.ToolTip>
-                        <TextBlock>
-                            property eq 'filterValue'<LineBreak />
-                            property ne 'filterValue'<LineBreak />
-                            startsWith(property, 'filterValue')<LineBreak />
-                            endsWith(property, 'filterValue')<Run Foreground="Green" Text=" // Enabled on mail, userPrincipalName and proxyAddresses" />
-                        </TextBlock>
-                    </TextBox.ToolTip>
-                </TextBox>
+                <TextBox Text="{Binding Filter, Mode=TwoWay}" ToolTipService.ShowDuration="10000" />
             </StackPanel>
 
             <!--  Search  -->
@@ -124,21 +122,20 @@
                 Grid.Column="1"
                 Margin="6">
                 <TextBlock FontWeight="Bold">
-                    <Hyperlink helper:HyperlinkExtensions.IsWeb="true" NavigateUri="https://docs.microsoft.com/en-us/graph/query-parameters?context=graph%2Fapi%2F1.0#using-search-on-directory-object-collections">
+                    <Hyperlink helper:HyperlinkExtensions.IsWeb="true" NavigateUri="https://docs.microsoft.com/graph/search-query-parameter#using-search-on-directory-object-collections">
                         $search
+                        <Hyperlink.ToolTip>
+                            <TextBlock>
+                                <Run Foreground="Green">// Enabled on displayName and Description</Run>
+                                <LineBreak />
+                                <Run Foreground="Green">// All the other properties will fallback to startsWith filter behavior</Run>
+                                <LineBreak />
+                                &quot;property1:value1&quot; [AND|OR] &quot;property2:value2&quot;</TextBlock>
+                        </Hyperlink.ToolTip>
                     </Hyperlink>
                 </TextBlock>
 
-                <TextBox Text="{Binding Search, Mode=TwoWay}" ToolTipService.ShowDuration="10000">
-                    <TextBox.ToolTip>
-                        <TextBlock>
-                            <Run Foreground="Green">// Enabled on displayName and Description</Run>
-                            <LineBreak />
-                            <Run Foreground="Green">// All the other properties will fallback to startsWith filter behavior</Run>
-                            <LineBreak />
-                            &quot;property1:value1&quot; [AND|OR] &quot;property2:value2&quot;</TextBlock>
-                    </TextBox.ToolTip>
-                </TextBox>
+                <TextBox Text="{Binding Search, Mode=TwoWay}" ToolTipService.ShowDuration="10000" />
             </StackPanel>
 
             <!--  Entity List  -->
