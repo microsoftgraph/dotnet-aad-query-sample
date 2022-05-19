@@ -12,7 +12,7 @@ namespace MsGraph_Samples.Services
             new User { Id = "3", DisplayName = "Test Test", Mail = "test@test.com" }
         };
 
-        public Task<User> GetMe()
+        public Task<User> GetMe(string select)
         {
             return Task.FromResult(Users[0]);
         }

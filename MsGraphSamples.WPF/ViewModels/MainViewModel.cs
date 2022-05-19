@@ -105,7 +105,7 @@ namespace MsGraph_Samples.ViewModels
 
         public async Task Init()
         {
-            var user = await _graphDataService.GetMe();
+            var user = await _graphDataService.GetMe("displayName");
             UserName = user.DisplayName;
             await Load();
         }
@@ -172,10 +172,11 @@ namespace MsGraph_Samples.ViewModels
         {
             if (LastUrl is null) return;
 
-            var geBaseUrl = "https://developer.microsoft.com/en-us/graph/graph-explorer";
+            var geBaseUrl = "https://developer.microsoft.com/graph/graph-explorer";
             var graphUrl = "https://graph.microsoft.com";
             var version = "v1.0";
-            var encodedUrl = WebUtility.UrlEncode(LastUrl[(LastUrl.NthIndexOf('/', 4) + 1)..]);
+            var startOfQuery = LastUrl.NthIndexOf('/', 4) + 1;
+            var encodedUrl = WebUtility.UrlEncode(LastUrl[startOfQuery..]);
             var encodedHeaders = "W3sibmFtZSI6IkNvbnNpc3RlbmN5TGV2ZWwiLCJ2YWx1ZSI6ImV2ZW50dWFsIn1d"; // ConsistencyLevel = eventual
 
             var url = $"{geBaseUrl}?request={encodedUrl}&method=GET&version={version}&GraphUrl={graphUrl}&headers={encodedHeaders}";
