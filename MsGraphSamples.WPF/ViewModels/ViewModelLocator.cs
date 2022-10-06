@@ -4,7 +4,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Toolkit.Mvvm.DependencyInjection;
+using CommunityToolkit.Mvvm.DependencyInjection;
 using MsGraph_Samples.Services;
 
 namespace MsGraph_Samples.ViewModels

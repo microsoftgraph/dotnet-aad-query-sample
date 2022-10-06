@@ -1,21 +1,19 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.Graph;
-using Microsoft.Toolkit.Mvvm.ComponentModel;
-using Microsoft.Toolkit.Mvvm.Input;
 using MsGraph_Samples.Services;
 using System.Diagnostics;
 using System.Net;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 
 namespace MsGraph_Samples.ViewModels
 {
-    [ObservableObject]
-    public partial class MainViewModel
+    public partial class MainViewModel : ObservableObject
     {
         private readonly IAuthService _authService;
         private readonly IGraphDataService _graphDataService;
@@ -40,6 +38,7 @@ namespace MsGraph_Samples.ViewModels
         private DirectoryObject? _selectedObject;
 
         [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(LaunchGraphExplorerCommand))]
         private IEnumerable<DirectoryObject>? _directoryObjects;
 
         #region OData Operators
@@ -100,8 +99,9 @@ namespace MsGraph_Samples.ViewModels
         {
             _authService = authService;
             _graphDataService = graphDataService;
+
             Init().Await();
-        }
+       }       
 
         public async Task Init()
         {
@@ -109,10 +109,9 @@ namespace MsGraph_Samples.ViewModels
             UserName = user.DisplayName;
             await Load();
         }
-        
 
-        [ICommand]
-        //TODO implement [AlsoNotifyCanExecuteFor(nameof(GraphExplorerCommand))] when upgrading to MMVM Toolkit 8.0
+
+        [RelayCommand]
         private async Task Load()
         {
             await IsBusyWrapper(async () =>
@@ -128,15 +127,18 @@ namespace MsGraph_Samples.ViewModels
             });
         }
 
-        [ICommand]
-        //TODO: implement [ICommand(CanExecute = SelectedObject is not null)] after upgrade to MVVM Toolkit 8.0
+        private bool CanDrillDown() => SelectedObject is not null;
+        [RelayCommand(CanExecute = nameof(CanDrillDown))]
         private async Task DrillDown()
         {
-            if (SelectedObject is null)
-                return;
+            ArgumentNullException.ThrowIfNull(SelectedObject);
 
             await IsBusyWrapper(async () =>
             {
+                OrderBy = string.Empty;
+                Filter = string.Empty;
+                Search = string.Empty;
+
                 DirectoryObjects = SelectedEntity switch
                 {
                     "Users" => await _graphDataService.GetTransitiveMemberOfAsGroupsAsync(SelectedObject.Id),
@@ -157,7 +159,7 @@ namespace MsGraph_Samples.ViewModels
             });
         }
 
-        [ICommand]
+        [RelayCommand]
         private Task Sort(DataGridSortingEventArgs? e)
         {
             ArgumentNullException.ThrowIfNull(e);
@@ -167,10 +169,11 @@ namespace MsGraph_Samples.ViewModels
             return Load();
         }
 
-        [ICommand] //TODO: implement [ICommand(CanExecute = LastUrl is not null)] after upgrade to MVVM Toolkit 8.0
-        private void GraphExplorer()
+        private bool CanLaunchGraphExplorer() => LastUrl is not null;
+        [RelayCommand(CanExecute = nameof(CanLaunchGraphExplorer))]
+        private void LaunchGraphExplorer()
         {
-            if (LastUrl is null) return;
+            ArgumentNullException.ThrowIfNull(LastUrl);
 
             var geBaseUrl = "https://developer.microsoft.com/graph/graph-explorer";
             var graphUrl = "https://graph.microsoft.com";
@@ -185,7 +188,7 @@ namespace MsGraph_Samples.ViewModels
             System.Diagnostics.Process.Start(psi);
         }
 
-        [ICommand]
+        [RelayCommand]
         private void Logout()
         {
             _authService.Logout();
@@ -203,7 +206,7 @@ namespace MsGraph_Samples.ViewModels
             }
             catch (ServiceException ex)
             {
-                MessageBox.Show(ex.Message, ex.Error.Message);
+                Task.Run(() => MessageBox.Show(ex.Message, ex.Error.Message)).Await();
             }
             finally
             {

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30225.117
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32630.192
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MsGraphSamples.WPF", "MsGraphSamples.WPF\MsGraphSamples.WPF.csproj", "{86020163-1C2C-47D4-BE25-76597FD50342}"
 EndProject
