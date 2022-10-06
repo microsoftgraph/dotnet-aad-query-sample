@@ -180,7 +180,7 @@
                 Width="120"
                 Margin="6"
                 Padding="6,0"
-                Command="{Binding GraphExplorerCommand}"
+                Command="{Binding LaunchGraphExplorerCommand}"
                 Content="Graph Explorer" />
         </Grid>
         <DataGrid
