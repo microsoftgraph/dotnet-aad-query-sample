@@ -1,25 +1,24 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
-using MsGraph_Samples.Helpers;
+using CommunityToolkit.Mvvm.DependencyInjection;
 using MsGraph_Samples.Services;
 
 namespace MsGraph_Samples.ViewModels
 {
+    [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Binding Parameters")]
     public class ViewModelLocator
     {
         public static bool IsInDesignMode => Application.Current.MainWindow == null;
 
-        public IServiceProvider Services { get; }
-
-        public MainViewModel? MainVM => Services.GetService<MainViewModel>();
+        public MainViewModel? MainVM => Ioc.Default.GetService<MainViewModel>();
 
         public ViewModelLocator()
         {
-            Services = GetServices();
+            Ioc.Default.ConfigureServices(GetServices());
         }
 
         private static IServiceProvider GetServices()
@@ -33,10 +32,10 @@ namespace MsGraph_Samples.ViewModels
             }
             else
             {
-                var authService = new AuthService(SecretConfig.ClientId);
+                var authService = new AuthService();
                 serviceCollection.AddSingleton<IAuthService>(authService);
-
-                var graphDataService = new GraphDataService(authService.GetServiceClient());
+                
+                var graphDataService = new GraphDataService(authService.GraphClient);
                 serviceCollection.AddSingleton<IGraphDataService>(graphDataService);
             }
 

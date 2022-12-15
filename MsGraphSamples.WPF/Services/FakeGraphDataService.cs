@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Graph;
+﻿using Microsoft.Graph;
 
 namespace MsGraph_Samples.Services
 {
@@ -17,7 +13,7 @@ namespace MsGraph_Samples.Services
             new User { Id = "3", DisplayName = "Test Test", Mail = "test@test.com" }
         };
 
-        public Task<User> GetMe()
+        public Task<User> GetMe(string select)
         {
             return Task.FromResult(Users[0]);
         }
@@ -60,6 +56,11 @@ namespace MsGraph_Samples.Services
         public Task<int> GetUsersRawCountAsync(string filter, string search)
         {
             return Task.FromResult(Users.Count);
+        }
+
+        public Task<User> GetUser(string id, string select)
+        {
+            throw new NotImplementedException();
         }
     }
 }

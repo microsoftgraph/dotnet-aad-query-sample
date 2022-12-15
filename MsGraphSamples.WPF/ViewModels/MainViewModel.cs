@@ -1,98 +1,59 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Microsoft.Graph;
+using MsGraph_Samples.Services;
 using System.Diagnostics;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using Microsoft.Graph;
-using MsGraph_Samples.MVVM;
-using MsGraph_Samples.Services;
 
 namespace MsGraph_Samples.ViewModels
 {
-    public class MainViewModel : ObservableObject
+    public partial class MainViewModel : ObservableObject
     {
         private readonly IAuthService _authService;
         private readonly IGraphDataService _graphDataService;
 
         private readonly Stopwatch _stopWatch = new();
+        public long ElapsedMs => _stopWatch.ElapsedMilliseconds;
 
+        [ObservableProperty]
         private bool _isBusy;
-        public bool IsBusy
-        {
-            get => _isBusy;
-            set => Set(ref _isBusy, value);
-        }
 
+        [ObservableProperty]
         private string? _userName;
-        public string? UserName
-        {
-            get => _userName;
-            set => Set(ref _userName, value);
-        }
 
         public string? LastUrl => _graphDataService.LastUrl.Decode();
         public string? PowerShellCmdLet => _graphDataService.PowerShellCmdLet;
 
         public static IReadOnlyList<string> Entities => new[] { "Users", "Groups", "Applications", "Devices" };
+
+        [ObservableProperty]
         private string _selectedEntity = "Users";
-        public string SelectedEntity
-        {
-            get => _selectedEntity;
-            set => Set(ref _selectedEntity, value);
-        }
 
-        private DirectoryObject? _selectedObject = null;
-        public DirectoryObject? SelectedObject
-        {
-            get => _selectedObject;
-            set => Set(ref _selectedObject, value);
-        }
+        [ObservableProperty]
+        private DirectoryObject? _selectedObject;
 
-        public long ElapsedMs => _stopWatch.ElapsedMilliseconds;
-
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(LaunchGraphExplorerCommand))]
         private IEnumerable<DirectoryObject>? _directoryObjects;
-        public IEnumerable<DirectoryObject>? DirectoryObjects
-        {
-            get => _directoryObjects;
-            set => Set(ref _directoryObjects, value);
-        }
 
         #region OData Operators
 
-        private const string SelectDefaultValue = "id, displayName, mail, userPrincipalName";
-        public string[] SplittedSelect { get; private set; } = SelectDefaultValue.Split(',', StringSplitOptions.TrimEntries);
+        public string[] SplittedSelect => Select.Split(',', StringSplitOptions.TrimEntries);
 
-        private string _select = SelectDefaultValue;
-        public string Select
-        {
-            get => _select;
-            set
-            {
-                if (Set(ref _select, value))
-                    SplittedSelect = Select.Split(',', StringSplitOptions.TrimEntries);
-            }
-        }
+        [ObservableProperty]
+        public string _select = "id,displayName,mail,userPrincipalName";
 
-        private string _filter = string.Empty;
-        public string Filter
-        {
-            get => _filter;
-            set => Set(ref _filter, value);
-        }
+        [ObservableProperty]
+        public string _filter = string.Empty;
 
-        private string _orderBy = string.Empty;
-        public string OrderBy
-        {
-            get => _orderBy;
-            set => Set(ref _orderBy, value);
-        }
+        [ObservableProperty]
+        public string _orderBy = string.Empty;
 
         private string _search = string.Empty;
         public string Search
@@ -104,56 +65,7 @@ namespace MsGraph_Samples.ViewModels
                     return;
 
                 _search = FixSearchSyntax(value);
-                RaisePropertyChanged();
-            }
-        }
-
-        #endregion
-
-        public MainViewModel(IAuthService authService, IGraphDataService graphDataService)
-        {
-            _authService = authService;
-            _graphDataService = graphDataService;
-            Init().Await();
-        }
-
-        public async Task Init()
-        {
-            await LoadAction();
-
-            var user = await _graphDataService.GetMe();
-            UserName = user.DisplayName;
-        }
-
-        public AsyncRelayCommand LoadCommand => new(LoadAction);
-        private async Task LoadAction()
-        {
-            IsBusy = true;
-            _stopWatch.Restart();
-
-            try
-            {
-                DirectoryObjects = SelectedEntity switch
-                {
-                    "Users" => await _graphDataService.GetUsersAsync(Select, Filter, OrderBy, Search),
-                    "Groups" => await _graphDataService.GetGroupsAsync(Select, Filter, OrderBy, Search),
-                    "Applications" => await _graphDataService.GetApplicationsAsync(Select, Filter, OrderBy, Search),
-                    "Devices" => await _graphDataService.GetDevicesAsync(Select, Filter, OrderBy, Search),
-                    _ => throw new NotImplementedException("Can't find selected entity")
-                };
-            }
-            catch (ServiceException ex)
-            {
-                MessageBox.Show(ex.Message, ex.Error.Message);
-            }
-            finally
-            {
-                _stopWatch.Stop();
-                RaisePropertyChanged(nameof(ElapsedMs));
-                RaisePropertyChanged(nameof(LastUrl));
-                RaisePropertyChanged(nameof(PowerShellCmdLet));
-                RelayCommand.RaiseCanExecuteChanged();
-                IsBusy = false;
+                OnPropertyChanged();
             }
         }
 
@@ -182,19 +94,52 @@ namespace MsGraph_Samples.ViewModels
             return sb.ToString();
         }
 
-        public AsyncRelayCommand DrillDownCommand => new(DrillDownAction);
-        private async Task DrillDownAction()
+        #endregion
+
+        public MainViewModel(IAuthService authService, IGraphDataService graphDataService)
         {
-            if (SelectedObject == null) return;
+            _authService = authService;
+            _graphDataService = graphDataService;
 
-            IsBusy = true;
-            _stopWatch.Restart();
+            Init().Await();
+       }       
 
-            Filter = string.Empty;
-            Search = string.Empty;
+        public async Task Init()
+        {
+            var user = await _graphDataService.GetMe("displayName");
+            UserName = user.DisplayName;
+            await Load();
+        }
 
-            try
+
+        [RelayCommand]
+        private async Task Load()
+        {
+            await IsBusyWrapper(async () =>
             {
+                DirectoryObjects = SelectedEntity switch
+                {
+                    "Users" => await _graphDataService.GetUsersAsync(Select, Filter, OrderBy, Search),
+                    "Groups" => await _graphDataService.GetGroupsAsync(Select, Filter, OrderBy, Search),
+                    "Applications" => await _graphDataService.GetApplicationsAsync(Select, Filter, OrderBy, Search),
+                    "Devices" => await _graphDataService.GetDevicesAsync(Select, Filter, OrderBy, Search),
+                    _ => throw new NotImplementedException("Can't find selected entity")
+                };
+            });
+        }
+
+        private bool CanDrillDown() => SelectedObject is not null;
+        [RelayCommand(CanExecute = nameof(CanDrillDown))]
+        private async Task DrillDown()
+        {
+            ArgumentNullException.ThrowIfNull(SelectedObject);
+
+            await IsBusyWrapper(async () =>
+            {
+                OrderBy = string.Empty;
+                Filter = string.Empty;
+                Search = string.Empty;
+
                 DirectoryObjects = SelectedEntity switch
                 {
                     "Users" => await _graphDataService.GetTransitiveMemberOfAsGroupsAsync(SelectedObject.Id, Select, Filter, OrderBy, Search),
@@ -212,39 +157,30 @@ namespace MsGraph_Samples.ViewModels
                     IGraphServiceDevicesCollectionPage => "Devices",
                     _ => SelectedEntity,
                 };
-            }
-            catch (ServiceException ex)
-            {
-                MessageBox.Show(ex.Message, ex.Error.Message);
-            }
-            finally
-            {
-                _stopWatch.Stop();
-                RaisePropertyChanged(nameof(ElapsedMs));
-                RaisePropertyChanged(nameof(LastUrl));
-                RaisePropertyChanged(nameof(PowerShellCmdLet));
-                AsyncRelayCommand.RaiseCanExecuteChanged();
-                IsBusy = false;
-            }
+            });
         }
 
-        public AsyncRelayCommand<DataGridSortingEventArgs> SortCommand => new(SortAction);
-        private Task SortAction(DataGridSortingEventArgs e)
+        [RelayCommand]
+        private Task Sort(DataGridSortingEventArgs? e)
         {
+            ArgumentNullException.ThrowIfNull(e);
+
             OrderBy = $"{e.Column.Header}";
             e.Handled = true;
-            return LoadAction();
+            return Load();
         }
 
-        public RelayCommand GraphExplorerCommand => new(GraphExplorerAction, () => LastUrl is not null);
-        private void GraphExplorerAction()
+        private bool CanLaunchGraphExplorer() => LastUrl is not null;
+        [RelayCommand(CanExecute = nameof(CanLaunchGraphExplorer))]
+        private void LaunchGraphExplorer()
         {
-            if (LastUrl == null) return;
+            ArgumentNullException.ThrowIfNull(LastUrl);
 
-            var geBaseUrl = "https://developer.microsoft.com/en-us/graph/graph-explorer";
+            var geBaseUrl = "https://developer.microsoft.com/graph/graph-explorer";
             var graphUrl = "https://graph.microsoft.com";
             var version = "v1.0";
-            var encodedUrl = WebUtility.UrlEncode(LastUrl[(LastUrl.NthIndexOf('/', 4) + 1)..]);
+            var startOfQuery = LastUrl.NthIndexOf('/', 4) + 1;
+            var encodedUrl = WebUtility.UrlEncode(LastUrl[startOfQuery..]);
             var encodedHeaders = "W3sibmFtZSI6IkNvbnNpc3RlbmN5TGV2ZWwiLCJ2YWx1ZSI6ImV2ZW50dWFsIn1d"; // ConsistencyLevel = eventual
 
             var url = $"{geBaseUrl}?request={encodedUrl}&method=GET&version={version}&GraphUrl={graphUrl}&headers={encodedHeaders}";
@@ -273,12 +209,33 @@ namespace MsGraph_Samples.ViewModels
             }
         }
 
-        public AsyncRelayCommand LogoutCommand => new(LogoutAction, () => UserName is not null);
-
-        private async Task LogoutAction()
+        [RelayCommand]
+        private void Logout()
         {
-            await _authService.Logout();
+            _authService.Logout();
             App.Current.Shutdown();
+        }
+
+        private async Task IsBusyWrapper(Func<Task> task)
+        {
+            IsBusy = true;
+            _stopWatch.Restart();
+
+            try
+            {
+                await task();
+            }
+            catch (ServiceException ex)
+            {
+                Task.Run(() => MessageBox.Show(ex.Message, ex.Error.Message)).Await();
+            }
+            finally
+            {
+                _stopWatch.Stop();
+                OnPropertyChanged(nameof(ElapsedMs));
+                OnPropertyChanged(nameof(LastUrl));
+                IsBusy = false;
+            }
         }
     }
 }
