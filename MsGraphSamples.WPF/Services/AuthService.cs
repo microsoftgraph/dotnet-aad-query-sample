@@ -17,7 +17,7 @@ namespace MsGraph_Samples.Services
     public class AuthService : IAuthService
     {
         private const string _tokenPath = "authToken.bin";
-        private static readonly string[] _scopes = { "Directory.Read.All" };
+        public static readonly string[] Scopes = { "Directory.Read.All" };
 
         private GraphServiceClient? _graphClient;
         public GraphServiceClient GraphClient => _graphClient ??= new GraphServiceClient(GetBrowserCredential());
@@ -48,7 +48,7 @@ namespace MsGraph_Samples.Services
             {
                 // create and cache the token
                 var browserCredential = new InteractiveBrowserCredential(credentialOptions);
-                var tokenRequestContext = new TokenRequestContext(_scopes);
+                var tokenRequestContext = new TokenRequestContext(Scopes);
                 var authRecord = browserCredential.Authenticate(tokenRequestContext);
                 using var authRecordStream = System.IO.File.OpenWrite(_tokenPath);
                 authRecord.Serialize(authRecordStream);

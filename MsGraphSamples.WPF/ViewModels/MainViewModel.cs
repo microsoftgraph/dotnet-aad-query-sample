@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Graph;
 using MsGraph_Samples.Services;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
 using System.Text;
@@ -234,6 +235,7 @@ namespace MsGraph_Samples.ViewModels
                 _stopWatch.Stop();
                 OnPropertyChanged(nameof(ElapsedMs));
                 OnPropertyChanged(nameof(LastUrl));
+                OnPropertyChanged(nameof(PowerShellCmdLet));
                 IsBusy = false;
             }
         }

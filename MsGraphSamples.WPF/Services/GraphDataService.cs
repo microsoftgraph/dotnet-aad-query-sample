@@ -2,13 +2,16 @@
 // Licensed under the MIT License.
 
 using Microsoft.Graph;
+using Microsoft.IdentityModel.Tokens;
 using System.Net;
+using System.Text;
 
 namespace MsGraph_Samples.Services
 {
     public interface IGraphDataService
     {
-        Task<User> GetMe();
+        Task<User> GetMe(string select);
+        Task<User> GetUser(string id, string select);
         Task<IGraphServiceApplicationsCollectionPage> GetApplicationsAsync(string select, string filter, string orderBy, string search);
         Task<IGraphServiceDevicesCollectionPage> GetDevicesAsync(string select, string filter, string orderBy, string search);
         Task<IGraphServiceGroupsCollectionPage> GetGroupsAsync(string select, string filter, string orderBy, string search);
@@ -17,7 +20,6 @@ namespace MsGraph_Samples.Services
         Task<IGraphServiceUsersCollectionPage> GetTransitiveMembersAsUsersAsync(string id, string select, string filter, string orderBy, string search);
         Task<IGraphServiceUsersCollectionPage> GetAppOwnersAsUsersAsync(string id, string select, string filter, string orderBy, string search);
         Task<int> GetUsersRawCountAsync(string filter, string search);
-        Task<User> GetUser(string id, string select);
 
         Uri? LastUrl { get; }
         string? PowerShellCmdLet { get; }
@@ -25,7 +27,6 @@ namespace MsGraph_Samples.Services
 
     public class GraphDataService : IGraphDataService
     {
-        public string? LastUrl { get; private set; } = null;
         // Required for Advanced Queries
         private readonly QueryOption OdataCount = new("$count", "true");
 
@@ -35,6 +36,10 @@ namespace MsGraph_Samples.Services
         public Uri? LastUrl { get; private set; } = null;
 
         private readonly GraphServiceClient _graphClient;
+        public GraphDataService(GraphServiceClient graphClient)
+        {
+            _graphClient = graphClient;
+        }
         public string? PowerShellCmdLet
         {
             get
@@ -42,10 +47,6 @@ namespace MsGraph_Samples.Services
                 if (LastUrl == null)
                     return null;
 
-        public GraphDataService(GraphServiceClient graphClient)
-        {
-            _graphClient = graphClient;
-        }
                 // https://github.com/microsoftgraph/msgraph-sdk-powershell/tree/dev/src
                 StringBuilder cmdLet = new();
 
@@ -88,10 +89,6 @@ namespace MsGraph_Samples.Services
                     }
                 }
 
-        private static IEnumerable<QueryOption> GetAdvancedOptions(string? search = null)
-        {
-            if (!string.IsNullOrEmpty(search))
-                yield return new QueryOption("$search", WebUtility.UrlEncode(search));
                 if (isLink) //TODO: ODATA Cast?
                 {
                     switch (segments[0])
@@ -111,24 +108,12 @@ namespace MsGraph_Samples.Services
                         default:
                             throw new InvalidOperationException("Can't parse Entity in Url");
                     }
-
-            yield return new QueryOption("$count", "true");
-        }
                 }
                 else //TODO: ConsistencyLevel parameter not supported for links
                 {
                     cmdLet.Append(" -ConsistencyLevel eventual");
                 }
 
-        public Task<User> GetMe(string select)
-        {
-            return _graphClient.Me
-                .Request()
-                .Select(select)
-                .GetAsync();
-        }
-        
-        public Task<User> GetUser(string id, string select)
                 cmdLet.Append(' ');
 
                 var queryString = LastUrl.ParseQueryString();
@@ -152,34 +137,31 @@ namespace MsGraph_Samples.Services
             }
         }
 
-
-        private readonly IGraphServiceClient _graphClient;
-
-        public GraphDataService(IGraphServiceClient graphClient)
+        private static IEnumerable<QueryOption> GetAdvancedOptions(string? search = null)
         {
-            _graphClient = graphClient;
+            if (!string.IsNullOrEmpty(search))
+                yield return new QueryOption("$search", WebUtility.UrlEncode(search));
+
+            yield return new QueryOption("$count", "true");
         }
 
-        private IEnumerable<Option> GetAdvancedOptions(string search)
+
+        public Task<User> GetMe(string select)
         {
-            List<Option> options = new() { OdataCount, EventualConsistency };
-
-            if (!search.IsNullOrEmpty())
-            {
-                var encodedValue = WebUtility.UrlEncode(search);
-                options.Add(new QueryOption($"$search", encodedValue));
-            }
-
-            return options;
+            return _graphClient.Me
+                .Request()
+                .Select(select)
+                .GetAsync();
         }
 
-        public Task<User> GetMe()
+        public Task<User> GetUser(string id, string select)
         {
             return _graphClient.Users[id]
                     .Request()
                     .Select(select)
                     .GetAsync();
         }
+
 
         public Task<IGraphServiceApplicationsCollectionPage> GetApplicationsAsync(string select, string filter, string orderBy, string search)
         {
@@ -190,7 +172,7 @@ namespace MsGraph_Samples.Services
                 .Filter(filter)
                 .OrderBy(orderBy);
 
-            LastUrl = WebUtility.UrlDecode(request.GetHttpRequestMessage().RequestUri?.AbsoluteUri);
+            LastUrl = request.GetHttpRequestMessage().RequestUri;
             return request.GetAsync();
         }
 
@@ -203,10 +185,10 @@ namespace MsGraph_Samples.Services
                 .Filter(filter)
                 .OrderBy(orderBy);
 
-            LastUrl = WebUtility.UrlDecode(request.GetHttpRequestMessage().RequestUri?.AbsoluteUri);
+            LastUrl = request.GetHttpRequestMessage().RequestUri;
             return request.GetAsync();
         }
-        
+
         public Task<IGraphServiceGroupsCollectionPage> GetGroupsAsync(string select, string filter, string orderBy, string search)
         {
             var request = _graphClient.Groups
@@ -216,7 +198,7 @@ namespace MsGraph_Samples.Services
                 .Filter(filter)
                 .OrderBy(orderBy);
 
-            LastUrl = WebUtility.UrlDecode(request.GetHttpRequestMessage().RequestUri?.AbsoluteUri);
+            LastUrl = request.GetHttpRequestMessage().RequestUri;
             return request.GetAsync();
         }
 
@@ -229,7 +211,7 @@ namespace MsGraph_Samples.Services
                 .Filter(filter)
                 .OrderBy(orderBy);
 
-            LastUrl = WebUtility.UrlDecode(request.GetHttpRequestMessage().RequestUri?.AbsoluteUri);
+            LastUrl = request.GetHttpRequestMessage().RequestUri;
             return request.GetAsync();
         }
 
@@ -244,7 +226,7 @@ namespace MsGraph_Samples.Services
                 .Request(GetAdvancedOptions(null))
                 .Header("ConsistencyLevel", "eventual");
 
-            LastUrl = WebUtility.UrlDecode(request.GetHttpRequestMessage().RequestUri?.AbsoluteUri);
+            LastUrl = request.GetHttpRequestMessage().RequestUri;
             return request.GetAsync();
         }
 
@@ -257,7 +239,7 @@ namespace MsGraph_Samples.Services
                 .Request(GetAdvancedOptions())
                 .Header("ConsistencyLevel", "eventual");
 
-            LastUrl = WebUtility.UrlDecode(request.GetHttpRequestMessage().RequestUri?.AbsoluteUri);
+            LastUrl = request.GetHttpRequestMessage().RequestUri;
             return request.GetAsync();
         }
 
@@ -269,7 +251,7 @@ namespace MsGraph_Samples.Services
                 .Request(GetAdvancedOptions())
                 .Header("ConsistencyLevel", "eventual");
 
-            LastUrl = WebUtility.UrlDecode(request.GetHttpRequestMessage().RequestUri?.AbsoluteUri);
+            LastUrl = request.GetHttpRequestMessage().RequestUri;
             return request.GetAsync();
         }
 
@@ -285,7 +267,7 @@ namespace MsGraph_Samples.Services
             var request = new BaseRequest(requestUrl, _graphClient, queryOptions)
                 .Header("ConsistencyLevel", "eventual");
 
-            LastUrl = WebUtility.UrlDecode(request.GetHttpRequestMessage().RequestUri?.AbsoluteUri);
+            LastUrl = request.GetHttpRequestMessage().RequestUri;
 
             var response = await _graphClient.HttpProvider.SendAsync(request.GetHttpRequestMessage());
             var userCount = await response.Content.ReadAsStringAsync();
