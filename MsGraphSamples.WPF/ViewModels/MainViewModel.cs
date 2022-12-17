@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Graph.Models;
 using Microsoft.Graph.Models.ODataErrors;
+using Microsoft.Kiota.Abstractions;
 using MsGraph_Samples.Services;
 using System.Diagnostics;
 using System.Net;
@@ -210,6 +211,10 @@ namespace MsGraph_Samples.ViewModels
             catch (ODataError ex)
             {
                 Task.Run(() => MessageBox.Show(ex.Message, ex.Error.Message)).Await();
+            }
+            catch (ApiException ex)
+            {
+                Task.Run(() => MessageBox.Show(ex.Message, ex.Source)).Await();
             }
             finally
             {
