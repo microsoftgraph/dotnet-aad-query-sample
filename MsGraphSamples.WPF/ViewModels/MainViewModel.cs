@@ -119,7 +119,6 @@ namespace MsGraph_Samples.ViewModels
         {
             await IsBusyWrapper(async () =>
             {
-                await Task.Delay(3000);
                 DirectoryObjects = SelectedEntity switch
                 {
                     "Users" => await _graphDataService.GetUsersAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
