@@ -2,6 +2,8 @@
 // Licensed under the MIT License.
 
 using Microsoft.Graph;
+using Microsoft.Graph.Models;
+using Microsoft.IdentityModel.Tokens;
 using System.Net;
 
 namespace MsGraph_Samples.Services
@@ -9,16 +11,16 @@ namespace MsGraph_Samples.Services
     public interface IGraphDataService
     {
         string? LastUrl { get; }
-        Task<User> GetMe(string select);
-        Task<IGraphServiceApplicationsCollectionPage> GetApplicationsAsync(string select, string filter, string orderBy, string search);
-        Task<IGraphServiceDevicesCollectionPage> GetDevicesAsync(string select, string filter, string orderBy, string search);
-        Task<IGraphServiceGroupsCollectionPage> GetGroupsAsync(string select, string filter, string orderBy, string search);
-        Task<IGraphServiceUsersCollectionPage> GetUsersAsync(string select, string filter, string orderBy, string search);
-        Task<IGraphServiceGroupsCollectionPage> GetTransitiveMemberOfAsGroupsAsync(string id);
-        Task<IGraphServiceUsersCollectionPage> GetTransitiveMembersAsUsersAsync(string id);
-        Task<IGraphServiceUsersCollectionPage> GetAppOwnersAsUsersAsync(string id);
-        Task<int> GetUsersRawCountAsync(string filter, string search);
-        Task<User> GetUser(string id, string select);
+        Task<User> GetMe(string[] select);
+        Task<ApplicationCollectionResponse> GetApplicationsAsync(string[] select, string filter, string[] orderBy, string search);
+        Task<DeviceCollectionResponse> GetDevicesAsync(string[] select, string filter, string[] orderBy, string search);
+        Task<GroupCollectionResponse> GetGroupsAsync(string[] select, string filter, string[] orderBy, string search);
+        Task<UserCollectionResponse> GetUsersAsync(string[] select, string filter, string[] orderBy, string search);
+        Task<GroupCollectionResponse> GetTransitiveMemberOfAsGroupsAsync(string id);
+        Task<UserCollectionResponse> GetTransitiveMembersAsUsersAsync(string id);
+        Task<UserCollectionResponse> GetAppOwnersAsUsersAsync(string id);
+        Task<int?> GetUsersRawCountAsync(string filter, string search);
+        Task<User> GetUser(string id, string[] select);
     }
 
     public class GraphDataService : IGraphDataService
@@ -27,142 +29,172 @@ namespace MsGraph_Samples.Services
 
         private readonly GraphServiceClient _graphClient;
 
+        private readonly Dictionary<string, string> EventualConsistencyHeader = new()
+        {
+            { "ConsistencyLevel", "eventual" }
+        };
+
         public GraphDataService(GraphServiceClient graphClient)
         {
             _graphClient = graphClient;
         }
 
-        private static IEnumerable<QueryOption> GetAdvancedOptions(string? search = null)
-        {
-            if (!string.IsNullOrEmpty(search))
-                yield return new QueryOption("$search", WebUtility.UrlEncode(search));
-
-            yield return new QueryOption("$count", "true");
-        }
-
-        public Task<User> GetMe(string select)
+        public Task<User> GetMe(string[] select)
         {
             return _graphClient.Me
-                .Request()
-                .Select(select)
-                .GetAsync();
+                .GetAsync(rc => rc.QueryParameters.Select = select);
         }
-        
-        public Task<User> GetUser(string id, string select)
+
+        public Task<User> GetUser(string id, string[] select)
         {
             return _graphClient.Users[id]
-                    .Request()
-                    .Select(select)
-                    .GetAsync();
+                .GetAsync(rc => rc.QueryParameters.Select = select);
         }
 
-        public Task<IGraphServiceApplicationsCollectionPage> GetApplicationsAsync(string select, string filter, string orderBy, string search)
-        {
-            var request = _graphClient.Applications
-                .Request(GetAdvancedOptions(search))
-                .Header("ConsistencyLevel", "eventual")
-                .Select(select)
-                .Filter(filter)
-                .OrderBy(orderBy);
+        //public IAsyncEnumerable<Application> GetApplicationsAsync(string[] select, string filter, string[] orderBy, string search)
+        //{
+        //    var requestInfo = _graphClient.Applications
+        //        .CreateGetRequestInformation(rc =>
+        //        {
+        //            rc.Headers = EventualConsistencyHeader;
+        //            rc.QueryParameters.Search = WebUtility.UrlEncode(search);
+        //            rc.QueryParameters.Select = select;
+        //            rc.QueryParameters.Filter = filter;
+        //            rc.QueryParameters.Orderby = orderBy;
+        //        });
 
-            LastUrl = WebUtility.UrlDecode(request.GetHttpRequestMessage().RequestUri?.AbsoluteUri);
-            return request.GetAsync();
+        //    LastUrl = requestInfo.URI.AbsoluteUri;
+        //    return requestInfo.ToAsyncEnumerable<Application>(_graphClient.RequestAdapter);
+        //}
+
+        public Task<ApplicationCollectionResponse> GetApplicationsAsync(string[] select, string filter, string[] orderBy, string search)
+        {
+            return _graphClient.Applications
+                .GetAsync(rc =>
+                {
+                    rc.Headers = EventualConsistencyHeader;
+                    rc.QueryParameters.Count = true;
+                    if (!search.IsNullOrEmpty())
+                        rc.QueryParameters.Search = WebUtility.UrlEncode(search);
+                    rc.QueryParameters.Select = select;
+                    rc.QueryParameters.Filter = filter;
+                    rc.QueryParameters.Orderby = orderBy;
+                });
+
+            //LastUrl = WebUtility.UrlDecode(request.GetHttpRequestMessage().RequestUri?.AbsoluteUri);
+            //return request.GetAsync();
         }
 
-        public Task<IGraphServiceDevicesCollectionPage> GetDevicesAsync(string select, string filter, string orderBy, string search)
+        public Task<DeviceCollectionResponse> GetDevicesAsync(string[] select, string filter, string[] orderBy, string search)
         {
-            var request = _graphClient.Devices
-                .Request(GetAdvancedOptions(search))
-                .Header("ConsistencyLevel", "eventual")
-                .Select(select)
-                .Filter(filter)
-                .OrderBy(orderBy);
+            return _graphClient.Devices
+                .GetAsync(rc =>
+                {
+                    rc.Headers = EventualConsistencyHeader;
+                    rc.QueryParameters.Count = true;
+                    if (!search.IsNullOrEmpty())
+                        rc.QueryParameters.Search = WebUtility.UrlEncode(search);
+                    rc.QueryParameters.Select = select;
+                    rc.QueryParameters.Filter = filter;
+                    rc.QueryParameters.Orderby = orderBy;
+                });
 
-            LastUrl = WebUtility.UrlDecode(request.GetHttpRequestMessage().RequestUri?.AbsoluteUri);
-            return request.GetAsync();
-        }
-        
-        public Task<IGraphServiceGroupsCollectionPage> GetGroupsAsync(string select, string filter, string orderBy, string search)
-        {
-            var request = _graphClient.Groups
-                .Request(GetAdvancedOptions(search))
-                .Header("ConsistencyLevel", "eventual")
-                .Select(select)
-                .Filter(filter)
-                .OrderBy(orderBy);
-
-            LastUrl = WebUtility.UrlDecode(request.GetHttpRequestMessage().RequestUri?.AbsoluteUri);
-            return request.GetAsync();
+            //LastUrl = WebUtility.UrlDecode(request.GetHttpRequestMessage().RequestUri?.AbsoluteUri);
+            //return request.GetAsync();
         }
 
-        public Task<IGraphServiceUsersCollectionPage> GetUsersAsync(string select, string filter, string orderBy, string search)
+        public Task<GroupCollectionResponse> GetGroupsAsync(string[] select, string filter, string[] orderBy, string search)
         {
-            var request = _graphClient.Users
-                .Request(GetAdvancedOptions(search))
-                .Header("ConsistencyLevel", "eventual")
-                .Select(select)
-                .Filter(filter)
-                .OrderBy(orderBy);
+            return _graphClient.Groups
+                .GetAsync(rc =>
+                {
+                    rc.Headers = EventualConsistencyHeader;
+                    rc.QueryParameters.Count = true;
+                    if (!search.IsNullOrEmpty())
+                        rc.QueryParameters.Search = WebUtility.UrlEncode(search);
+                    rc.QueryParameters.Select = select;
+                    rc.QueryParameters.Filter = filter;
+                    rc.QueryParameters.Orderby = orderBy;
+                });
 
-            LastUrl = WebUtility.UrlDecode(request.GetHttpRequestMessage().RequestUri?.AbsoluteUri);
-            return request.GetAsync();
+            //LastUrl = WebUtility.UrlDecode(request.GetHttpRequestMessage().RequestUri?.AbsoluteUri);
+            //return request.GetAsync();
         }
 
-        public Task<IGraphServiceGroupsCollectionPage> GetTransitiveMemberOfAsGroupsAsync(string id)
+        public  Task<UserCollectionResponse> GetUsersAsync(string[] select, string filter, string[] orderBy, string search)
         {
-            var requestUrl = _graphClient.Users[id].TransitiveMemberOf
-                .AppendSegmentToRequestUrl("microsoft.graph.group"); // OData Cast
+            var requestInfo = _graphClient.Users
+                .CreateGetRequestInformation(rc =>
+                {
+                    rc.Headers = EventualConsistencyHeader;
+                    rc.QueryParameters.Count = true;
+                    if(!search.IsNullOrEmpty())
+                        rc.QueryParameters.Search = WebUtility.UrlEncode(search);
+                    rc.QueryParameters.Select = select;
+                    rc.QueryParameters.Filter = filter;
+                    rc.QueryParameters.Orderby = orderBy;
+                });
 
-            var request = new GraphServiceGroupsCollectionRequestBuilder(requestUrl, _graphClient)
-                .Request(GetAdvancedOptions(null))
-                .Header("ConsistencyLevel", "eventual");
+            //LastUrl = WebUtility.UrlDecode(requestInfo.URI.AbsoluteUri);
+            return _graphClient.RequestAdapter.SendAsync(requestInfo, (parseNode) => new UserCollectionResponse());
 
-            LastUrl = WebUtility.UrlDecode(request.GetHttpRequestMessage().RequestUri?.AbsoluteUri);
-            return request.GetAsync();
+            //return request.GetAsync();
         }
 
-        public Task<IGraphServiceUsersCollectionPage> GetTransitiveMembersAsUsersAsync(string id)
+        public Task<GroupCollectionResponse> GetTransitiveMemberOfAsGroupsAsync(string id)
         {
-            var requestUrl = _graphClient.Groups[id].TransitiveMembers
-                .AppendSegmentToRequestUrl("microsoft.graph.user"); // OData Cast
+            return _graphClient.Users[id]
+                .TransitiveMemberOf.Group
+                .GetAsync(rc =>
+                {
+                    rc.Headers = EventualConsistencyHeader;
+                    rc.QueryParameters.Count = true;
+                });
 
-            var request = new GraphServiceUsersCollectionRequestBuilder(requestUrl, _graphClient)
-                .Request(GetAdvancedOptions())
-                .Header("ConsistencyLevel", "eventual");
-
-            LastUrl = WebUtility.UrlDecode(request.GetHttpRequestMessage().RequestUri?.AbsoluteUri);
-            return request.GetAsync();
+            //LastUrl = WebUtility.UrlDecode(request.GetHttpRequestMessage().RequestUri?.AbsoluteUri);
+            //return request.GetAsync();
         }
 
-        public Task<IGraphServiceUsersCollectionPage> GetAppOwnersAsUsersAsync(string id)
+        public Task<UserCollectionResponse> GetTransitiveMembersAsUsersAsync(string id)
         {
-            var requestUrl = _graphClient.Applications[id].Owners
-                .AppendSegmentToRequestUrl("microsoft.graph.user"); // OData Cast
-            var request = new GraphServiceUsersCollectionRequestBuilder(requestUrl, _graphClient)
-                .Request(GetAdvancedOptions())
-                .Header("ConsistencyLevel", "eventual");
+            return _graphClient.Groups[id]
+                .TransitiveMembers.User
+                .GetAsync(rc =>
+                {
+                    rc.Headers = EventualConsistencyHeader;
+                    rc.QueryParameters.Count = true;
+                });
 
-            LastUrl = WebUtility.UrlDecode(request.GetHttpRequestMessage().RequestUri?.AbsoluteUri);
-            return request.GetAsync();
+            //LastUrl = WebUtility.UrlDecode(request.GetHttpRequestMessage().RequestUri?.AbsoluteUri);
+            //return request.GetAsync();
         }
 
-        public async Task<int> GetUsersRawCountAsync(string filter, string search)
+        public Task<UserCollectionResponse> GetAppOwnersAsUsersAsync(string id)
         {
-            var queryOptions = new[]
-            {
-                new QueryOption("$filter", WebUtility.UrlEncode(filter)),
-                new QueryOption("$search", WebUtility.UrlEncode(search))
-            };
+            return _graphClient.Applications[id]
+                .Owners.User
+                .GetAsync(rc =>
+                {
+                    rc.Headers = EventualConsistencyHeader;
+                    rc.QueryParameters.Count = true;
+                });
 
-            var requestUrl = _graphClient.Users.AppendSegmentToRequestUrl("$count");
-            var request = new BaseRequest(requestUrl, _graphClient, queryOptions)
-                .Header("ConsistencyLevel", "eventual");
+            //LastUrl = WebUtility.UrlDecode(request.GetHttpRequestMessage().RequestUri?.AbsoluteUri);
+            //return request.GetAsync();
+        }
 
-            LastUrl = WebUtility.UrlDecode(request.GetHttpRequestMessage().RequestUri?.AbsoluteUri);
+        public Task<int?> GetUsersRawCountAsync(string filter, string search)
+        {
+            return _graphClient.Users.Count
+               .GetAsync(rc =>
+               {
+                   rc.Headers = EventualConsistencyHeader;
+                   //rc.QueryParameters.Search = WebUtility.UrlEncode(search);
+                   //rc.QueryParameters.Filter = filter;
+               });
 
-            var response = await _graphClient.HttpProvider.SendAsync(request.GetHttpRequestMessage());
-            var userCount = await response.Content.ReadAsStringAsync();
-            return int.Parse(userCount);
+            //LastUrl = WebUtility.UrlDecode(request.GetHttpRequestMessage().RequestUri?.AbsoluteUri);
+            //return request.GetAsync();
         }
     }
 }

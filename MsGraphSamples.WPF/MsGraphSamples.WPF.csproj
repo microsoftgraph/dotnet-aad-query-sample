@@ -10,6 +10,9 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 	</PropertyGroup>
 	<ItemGroup>
+	  <Compile Remove="Helpers\IAsyncEnumerableGraphExtensions.cs" />
+	</ItemGroup>
+	<ItemGroup>
 		<PackageReference Include="Azure.Identity" Version="1.8.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3">
@@ -18,13 +21,17 @@
 		</PackageReference>
 		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="7.0.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
-		<PackageReference Include="Microsoft.Graph" Version="4.48.0" />
+		<PackageReference Include="Microsoft.Graph" Version="5.0.0-preview.14" />
 		<PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
+		<PackageReference Include="System.Linq.Async.Queryable" Version="6.0.1" />
 	</ItemGroup>
 	<ItemGroup>
 		<Content Include="Assets\MSGraph.png">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
+	</ItemGroup>
+	<ItemGroup>
+	  <None Include="Helpers\IAsyncEnumerableGraphExtensions.cs" />
 	</ItemGroup>
 
 	<Target Name="RemoveDuplicateAnalyzers" BeforeTargets="CoreCompile">

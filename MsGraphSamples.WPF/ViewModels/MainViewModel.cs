@@ -3,7 +3,8 @@
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Graph;
+using Microsoft.Graph.Models;
+using Microsoft.Graph.Models.ODataErrors;
 using MsGraph_Samples.Services;
 using System.Diagnostics;
 using System.Net;
@@ -39,7 +40,7 @@ namespace MsGraph_Samples.ViewModels
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(LaunchGraphExplorerCommand))]
-        private IEnumerable<DirectoryObject>? _directoryObjects;
+        private BaseCollectionPaginationCountResponse? _directoryObjects;
 
         #region OData Operators
 
@@ -50,6 +51,8 @@ namespace MsGraph_Samples.ViewModels
 
         [ObservableProperty]
         public string _filter = string.Empty;
+
+        public string[] SplittedOrderBy => OrderBy.Split(',', StringSplitOptions.TrimEntries);
 
         [ObservableProperty]
         public string _orderBy = string.Empty;
@@ -105,7 +108,7 @@ namespace MsGraph_Samples.ViewModels
 
         public async Task Init()
         {
-            var user = await _graphDataService.GetMe("displayName");
+            var user = await _graphDataService.GetMe(new[] { "displayName" });
             UserName = user.DisplayName;
             await Load();
         }
@@ -116,12 +119,13 @@ namespace MsGraph_Samples.ViewModels
         {
             await IsBusyWrapper(async () =>
             {
+                await Task.Delay(3000);
                 DirectoryObjects = SelectedEntity switch
                 {
-                    "Users" => await _graphDataService.GetUsersAsync(Select, Filter, OrderBy, Search),
-                    "Groups" => await _graphDataService.GetGroupsAsync(Select, Filter, OrderBy, Search),
-                    "Applications" => await _graphDataService.GetApplicationsAsync(Select, Filter, OrderBy, Search),
-                    "Devices" => await _graphDataService.GetDevicesAsync(Select, Filter, OrderBy, Search),
+                    "Users" => await _graphDataService.GetUsersAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
+                    "Groups" => await _graphDataService.GetGroupsAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
+                    "Applications" => await _graphDataService.GetApplicationsAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
+                    "Devices" => await _graphDataService.GetDevicesAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
                     _ => throw new NotImplementedException("Can't find selected entity")
                 };
             });
@@ -150,10 +154,10 @@ namespace MsGraph_Samples.ViewModels
 
                 SelectedEntity = DirectoryObjects switch
                 {
-                    IGraphServiceUsersCollectionPage => "Users",
-                    IGraphServiceGroupsCollectionPage => "Groups",
-                    IGraphServiceApplicationsCollectionPage => "Applications",
-                    IGraphServiceDevicesCollectionPage => "Devices",
+                    UserCollectionResponse => "Users",
+                    GroupCollectionResponse => "Groups",
+                    ApplicationCollectionResponse => "Applications",
+                    DeviceCollectionResponse => "Devices",
                     _ => SelectedEntity,
                 };
             });
@@ -204,7 +208,7 @@ namespace MsGraph_Samples.ViewModels
             {
                 await task();
             }
-            catch (ServiceException ex)
+            catch (ODataError ex)
             {
                 Task.Run(() => MessageBox.Show(ex.Message, ex.Error.Message)).Await();
             }
