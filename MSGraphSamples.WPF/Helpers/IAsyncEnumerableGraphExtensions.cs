@@ -32,7 +32,7 @@ namespace MsGraph_Samples.Helpers
         //}
 
         /// <summary>
-        /// Transform an UserCollectionResponse into an AsyncEnumerable to efficiently iterate through the collection in case there are several pages.
+        /// Transform a generic RequestInformation into an AsyncEnumerable to efficiently iterate through the collection in case there are several pages.
         /// </summary>
         /// <param name="requestInfo"></param>
         /// <param name="requestAdapter"></param>
