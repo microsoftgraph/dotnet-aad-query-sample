@@ -28,7 +28,7 @@ namespace MsGraph_Samples.ViewModels
             if (IsInDesignMode)
             {
                 serviceCollection.AddSingleton<IAuthService, FakeAuthService>();
-                serviceCollection.AddSingleton<IGraphDataService, FakeGraphDataService>();
+                //serviceCollection.AddSingleton<IGraphDataService, FakeGraphDataService>();
             }
             else
             {

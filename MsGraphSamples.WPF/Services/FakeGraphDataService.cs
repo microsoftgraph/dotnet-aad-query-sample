@@ -63,5 +63,10 @@ namespace MsGraph_Samples.Services
             int? count = Users.Count;
             return Task.FromResult(count);
         }
+
+        IAsyncEnumerable<User> IGraphDataService.GetUsersAsync(string[] select, string filter, string[] orderBy, string search)
+        {
+            return Users.ToAsyncEnumerable();
+        }
     }
 }

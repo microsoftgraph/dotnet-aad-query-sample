@@ -3,14 +3,15 @@
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Graph.Models;
 using Microsoft.Graph.Models.ODataErrors;
 using Microsoft.Kiota.Abstractions;
 using MsGraph_Samples.Services;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Net;
 using System.Text;
-using System.Windows;
 using System.Windows.Controls;
 
 namespace MsGraph_Samples.ViewModels
@@ -41,7 +42,7 @@ namespace MsGraph_Samples.ViewModels
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(LaunchGraphExplorerCommand))]
-        private BaseCollectionPaginationCountResponse? _directoryObjects;
+        private ObservableCollection<DirectoryObject> _directoryObjects = new();
 
         #region OData Operators
 
@@ -109,56 +110,44 @@ namespace MsGraph_Samples.ViewModels
 
         public async Task Init()
         {
-            var user = await _graphDataService.GetMe(new[] { "displayName" });
+            var user = await _graphDataService.GetUserAsync(new[] { "displayName" });
             UserName = user.DisplayName;
             await Load();
         }
 
 
         [RelayCommand]
-        private async Task Load()
+        private Task Load()
         {
-            await IsBusyWrapper(async () =>
+            return IsBusyWrapper(() => SelectedEntity switch
             {
-                DirectoryObjects = SelectedEntity switch
-                {
-                    "Users" => await _graphDataService.GetUsersAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
-                    "Groups" => await _graphDataService.GetGroupsAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
-                    "Applications" => await _graphDataService.GetApplicationsAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
-                    "Devices" => await _graphDataService.GetDevicesAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
-                    _ => throw new NotImplementedException("Can't find selected entity")
-                };
+                "Users" => _graphDataService.GetUsers(SplittedSelect, Filter, SplittedOrderBy, Search),
+                "Groups" => _graphDataService.GetGroups(SplittedSelect, Filter, SplittedOrderBy, Search),
+                "Applications" => _graphDataService.GetApplications(SplittedSelect, Filter, SplittedOrderBy, Search),
+                "Devices" => _graphDataService.GetDevices(SplittedSelect, Filter, SplittedOrderBy, Search),
+                _ => throw new NotImplementedException("Can't find selected entity")
             });
         }
 
         private bool CanDrillDown() => SelectedObject is not null;
         [RelayCommand(CanExecute = nameof(CanDrillDown))]
-        private async Task DrillDown()
+        private Task DrillDown()
         {
             ArgumentNullException.ThrowIfNull(SelectedObject);
-
-            await IsBusyWrapper(async () =>
+            
+            return IsBusyWrapper(() =>
             {
                 OrderBy = string.Empty;
                 Filter = string.Empty;
                 Search = string.Empty;
 
-                DirectoryObjects = SelectedEntity switch
+                return SelectedEntity switch
                 {
-                    "Users" => await _graphDataService.GetTransitiveMemberOfAsGroupsAsync(SelectedObject.Id),
-                    "Groups" => await _graphDataService.GetTransitiveMembersAsUsersAsync(SelectedObject.Id),
-                    "Applications" => await _graphDataService.GetAppOwnersAsUsersAsync(SelectedObject.Id),
-                    "Devices" => await _graphDataService.GetTransitiveMemberOfAsGroupsAsync(SelectedObject.Id),
-                    _ => null
-                };
-
-                SelectedEntity = DirectoryObjects switch
-                {
-                    UserCollectionResponse => "Users",
-                    GroupCollectionResponse => "Groups",
-                    ApplicationCollectionResponse => "Applications",
-                    DeviceCollectionResponse => "Devices",
-                    _ => SelectedEntity,
+                    "Users" => _graphDataService.GetTransitiveMemberOfAsGroups(SelectedObject.Id),
+                    "Groups" => _graphDataService.GetTransitiveMembersAsUsers(SelectedObject.Id),
+                    "Applications" => _graphDataService.GetAppOwnersAsUsers(SelectedObject.Id),
+                    "Devices" => _graphDataService.GetTransitiveMemberOfAsGroups(SelectedObject.Id),
+                    _ => throw new NotImplementedException("Can't find selected entity")
                 };
             });
         }
@@ -168,7 +157,7 @@ namespace MsGraph_Samples.ViewModels
         {
             ArgumentNullException.ThrowIfNull(e);
 
-            OrderBy = $"{e.Column.Header}";
+            OrderBy = (string)e.Column.Header;
             e.Handled = true;
             return Load();
         }
@@ -199,22 +188,33 @@ namespace MsGraph_Samples.ViewModels
             App.Current.Shutdown();
         }
 
-        private async Task IsBusyWrapper(Func<Task> task)
+        private async Task IsBusyWrapper(Func<IAsyncEnumerable<DirectoryObject>> getDirectoryObjects)
         {
             IsBusy = true;
             _stopWatch.Restart();
 
+            WeakReferenceMessenger.Default.Send(SplittedSelect);
+
             try
             {
-                await task();
+                await DirectoryObjects.Replace(getDirectoryObjects());
+
+                SelectedEntity = DirectoryObjects.FirstOrDefault() switch
+                {
+                    User => "Users",
+                    Group => "Groups",
+                    Application => "Applications",
+                    Device => "Devices",
+                    _ => SelectedEntity,
+                };
             }
             catch (ODataError ex)
             {
-                Task.Run(() => MessageBox.Show(ex.Message, ex.Error.Message)).Await();
+                Task.Run(() => System.Windows.MessageBox.Show(ex.Message, ex.Error.Message)).Await();
             }
             catch (ApiException ex)
             {
-                Task.Run(() => MessageBox.Show(ex.Message, ex.Source)).Await();
+                Task.Run(() => System.Windows.MessageBox.Show(ex.Message, ex.Source)).Await();
             }
             finally
             {

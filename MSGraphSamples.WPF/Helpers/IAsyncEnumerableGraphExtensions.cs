@@ -1,73 +1,101 @@
-﻿using Microsoft.Graph;
-using Microsoft.Graph.Applications;
-using Microsoft.Graph.Models;
-using Microsoft.Graph.Models.ExternalConnectors;
+﻿using Microsoft.Graph.Models;
 using Microsoft.Kiota.Abstractions;
-using MsGraph_Samples.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Microsoft.Graph.Applications.ApplicationsRequestBuilder;
+using Microsoft.Kiota.Abstractions.Serialization;
 
 namespace MsGraph_Samples.Helpers
 {
     public static class IAsyncEnumerableGraphExtensions
     {
+        ///// <summary>
+        ///// Transform an ApplicationCollectionResponse into an AsyncEnumerable to efficiently iterate through the collection in case there are several pages.
+        ///// </summary>
+        ///// <param name="requestInfo"></param>
+        ///// <param name="requestAdapter"></param>
+        ///// <returns>IAsyncEnumerable<Application></returns>
+        //public static async IAsyncEnumerable<Microsoft.Graph.Models.Application> ToAsyncEnumerable<Application>(this RequestInformation requestInfo, IRequestAdapter requestAdapter)
+        //{
+        //    var apps = await requestAdapter.SendAsync(requestInfo, (parseNode) => new ApplicationCollectionResponse()).ConfigureAwait(false);
+        //    foreach (var item in apps.Value)
+        //    {
+        //        yield return item;
+        //    }
+
+        //    while (apps.OdataNextLink != null)
+        //    {
+        //        requestInfo.URI = new Uri(apps.OdataNextLink);
+        //        apps = await requestAdapter.SendAsync(requestInfo, (parseNode) => new ApplicationCollectionResponse()).ConfigureAwait(false);
+        //        foreach (var item in apps.Value)
+        //        {
+        //            yield return item;
+        //        }
+        //    }
+        //}
+
         /// <summary>
-        /// Transform an ApplicationsCollection Request into an AsyncEnumerable to efficiently iterate through the collection in case there are several pages.
+        /// Transform an UserCollectionResponse into an AsyncEnumerable to efficiently iterate through the collection in case there are several pages.
         /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        public static async IAsyncEnumerable<T> ToAsyncEnumerable<T>(this RequestInformation requestInfo, IRequestAdapter requestAdapter) where T : Entity
+        /// <param name="requestInfo"></param>
+        /// <param name="requestAdapter"></param>
+        /// <returns>IAsyncEnumerable<User></returns>
+        public static async IAsyncEnumerable<TEntity> ToAsyncEnumerable<TEntity, TCollectionResponse>(this RequestInformation requestInfo, IRequestAdapter requestAdapter)
+            where TEntity : Entity
+            where TCollectionResponse : IParsable, IAdditionalDataHolder, new()
         {
-            do
+            while(true)
             {
-                var parsableCollection = await requestAdapter.SendAsync(requestInfo,
-                    (parseNode) => new BaseCollectionPaginationCountResponse());
-
-                var pageItems = parsableCollection.GetType()
-                    .GetProperty("Value")
-                    ?.GetValue(parsableCollection, null) as List<T>;
-
-                if (pageItems == null)
-                    break;
-
-                foreach (T item in pageItems)
+                var parsableCollection = await requestAdapter.SendAsync(requestInfo, parseNode => new TCollectionResponse()).ConfigureAwait(false);
+                if (parsableCollection.GetType().GetProperty("Value")?.GetValue(parsableCollection, null) is not List<TEntity> entities)
                 {
-                    yield return item;
+                    // not a collection response
+                    break;
                 }
-                
-                var applicationsResponse = await request.GetAsync(rc => rc = requestConfiguration).ConfigureAwait(false);
-                foreach (var item in applicationsResponse.Value)
-                    yield return item;
 
+                foreach (var entity in entities)
+                {
+                    yield return entity;
+                }
 
-                var authService = new AuthService();
-                var graphServiceClient = authService.GraphClient;
+                if (parsableCollection.GetType().GetProperty("OdataNextLink")?.GetValue(parsableCollection) is not string nextLink)
+                {
+                    // no more pages
+                    break;
+                }
 
-                var usersResponse = await graphServiceClient
-                    .Users
-                    .GetAsync(requestConfiguration => { requestConfiguration.QueryParameters.Select = new string[] { "id", "createdDateTime" }; requestConfiguration.QueryParameters.Top = 1; });
-
-                var userList = new List<User>();
-                var pageIterator = PageIterator<User, UserCollectionResponse>.CreatePageIterator(
-                    graphServiceClient,
-                    usersResponse,
-                    user =>
-                    {
-                        userList.Add(user);
-                        return true;
-                    });
-
-                await pageIterator.IterateAsync();
-
-
-
-
-                request. = 
-            } while (request != null);
+                requestInfo.URI = new Uri(nextLink);
+            }
         }
+
+
+        //parsableCollection.AdditionalData.TryGetValue("@odata.nextLink", out var nextLinkValue);
+
+        //await requestAdapter.SendAsync(requestInfo, (parseNode) => new BaseCollectionPaginationCountResponse());            
+        //var element = (JsonElement)parsableCollection.AdditionalData["value"];
+        //var users = element.Deserialize<User[]>();
+
+
+        //var applicationsResponse = await request.GetAsync(rc => rc = requestConfiguration).ConfigureAwait(false);
+        //foreach (var item in applicationsResponse.Value)
+        //    yield return item;
+
+
+        //var authService = new AuthService();
+        //var graphServiceClient = authService.GraphClient;
+
+        //var usersResponse = await graphServiceClient
+        //    .Users
+        //    .GetAsync(requestConfiguration => { requestConfiguration.QueryParameters.Select = new string[] { "id", "createdDateTime" }; requestConfiguration.QueryParameters.Top = 1; });
+
+        //var userList = new List<User>();
+        //var pageIterator = PageIterator<User, UserCollectionResponse>.CreatePageIterator(
+        //    graphServiceClient,
+        //    usersResponse,
+        //    user =>
+        //    {
+        //        userList.Add(user);
+        //        return true;
+        //    });
+
+        //await pageIterator.IterateAsync();
     }
 }
+

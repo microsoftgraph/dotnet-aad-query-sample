@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System.Collections.ObjectModel;
+
 namespace MsGraph_Samples
 {
     public static class ExtensionMethods
@@ -15,6 +17,14 @@ namespace MsGraph_Samples
                 return input.IndexOf(value, startIndex);
 
             return input.NthIndexOf(value, --nth, input.IndexOf(value, startIndex) + 1);
+        }
+
+        public static async Task Replace<T>(this ObservableCollection<T> collection, IAsyncEnumerable<T> items)
+        {
+            collection.Clear();
+            
+            await foreach (var item in items)
+                collection.Add(item);
         }
 
         /// <summary>

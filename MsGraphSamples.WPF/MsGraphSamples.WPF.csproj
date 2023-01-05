@@ -10,7 +10,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 	</PropertyGroup>
 	<ItemGroup>
-	  <Compile Remove="Helpers\IAsyncEnumerableGraphExtensions.cs" />
+	  <Compile Remove="Services\FakeGraphDataService.cs" />
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Azure.Identity" Version="1.8.0" />
@@ -21,7 +21,7 @@
 		</PackageReference>
 		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="7.0.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
-		<PackageReference Include="Microsoft.Graph" Version="5.0.0-preview.14" />
+		<PackageReference Include="Microsoft.Graph" Version="5.0.0-rc.1" />
 		<PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
 		<PackageReference Include="System.Linq.Async.Queryable" Version="6.0.1" />
 	</ItemGroup>
@@ -31,7 +31,7 @@
 		</Content>
 	</ItemGroup>
 	<ItemGroup>
-	  <None Include="Helpers\IAsyncEnumerableGraphExtensions.cs" />
+	  <None Include="Services\FakeGraphDataService.cs" />
 	</ItemGroup>
 
 	<Target Name="RemoveDuplicateAnalyzers" BeforeTargets="CoreCompile">
