@@ -41,7 +41,6 @@ namespace MsGraph_Samples.ViewModels
         private DirectoryObject? _selectedObject;
 
         [ObservableProperty]
-        [NotifyCanExecuteChangedFor(nameof(LaunchGraphExplorerCommand))]
         private ObservableCollection<DirectoryObject> _directoryObjects = new();
 
         #region OData Operators
@@ -111,7 +110,7 @@ namespace MsGraph_Samples.ViewModels
         public async Task Init()
         {
             var user = await _graphDataService.GetUserAsync(new[] { "displayName" });
-            UserName = user.DisplayName;
+            UserName = user?.DisplayName;
             await Load();
         }
 
@@ -132,9 +131,9 @@ namespace MsGraph_Samples.ViewModels
         private bool CanDrillDown() => SelectedObject is not null;
         [RelayCommand(CanExecute = nameof(CanDrillDown))]
         private Task DrillDown()
-        {
+        {            
             ArgumentNullException.ThrowIfNull(SelectedObject);
-            
+
             return IsBusyWrapper(() =>
             {
                 OrderBy = string.Empty;
@@ -166,9 +165,16 @@ namespace MsGraph_Samples.ViewModels
         [RelayCommand(CanExecute = nameof(CanLaunchGraphExplorer))]
         private void LaunchGraphExplorer()
         {
+        //https://developer.microsoft.com/en-us/graph/graph-explorer
+        //?request=users%3F%24count%3Dtrue&method=GET
+        //&version=beta
+        //&GraphUrl=https://graph.microsoft.com&
+        //headers=W3sibmFtZSI6IkNvbnNpc3RlbmN5TGV2ZWwiLCJ2YWx1ZSI6ImV2ZW50dWFsIn1d
+
+
             ArgumentNullException.ThrowIfNull(LastUrl);
 
-            var geBaseUrl = "https://developer.microsoft.com/graph/graph-explorer";
+            var geBaseUrl = "https://developer.microsoft.com/en-us/graph/graph-explorer";
             var graphUrl = "https://graph.microsoft.com";
             var version = "v1.0";
             var startOfQuery = LastUrl.NthIndexOf('/', 4) + 1;
@@ -207,10 +213,12 @@ namespace MsGraph_Samples.ViewModels
                     Device => "Devices",
                     _ => SelectedEntity,
                 };
+
+                LaunchGraphExplorerCommand.NotifyCanExecuteChanged();
             }
             catch (ODataError ex)
             {
-                Task.Run(() => System.Windows.MessageBox.Show(ex.Message, ex.Error.Message)).Await();
+                Task.Run(() => System.Windows.MessageBox.Show(ex.Message, ex.Error?.Message)).Await();
             }
             catch (ApiException ex)
             {

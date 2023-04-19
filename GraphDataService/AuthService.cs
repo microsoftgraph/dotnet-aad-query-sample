@@ -24,7 +24,7 @@ namespace MsGraph_Samples.Services
 
         public void Logout()
         {
-            System.IO.File.Delete(_tokenPath);
+            File.Delete(_tokenPath);
             _graphClient = null;
         }
 
@@ -36,10 +36,10 @@ namespace MsGraph_Samples.Services
                 TokenCachePersistenceOptions = new TokenCachePersistenceOptions() { UnsafeAllowUnencryptedStorage = true }
             };
 
-            if (System.IO.File.Exists(_tokenPath))
+            if (File.Exists(_tokenPath))
             {
                 // use the cached token
-                using var authRecordStream = System.IO.File.OpenRead(_tokenPath);
+                using var authRecordStream = File.OpenRead(_tokenPath);
                 var authRecord = AuthenticationRecord.Deserialize(authRecordStream);
                 credentialOptions.AuthenticationRecord = authRecord;
                 return new InteractiveBrowserCredential(credentialOptions);
@@ -50,7 +50,7 @@ namespace MsGraph_Samples.Services
                 var browserCredential = new InteractiveBrowserCredential(credentialOptions);
                 var tokenRequestContext = new TokenRequestContext(_scopes);
                 var authRecord = browserCredential.Authenticate(tokenRequestContext);
-                using var authRecordStream = System.IO.File.OpenWrite(_tokenPath);
+                using var authRecordStream = File.OpenWrite(_tokenPath);
                 authRecord.Serialize(authRecordStream);
                 return browserCredential;
             }
