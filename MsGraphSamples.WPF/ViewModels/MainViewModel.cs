@@ -165,13 +165,6 @@ namespace MsGraph_Samples.ViewModels
         [RelayCommand(CanExecute = nameof(CanLaunchGraphExplorer))]
         private void LaunchGraphExplorer()
         {
-        //https://developer.microsoft.com/en-us/graph/graph-explorer
-        //?request=users%3F%24count%3Dtrue&method=GET
-        //&version=beta
-        //&GraphUrl=https://graph.microsoft.com&
-        //headers=W3sibmFtZSI6IkNvbnNpc3RlbmN5TGV2ZWwiLCJ2YWx1ZSI6ImV2ZW50dWFsIn1d
-
-
             ArgumentNullException.ThrowIfNull(LastUrl);
 
             var geBaseUrl = "https://developer.microsoft.com/en-us/graph/graph-explorer";
