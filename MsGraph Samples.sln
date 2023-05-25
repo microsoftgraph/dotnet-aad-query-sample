@@ -18,7 +18,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{85C2D888-4
 		docs\register_app.png = docs\register_app.png
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GraphDataService", "GraphDataService\GraphDataService.csproj", "{2DAF344C-A11E-4104-B5BF-DCCD8494EA95}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MsGraphSamples.Services", "MsGraphSamples.Services\MsGraphSamples.Services.csproj", "{2DAF344C-A11E-4104-B5BF-DCCD8494EA95}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
