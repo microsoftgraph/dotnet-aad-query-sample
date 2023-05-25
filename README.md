@@ -43,12 +43,16 @@ description: "This sample demonstrates a .NET Desktop (WPF) application showcasi
 
 ## Overview
 
-This sample helps you explore the Microsoft Graph's [new query capabilities](https://aka.ms/BlogPostMezzoGA) of the identity APIs using the [Microsoft Graph SDK](https://github.com/microsoftgraph/msgraph-sdk-dotnet) to query Azure AD.
-The main code is in [GraphDataService.cs](MSGraphSamples.WPF/Services/GraphDataService.cs) file, where every request pass trough `AddAdvancedOptions` function adding the required `$count=true` QueryString parameter and `ConsistencyLevel=eventual` header.
+This sample helps you explore the Microsoft Graph's [new query capabilities](https://aka.ms/graph-docs/advanced-queries) of the identity APIs using the [Microsoft Graph .NET Client Library v5](https://github.com/microsoftgraph/msgraph-sdk-dotnet) to query Azure AD.
+The main code is in [AsyncEnumerableGraphDataService.cs](MsGraphSamples.Services/AsyncEnumerableGraphDataService.cs) file where, for every request:
+- The required `$count=true` QueryString parameter is added
+- The required `ConsistencyLevel=eventual` header is added 
+- The request URL is extracted and displayed in the UI
+- The results are converted to an `IAsyncEnumerable` using the [`ToAsyncEnumerable`](MsGraphSamples.Services/AsyncEnumerableGraphDataService.cs#LL34C51-L34C68) extension method for an easier pagination.
 
 ## Prerequisites
 
-- Either [Visual Studio (>v16.8)](https://aka.ms/vsdownload) *or* [Visual Studio Code](https://code.visualstudio.com/) with [.NET 5.0 SDK](https://dotnet.microsoft.com/download/dotnet/5.0) and [C# for Visual Studio Code Extension](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp)
+- Either [Visual Studio (>v16.8)](https://aka.ms/vsdownload) *or* [Visual Studio Code](https://code.visualstudio.com/) with [.NET 7.0 SDK](https://dotnet.microsoft.com/download/dotnet/7.0) and [C# for Visual Studio Code Extension](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp)
 - An Azure Active Directory (Azure AD) tenant. For more information, see [How to get an Azure AD tenant](https://azure.microsoft.com/documentation/articles/active-directory-howto-tenant/)
 - A user account in your Azure AD tenant. This sample will not work with a personal Microsoft account (formerly Windows Live account). Therefore, if you signed in to the [Azure portal](https://portal.azure.com) with a Microsoft account and have never created a user account in your directory before, you need to do that now.
 
@@ -127,6 +131,6 @@ The generated URL will appear in the readonly Url textbox. You can click the Gra
 ## Code Architecture
 
 This app provides a good starting point for enterprise desktop applications that connects to Microsoft Graph.  
-The implementation is a classic **WPF** [MVVM](https://docs.microsoft.com/en-us/windows/uwp/data-binding/data-binding-and-mvvm) app with *Views*, *ViewModels* and *Services*, using [MVVM Toolkit framework](https://github.com/windows-toolkit/MVVM-Samples).  
+The implementation is a classic **WPF** [MVVM](https://docs.microsoft.com/en-us/windows/uwp/data-binding/data-binding-and-mvvm) app with *Views*, *ViewModels* and *Services*, using [.NET Community Toolkit](https://github.com/CommunityToolkit/dotnet) as MVVM framework.  
 Dependency Injection is implemented using [Microsoft.Extensions.DependencyInjection](https://docs.microsoft.com/aspnet/core/fundamentals/dependency-injection), supporting design-time data.  
 **Nullable** and **Code Analysis** are enabled to enforce code quality.

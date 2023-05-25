@@ -23,7 +23,7 @@ public class ViewModelLocator
 
     private static IServiceProvider GetServices()
     {
-        IServiceCollection serviceCollection = new ServiceCollection();
+        var serviceCollection = new ServiceCollection();
 
         if (IsInDesignMode)
         {

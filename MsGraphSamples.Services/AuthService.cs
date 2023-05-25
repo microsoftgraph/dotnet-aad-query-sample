@@ -16,7 +16,7 @@ public interface IAuthService
 public class AuthService : IAuthService
 {
     private const string _tokenPath = "authToken.bin";
-    private static readonly string[] _scopes = { "Directory.ReadWrite.All" };
+    private static readonly string[] _scopes = { "Directory.Read.All" };
 
     private GraphServiceClient? _graphClient;
     public GraphServiceClient GraphClient => _graphClient ??= new GraphServiceClient(GetBrowserCredential());

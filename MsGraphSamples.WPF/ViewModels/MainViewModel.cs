@@ -76,7 +76,7 @@ public partial class MainViewModel : ObservableObject
 
     private static string? FixSearchSyntax(string? searchValue)
     {
-        if(searchValue == null)
+        if (searchValue == null)
             return null;
 
         if (searchValue.Contains('"'))
