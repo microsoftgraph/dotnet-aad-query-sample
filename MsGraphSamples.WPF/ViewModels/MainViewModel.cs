@@ -2,10 +2,12 @@
 // Licensed under the MIT License.
 
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
 using System.Text;
 using System.Windows.Controls;
+using System.Windows.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -43,8 +45,12 @@ public partial class MainViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(DrillDownCommand))]
     private DirectoryObject? _selectedObject;
 
+    private IAsyncEnumerable<DirectoryObject>? _asyncDirectoryObjects;
+
     [ObservableProperty]
     private ObservableCollection<DirectoryObject> _directoryObjects = new();
+
+    public ICollectionView DirectoryObjectsView { get; }
 
     #region OData Operators
 
@@ -110,13 +116,34 @@ public partial class MainViewModel : ObservableObject
         _authService = authService;
         _graphDataService = graphDataService;
 
+        DirectoryObjectsView = CollectionViewSource.GetDefaultView(_directoryObjects);
+        DirectoryObjectsView.CurrentChanged += CollectionView_CurrentChanged;
+
         Init().Await();
+    }
+
+    private async void CollectionView_CurrentChanged(object? sender, EventArgs e)
+    {
+        if (_asyncDirectoryObjects == null)
+            return;
+        
+        var tolerance = 0.8;
+
+        if ((DirectoryObjectsView.CurrentPosition + 1) / (double)DirectoryObjectsView.SourceCollection.Cast<object>().Count() >= tolerance)
+        {
+            await foreach (var item in _asyncDirectoryObjects.Take(50))
+            {
+                DirectoryObjects.Add(item);
+            }
+        }
     }
 
     public async Task Init()
     {
-        var user = await _graphDataService.GetUserAsync(new[] { "displayName" });
-        UserName = user?.DisplayName;
+        //var user = await _graphDataService.GetUserAsync(new[] { "displayName" });
+        //UserName = user?.DisplayName;
+
+        UserName = "Mezzo App";
 
         await Load();
     }
@@ -205,7 +232,8 @@ public partial class MainViewModel : ObservableObject
 
         try
         {
-            await foreach (var item in getDirectoryObjects())
+            _asyncDirectoryObjects = getDirectoryObjects().Take(50);
+            await foreach (var item in _asyncDirectoryObjects)
             {
                 DirectoryObjects.Add(item);
             }

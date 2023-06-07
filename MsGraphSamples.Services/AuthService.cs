@@ -19,19 +19,26 @@ public class AuthService : IAuthService
     private static readonly string[] _scopes = { "Directory.Read.All" };
 
     private GraphServiceClient? _graphClient;
-    public GraphServiceClient GraphClient => _graphClient ??= new GraphServiceClient(GetBrowserCredential());
-
+    //public GraphServiceClient GraphClient => _graphClient ??= new GraphServiceClient(GetBrowserCredential());
+    
+    public GraphServiceClient GraphClient => _graphClient ??= new GraphServiceClient(GetAppCredential());
+    
     public void Logout()
     {
         File.Delete(_tokenPath);
         _graphClient = null;
     }
 
+    private static ClientSecretCredential GetAppCredential() => new(
+        SecretConfig.GetValue("MStenantId"),
+        SecretConfig.GetValue("MSclientId"),
+        SecretConfig.GetValue("MSclientSecret"));
+
     private static InteractiveBrowserCredential GetBrowserCredential()
     {
         var credentialOptions = new InteractiveBrowserCredentialOptions
         {
-            ClientId = SecretConfig.ClientId,
+            ClientId = SecretConfig.GetValue("clientId"),
             TokenCachePersistenceOptions = new TokenCachePersistenceOptions() { UnsafeAllowUnencryptedStorage = true }
         };
 

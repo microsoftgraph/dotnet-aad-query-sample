@@ -9,5 +9,5 @@ public static class SecretConfig
     private const string _helpUrl = "https://docs.microsoft.com/aspnet/core/security/app-secrets?tabs=windows";
     private static readonly FileFormatException _configException = new($"Missing or invalid secrets.json\nMake sure you created one: {_helpUrl}");
 
-    public static string ClientId => _configuration["clientId"] ?? throw _configException;
+    public static string GetValue(string key) => _configuration[key] ?? throw _configException;
 }

@@ -55,7 +55,7 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <!--  Select  -->
+            <!-- Select -->
             <StackPanel
                 Grid.Row="0"
                 Grid.Column="0"
@@ -74,7 +74,7 @@
                 <TextBox Text="{Binding Select, Mode=TwoWay}" ToolTipService.ShowDuration="10000" />
             </StackPanel>
 
-            <!--  Order By  -->
+            <!-- Order By -->
             <StackPanel
                 Grid.Row="1"
                 Grid.Column="0"
@@ -93,7 +93,7 @@
                 <TextBox Text="{Binding OrderBy, Mode=TwoWay}" ToolTipService.ShowDuration="10000" />
             </StackPanel>
 
-            <!--  Filter  -->
+            <!-- Filter -->
             <StackPanel
                 Grid.Row="0"
                 Grid.Column="1"
@@ -116,7 +116,7 @@
                 <TextBox Text="{Binding Filter, Mode=TwoWay}" ToolTipService.ShowDuration="10000" />
             </StackPanel>
 
-            <!--  Search  -->
+            <!-- Search -->
             <StackPanel
                 Grid.Row="1"
                 Grid.Column="1"
@@ -138,7 +138,7 @@
                 <TextBox Text="{Binding Search, Mode=TwoWay}" ToolTipService.ShowDuration="10000" />
             </StackPanel>
 
-            <!--  Entity List  -->
+            <!-- Entity List -->
             <StackPanel
                 Grid.Row="0"
                 Grid.Column="2"
@@ -182,12 +182,14 @@
                 Command="{Binding LaunchGraphExplorerCommand}"
                 Content="Graph Explorer" />
         </Grid>
+
+        <!-- Query Results -->
         <DataGrid
             Name="DirectoryObjectsGrid"
             Grid.Row="2"
             AutoGenerateColumns="False"
             IsReadOnly="True"
-            ItemsSource="{Binding DirectoryObjects}"
+            ItemsSource="{Binding DirectoryObjectsView}"
             SelectedItem="{Binding SelectedObject}"
             SelectionMode="Single">
             <i:Interaction.Triggers>
@@ -198,6 +200,10 @@
                     <i:InvokeCommandAction Command="{Binding SortCommand}" PassEventArgsToCommand="True" />
                 </i:EventTrigger>
             </i:Interaction.Triggers>
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="id" Binding="{Binding Id}" Width="*" />
+                <DataGridTextColumn Header="displayName" Binding="{Binding DisplayName}" Width="*" />
+            </DataGrid.Columns>
         </DataGrid>
         <StatusBar Grid.Row="3">
             <StatusBar.ItemsPanel>
