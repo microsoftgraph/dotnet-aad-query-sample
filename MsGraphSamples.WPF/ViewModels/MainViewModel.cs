@@ -40,6 +40,7 @@ public partial class MainViewModel : ObservableObject
     private string _selectedEntity = "Users";
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(DrillDownCommand))]
     private DirectoryObject? _selectedObject;
 
     [ObservableProperty]
@@ -47,7 +48,7 @@ public partial class MainViewModel : ObservableObject
 
     #region OData Operators
 
-    public string[] SplittedSelect => Select.Split(',', StringSplitOptions.TrimEntries);
+    public string[] SplittedSelect => Select.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 
     [ObservableProperty]
     public string _select = "id,displayName,mail,userPrincipalName";
@@ -55,7 +56,7 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     public string? _filter = string.Empty;
 
-    public string[]? SplittedOrderBy => OrderBy?.Split(',', StringSplitOptions.TrimEntries);
+    public string[]? SplittedOrderBy => OrderBy?.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 
     [ObservableProperty]
     public string? _orderBy;
@@ -217,8 +218,6 @@ public partial class MainViewModel : ObservableObject
                 Device => "Devices",
                 _ => SelectedEntity,
             };
-
-            LaunchGraphExplorerCommand.NotifyCanExecuteChanged();
         }
         catch (ODataError ex)
         {
@@ -233,6 +232,7 @@ public partial class MainViewModel : ObservableObject
             _stopWatch.Stop();
             OnPropertyChanged(nameof(ElapsedMs));
             OnPropertyChanged(nameof(LastUrl));
+            LaunchGraphExplorerCommand.NotifyCanExecuteChanged();
             IsBusy = false;
         }
     }

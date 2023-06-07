@@ -69,9 +69,7 @@ public static class IAsyncEnumerableGraphExtensions
         where TEntity : Entity
         where TCollectionResponse : BaseCollectionPaginationCountResponse, new()
     {
-        var responses = await graphClient.Batch<TCollectionResponse>(requests);
-
-        foreach (var response in responses)
+        await foreach (var response in graphClient.Batch<TCollectionResponse>(requests))
         {
             await foreach (var entity in response.ToAsyncEnumerable<TEntity, TCollectionResponse>(graphClient.RequestAdapter))
             {
@@ -80,7 +78,7 @@ public static class IAsyncEnumerableGraphExtensions
         }
     }
 
-    public static async Task<T[]> Batch<T>(this GraphServiceClient graphClient, params RequestInformation[] requests)
+    public static async IAsyncEnumerable<T> Batch<T>(this GraphServiceClient graphClient, params RequestInformation[] requests)
         where T : IParsable, new()
     {
         BatchRequestContent batchRequestContent = new(graphClient);
@@ -90,8 +88,16 @@ public static class IAsyncEnumerableGraphExtensions
 
         var batchResponse = await graphClient.Batch.PostAsync(batchRequestContent);
 
-        var responseTasks = requestIds.Select(id => batchResponse.GetResponseByIdAsync<T>(id));
-        return await Task.WhenAll(responseTasks);
+        var responseTasks = requestIds.Select(id => batchResponse.GetResponseByIdAsync<T>(id)).ToList();
+
+        while (responseTasks.Count > 0)
+        {
+            var completedTask = await Task.WhenAny(responseTasks);
+
+            yield return await completedTask;
+
+            responseTasks.Remove(completedTask);
+        }
     }
 }
 
@@ -182,6 +188,7 @@ public class AsyncEnumerableGraphDataService : IAsyncEnumerableGraphDataService
         LastUrl = WebUtility.UrlDecode(requestInfo.URI.AbsoluteUri);
         return requestInfo.ToAsyncEnumerable<Device, DeviceCollectionResponse>(_graphClient.RequestAdapter);
     }
+
     public IAsyncEnumerable<Group> GetGroups(string[] select, string? filter = null, string[]? orderBy = null, string? search = null)
     {
         var requestInfo = _graphClient.Groups
