@@ -14,10 +14,15 @@ public interface IGraphDataService
     {
         get;
     }
+    Task<TCollectionResponse?> GetNextPageAsync<TCollectionResponse>(TCollectionResponse collectionResponse)
+        where TCollectionResponse : BaseCollectionPaginationCountResponse, new();
+    
     Task<User?> GetUserAsync(string[] select, string? id = null);
     Task<int?> GetUsersRawCountAsync(string filter, string search);
 
     Task<ApplicationCollectionResponse?> GetApplicationCollectionAsync(string[] select, string? filter = null, string[]? orderBy = null, string? search = null);
+
+    Task<ServicePrincipalCollectionResponse?> GetServicePrincipalsCollectionAsync(string[] select, string? filter = null, string[]? orderBy = null, string? search = null);
 
     Task<DeviceCollectionResponse?> GetDeviceCollectionAsync(string[] select, string? filter = null, string[]? orderBy = null, string? search = null);
 
@@ -25,11 +30,14 @@ public interface IGraphDataService
 
     Task<UserCollectionResponse?> GetUserCollectionAsync(string[] select, string? filter = null, string[]? orderBy = null, string? search = null);
 
-    Task<GroupCollectionResponse?> GetTransitiveMemberOfAsGroupCollectionAsync(string id);
+    Task<GroupCollectionResponse?> GetTransitiveMemberOfAsGroupCollectionAsync(string id, string[] select);
 
-    Task<UserCollectionResponse?> GetTransitiveMembersAsUserCollectionAsync(string id);
+    Task<UserCollectionResponse?> GetTransitiveMembersAsUserCollectionAsync(string id, string[] select);
 
-    Task<UserCollectionResponse?> GetAppOwnersAsUserCollectionAsync(string id);
+    Task<UserCollectionResponse?> GetAppOwnersAsUserCollectionAsync(string id, string[] select);
+    Task<UserCollectionResponse?> GetSPOwnersAsUserCollectionAsync(string id, string[] select);
+    Task<UserCollectionResponse?> GetRegisteredOwnersAsUserCollectionAsync(string id, string[] select);
+
     Task WriteExtensionProperty(string propertyName, object propertyValue, string userId);
 }
 
@@ -47,6 +55,25 @@ public class GraphDataService : IGraphDataService
     public GraphDataService(GraphServiceClient graphClient)
     {
         _graphClient = graphClient;
+    }
+
+    public async Task<TCollectionResponse?> GetNextPageAsync<TCollectionResponse>(TCollectionResponse collectionResponse)
+           where TCollectionResponse : BaseCollectionPaginationCountResponse, new()
+    {
+        if (collectionResponse.OdataNextLink == null)
+        {
+            return null;
+        }
+
+        var nextPageRequestInformation = new RequestInformation
+        {
+            HttpMethod = Method.GET,
+            UrlTemplate = collectionResponse.OdataNextLink,
+        };
+
+        return await _graphClient.RequestAdapter
+            .SendAsync(nextPageRequestInformation, parseNode => new TCollectionResponse())
+            .ConfigureAwait(false);
     }
 
     public Task<User?> GetUserAsync(string[] select, string? id = null)
@@ -93,6 +120,22 @@ public class GraphDataService : IGraphDataService
 
         LastUrl = WebUtility.UrlDecode(requestInfo.URI.AbsoluteUri);
         return _graphClient.RequestAdapter.SendAsync(requestInfo, ApplicationCollectionResponse.CreateFromDiscriminatorValue);
+    }
+    public Task<ServicePrincipalCollectionResponse?> GetServicePrincipalsCollectionAsync(string[] select, string? filter = null, string[]? orderBy = null, string? search = null)
+    {
+        var requestInfo = _graphClient.ServicePrincipals
+            .ToGetRequestInformation(rc =>
+            {
+                rc.Headers = EventualConsistencyHeader;
+                rc.QueryParameters.Count = true;
+                rc.QueryParameters.Select = select;
+                rc.QueryParameters.Filter = filter;
+                rc.QueryParameters.Orderby = orderBy;
+                rc.QueryParameters.Search = search;
+            });
+
+        LastUrl = WebUtility.UrlDecode(requestInfo.URI.AbsoluteUri);
+        return _graphClient.RequestAdapter.SendAsync(requestInfo, ServicePrincipalCollectionResponse.CreateFromDiscriminatorValue);
     }
 
     public Task<DeviceCollectionResponse?> GetDeviceCollectionAsync(string[] select, string? filter = null, string[]? orderBy = null, string? search = null)
@@ -146,7 +189,7 @@ public class GraphDataService : IGraphDataService
         return _graphClient.RequestAdapter.SendAsync(requestInfo, UserCollectionResponse.CreateFromDiscriminatorValue);
     }
 
-    public Task<GroupCollectionResponse?> GetTransitiveMemberOfAsGroupCollectionAsync(string id)
+    public Task<GroupCollectionResponse?> GetTransitiveMemberOfAsGroupCollectionAsync(string id, string[] select)
     {
         ArgumentNullException.ThrowIfNull(id);
 
@@ -156,13 +199,14 @@ public class GraphDataService : IGraphDataService
             {
                 rc.Headers = EventualConsistencyHeader;
                 rc.QueryParameters.Count = true;
+                rc.QueryParameters.Select = select;
             });
 
         LastUrl = WebUtility.UrlDecode(requestInfo.URI.AbsoluteUri);
         return _graphClient.RequestAdapter.SendAsync(requestInfo, GroupCollectionResponse.CreateFromDiscriminatorValue);
     }
 
-    public Task<UserCollectionResponse?> GetTransitiveMembersAsUserCollectionAsync(string id)
+    public Task<UserCollectionResponse?> GetTransitiveMembersAsUserCollectionAsync(string id, string[] select)
     {
         ArgumentNullException.ThrowIfNull(id);
 
@@ -172,13 +216,14 @@ public class GraphDataService : IGraphDataService
             {
                 rc.Headers = EventualConsistencyHeader;
                 rc.QueryParameters.Count = true;
+                rc.QueryParameters.Select = select;
             });
 
         LastUrl = WebUtility.UrlDecode(requestInfo.URI.AbsoluteUri);
         return _graphClient.RequestAdapter.SendAsync(requestInfo, UserCollectionResponse.CreateFromDiscriminatorValue);
     }
 
-    public Task<UserCollectionResponse?> GetAppOwnersAsUserCollectionAsync(string id)
+    public Task<UserCollectionResponse?> GetAppOwnersAsUserCollectionAsync(string id, string[] select)
     {
         var requestInfo = _graphClient.Applications[id]
             .Owners.GraphUser
@@ -186,6 +231,37 @@ public class GraphDataService : IGraphDataService
             {
                 rc.Headers = EventualConsistencyHeader;
                 rc.QueryParameters.Count = true;
+                rc.QueryParameters.Select = select;
+            });
+
+        LastUrl = WebUtility.UrlDecode(requestInfo.URI.AbsoluteUri);
+        return _graphClient.RequestAdapter.SendAsync(requestInfo, UserCollectionResponse.CreateFromDiscriminatorValue);
+    }
+
+    public Task<UserCollectionResponse?> GetSPOwnersAsUserCollectionAsync(string id, string[] select)
+    {
+        var requestInfo = _graphClient.ServicePrincipals[id]
+            .Owners.GraphUser
+            .ToGetRequestInformation(rc =>
+            {
+                rc.Headers = EventualConsistencyHeader;
+                rc.QueryParameters.Count = true;
+                rc.QueryParameters.Select = select;
+            });
+
+        LastUrl = WebUtility.UrlDecode(requestInfo.URI.AbsoluteUri);
+        return _graphClient.RequestAdapter.SendAsync(requestInfo, UserCollectionResponse.CreateFromDiscriminatorValue);
+    }
+
+    public Task<UserCollectionResponse?> GetRegisteredOwnersAsUserCollectionAsync(string id, string[] select)
+    {
+        var requestInfo = _graphClient.Devices[id]
+            .RegisteredOwners.GraphUser
+            .ToGetRequestInformation(rc =>
+            {
+                rc.Headers = EventualConsistencyHeader;
+                rc.QueryParameters.Count = true;
+                rc.QueryParameters.Select = select;
             });
 
         LastUrl = WebUtility.UrlDecode(requestInfo.URI.AbsoluteUri);
