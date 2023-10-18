@@ -206,9 +206,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
         try
         {
-            var a = getDirectoryObjects();
             DirectoryObjects = new(getDirectoryObjects(), pageSize);
-            await DirectoryObjects.LoadMoreItemsAsync(pageSize);
+            await DirectoryObjects.LoadMoreItemsAsync();
             
             SelectedEntity = DirectoryObjects.FirstOrDefault() switch
             {

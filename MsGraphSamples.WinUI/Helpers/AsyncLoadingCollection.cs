@@ -23,8 +23,9 @@ public class AsyncLoadingCollection<T> : ObservableCollection<T>, ISupportIncrem
         _itemsPerPage = itemsPerPage;
     }
 
-    public IAsyncOperation<LoadMoreItemsResult> LoadMoreItemsAsync(uint count = 25) =>
-        LoadMoreItemsAsync(count, new CancellationToken(false)).AsAsyncOperation();
+    public IAsyncOperation<LoadMoreItemsResult> LoadMoreItemsAsync(uint count = default) =>
+        LoadMoreItemsAsync(count == default ? _itemsPerPage : count, new CancellationToken(false))
+        .AsAsyncOperation();
 
     private async Task<LoadMoreItemsResult> LoadMoreItemsAsync(uint count, CancellationToken cancellationToken)
     {
