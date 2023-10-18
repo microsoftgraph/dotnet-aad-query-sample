@@ -89,7 +89,7 @@ public static class IAsyncEnumerableGraphExtensions
     public static async IAsyncEnumerable<T> Batch<T>(this GraphServiceClient graphClient, params RequestInformation[] requests)
         where T : IParsable, new()
     {
-        BatchRequestContent batchRequestContent = new(graphClient);
+        BatchRequestContentCollection batchRequestContent = new(graphClient);
 
         var addBatchTasks = requests.Select(batchRequestContent.AddBatchRequestStepAsync);
         var requestIds = await Task.WhenAll(addBatchTasks);
