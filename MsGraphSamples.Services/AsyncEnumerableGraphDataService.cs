@@ -31,6 +31,14 @@ public static class IAsyncEnumerableGraphExtensions
         }
     }
 
+    /// <summary>
+    /// Transform a generic BaseCollectionPaginationCountResponse into an AsyncEnumerable to efficiently iterate through the collection in case there are several pages.
+    /// </summary>
+    /// <typeparam name="TEntity">Microsoft Graph Entity of the CollectionResponse</typeparam>
+    /// <typeparam name="TCollectionResponse">Specialized BaseCollectionPaginationCountResponse</typeparam>
+    /// <param name="collectionResponse">The CollectionResponse to convert to IAsyncEnumerable</param>
+    /// <param name="requestAdapter">The IRequestAdapter from GraphServiceClient used to make requests</param>
+    /// <returns></returns>
     public static async IAsyncEnumerable<TEntity> ToAsyncEnumerable<TEntity, TCollectionResponse>(this TCollectionResponse? collectionResponse, IRequestAdapter requestAdapter)
         where TEntity : Entity
         where TCollectionResponse : BaseCollectionPaginationCountResponse, new()
@@ -81,7 +89,7 @@ public static class IAsyncEnumerableGraphExtensions
     public static async IAsyncEnumerable<T> Batch<T>(this GraphServiceClient graphClient, params RequestInformation[] requests)
         where T : IParsable, new()
     {
-        BatchRequestContent batchRequestContent = new(graphClient);
+        BatchRequestContentCollection batchRequestContent = new(graphClient);
 
         var addBatchTasks = requests.Select(batchRequestContent.AddBatchRequestStepAsync);
         var requestIds = await Task.WhenAll(addBatchTasks);
