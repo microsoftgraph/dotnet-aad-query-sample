@@ -7,41 +7,40 @@ using Microsoft.Extensions.DependencyInjection;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using MsGraph_Samples.Services;
 
-namespace MsGraph_Samples.ViewModels
+namespace MsGraph_Samples.ViewModels;
+
+[SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Binding Parameters")]
+public class ViewModelLocator
 {
-    [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Binding Parameters")]
-    public class ViewModelLocator
+    public static bool IsInDesignMode => Application.Current.MainWindow == null;
+
+    public MainViewModel? MainVM => Ioc.Default.GetService<MainViewModel>();
+
+    public ViewModelLocator()
     {
-        public static bool IsInDesignMode => Application.Current.MainWindow == null;
+        Ioc.Default.ConfigureServices(GetServices());
+    }
 
-        public MainViewModel? MainVM => Ioc.Default.GetService<MainViewModel>();
+    private static IServiceProvider GetServices()
+    {
+        IServiceCollection serviceCollection = new ServiceCollection();
 
-        public ViewModelLocator()
+        if (IsInDesignMode)
         {
-            Ioc.Default.ConfigureServices(GetServices());
+            serviceCollection.AddSingleton<IAuthService, FakeAuthService>();
+            serviceCollection.AddSingleton<IGraphDataService, FakeGraphDataService>();
+        }
+        else
+        {
+            var authService = new AuthService();
+            serviceCollection.AddSingleton<IAuthService>(authService);
+            
+            var graphDataService = new GraphDataService(authService.GraphClient);
+            serviceCollection.AddSingleton<IGraphDataService>(graphDataService);
         }
 
-        private static IServiceProvider GetServices()
-        {
-            IServiceCollection serviceCollection = new ServiceCollection();
+        serviceCollection.AddSingleton<MainViewModel>();
 
-            if (IsInDesignMode)
-            {
-                serviceCollection.AddSingleton<IAuthService, FakeAuthService>();
-                serviceCollection.AddSingleton<IGraphDataService, FakeGraphDataService>();
-            }
-            else
-            {
-                var authService = new AuthService();
-                serviceCollection.AddSingleton<IAuthService>(authService);
-                
-                var graphDataService = new GraphDataService(authService.GraphClient);
-                serviceCollection.AddSingleton<IGraphDataService>(graphDataService);
-            }
-
-            serviceCollection.AddSingleton<MainViewModel>();
-
-            return serviceCollection.BuildServiceProvider();
-        }
+        return serviceCollection.BuildServiceProvider();
     }
 }

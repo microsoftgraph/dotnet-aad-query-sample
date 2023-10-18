@@ -3,9 +3,8 @@
 
 using System.Windows;
 
-namespace MsGraph_Samples
+namespace MsGraph_Samples;
+
+public partial class App : Application
 {
-    public partial class App : Application
-    {
-    }
 }
