@@ -161,7 +161,7 @@ public partial class MainViewModel : ObservableObject
         });
     }
 
-    private bool CanGoNextPage() => DirectoryObjects?.OdataNextLink is not null;
+    private bool CanGoNextPage => DirectoryObjects?.OdataNextLink is not null;
     [RelayCommand(CanExecute = nameof(CanGoNextPage))]
     private async Task LoadNextPage()
     {
@@ -186,7 +186,7 @@ public partial class MainViewModel : ObservableObject
         return Load();
     }
 
-    private bool CanLaunchGraphExplorer() => LastUrl is not null;
+    private bool CanLaunchGraphExplorer => LastUrl is not null;
     [RelayCommand(CanExecute = nameof(CanLaunchGraphExplorer))]
     private void LaunchGraphExplorer()
     {

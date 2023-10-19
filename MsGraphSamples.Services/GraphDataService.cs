@@ -57,12 +57,12 @@ public class GraphDataService : IGraphDataService
         _graphClient = graphClient;
     }
 
-    public async Task<TCollectionResponse?> GetNextPageAsync<TCollectionResponse>(TCollectionResponse collectionResponse)
+    public Task<TCollectionResponse?> GetNextPageAsync<TCollectionResponse>(TCollectionResponse collectionResponse)
            where TCollectionResponse : BaseCollectionPaginationCountResponse, new()
     {
         if (collectionResponse.OdataNextLink == null)
         {
-            return null;
+            return Task.FromResult<TCollectionResponse?>(null);
         }
 
         var nextPageRequestInformation = new RequestInformation
@@ -71,9 +71,8 @@ public class GraphDataService : IGraphDataService
             UrlTemplate = collectionResponse.OdataNextLink,
         };
 
-        return await _graphClient.RequestAdapter
-            .SendAsync(nextPageRequestInformation, parseNode => new TCollectionResponse())
-            .ConfigureAwait(false);
+        return _graphClient.RequestAdapter
+            .SendAsync(nextPageRequestInformation, parseNode => new TCollectionResponse());
     }
 
     public Task<User?> GetUserAsync(string[] select, string? id = null)
@@ -84,11 +83,11 @@ public class GraphDataService : IGraphDataService
     }
 
 
-    public async Task WriteExtensionProperty(string propertyName, object propertyValue, string userId)
+    public  Task WriteExtensionProperty(string propertyName, object propertyValue, string userId)
     {
         var userRequestBody = new User();
         userRequestBody.AdditionalData[propertyName] = propertyValue;
-        await _graphClient.Users[userId].PatchAsync(userRequestBody);
+        return _graphClient.Users[userId].PatchAsync(userRequestBody);
     }
 
     public Task<int?> GetUsersRawCountAsync(string? filter = null, string? search = null)

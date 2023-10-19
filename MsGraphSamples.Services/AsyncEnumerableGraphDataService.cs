@@ -107,6 +107,7 @@ public static class IAsyncEnumerableGraphExtensions
             responseTasks.Remove(completedTask);
         }
     }
+
     public static async IAsyncEnumerable<TEntity> Batch<TEntity, TCollectionResponse>(this GraphServiceClient graphClient, params RequestInformation[] requests)
         where TEntity : Entity
         where TCollectionResponse : BaseCollectionPaginationCountResponse, new()
