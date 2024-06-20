@@ -7,7 +7,6 @@ using Microsoft.Kiota.Abstractions;
 using System.Net;
 
 namespace MsGraphSamples.Services;
-
 public interface IGraphDataService
 {
     string? LastUrl
@@ -41,21 +40,13 @@ public interface IGraphDataService
     Task WriteExtensionProperty(string propertyName, object propertyValue, string userId);
 }
 
-public class GraphDataService : IGraphDataService
+public class GraphDataService(GraphServiceClient graphClient) : IGraphDataService
 {
+    private readonly GraphServiceClient _graphClient = graphClient;
+
+    private readonly RequestHeaders EventualConsistencyHeader = new() { { "ConsistencyLevel", "eventual" } };
+
     public string? LastUrl { get; private set; } = null;
-
-    private readonly GraphServiceClient _graphClient;
-
-    private readonly RequestHeaders EventualConsistencyHeader = new()
-    {
-        { "ConsistencyLevel", "eventual" }
-    };
-
-    public GraphDataService(GraphServiceClient graphClient)
-    {
-        _graphClient = graphClient;
-    }
 
     public Task<TCollectionResponse?> GetNextPageAsync<TCollectionResponse>(TCollectionResponse collectionResponse)
            where TCollectionResponse : BaseCollectionPaginationCountResponse, new()
@@ -190,8 +181,6 @@ public class GraphDataService : IGraphDataService
 
     public Task<GroupCollectionResponse?> GetTransitiveMemberOfAsGroupCollectionAsync(string id, string[] select)
     {
-        ArgumentNullException.ThrowIfNull(id);
-
         var requestInfo = _graphClient.Users[id]
             .TransitiveMemberOf.GraphGroup
             .ToGetRequestInformation(rc =>
@@ -207,8 +196,6 @@ public class GraphDataService : IGraphDataService
 
     public Task<UserCollectionResponse?> GetTransitiveMembersAsUserCollectionAsync(string id, string[] select)
     {
-        ArgumentNullException.ThrowIfNull(id);
-
         var requestInfo = _graphClient.Groups[id]
             .TransitiveMembers.GraphUser
             .ToGetRequestInformation(rc =>

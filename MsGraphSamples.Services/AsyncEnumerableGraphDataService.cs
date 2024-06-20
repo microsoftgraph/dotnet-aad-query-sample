@@ -5,7 +5,6 @@ using System.Net;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
 using Microsoft.Kiota.Abstractions;
-using Microsoft.Kiota.Abstractions.Serialization;
 
 namespace MsGraphSamples.Services;
 
@@ -148,7 +147,7 @@ public interface IAsyncEnumerableGraphDataService
     IAsyncEnumerable<User> GetRegisteredOwnersAsUsers(string id, string[] select, ushort? top = null);
 }
 
-public class AsyncEnumerableGraphDataService : IAsyncEnumerableGraphDataService
+public class AsyncEnumerableGraphDataService(GraphServiceClient graphClient) : IAsyncEnumerableGraphDataService
 {
     public string? LastUrl { get; private set; } = null;
     public long? LastCount { get; private set; } = null;
@@ -158,10 +157,7 @@ public class AsyncEnumerableGraphDataService : IAsyncEnumerableGraphDataService
 
     private readonly RequestHeaders EventualConsistencyHeader = new() { { "ConsistencyLevel", "eventual" } };
 
-    public AsyncEnumerableGraphDataService(GraphServiceClient graphClient)
-    {
-        _graphClient = graphClient;
-    }
+    public string? LastUrl { get; private set; } = null;
 
     public Task<User?> GetUserAsync(string[] select, string? id = null)
     {

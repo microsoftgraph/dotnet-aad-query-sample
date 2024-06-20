@@ -3,6 +3,7 @@
 
 using Azure.Core;
 using Azure.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Graph;
 
 namespace MsGraphSamples.Services;
@@ -15,8 +16,10 @@ public interface IAuthService
 
 public class AuthService : IAuthService
 {
+    private static readonly IConfiguration _configuration = new ConfigurationBuilder().AddUserSecrets<AuthService>().Build();
+
     private const string _tokenPath = "authToken.bin";
-    private static readonly string[] _scopes = { "Directory.Read.All" };
+    private static readonly string[] _scopes = ["Directory.Read.All"];
 
     private GraphServiceClient? _graphClient;
     //public GraphServiceClient GraphClient => _graphClient ??= new GraphServiceClient(GetBrowserCredential());
@@ -38,7 +41,7 @@ public class AuthService : IAuthService
     {
         var credentialOptions = new InteractiveBrowserCredentialOptions
         {
-            ClientId = SecretConfig.GetValue("clientId"),
+            ClientId = _configuration["clientId"],
             TokenCachePersistenceOptions = new TokenCachePersistenceOptions() { UnsafeAllowUnencryptedStorage = true }
         };
 
