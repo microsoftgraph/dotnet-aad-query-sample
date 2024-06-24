@@ -4,7 +4,6 @@
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
 using Microsoft.Kiota.Abstractions;
-using Microsoft.Kiota.Abstractions.Serialization;
 using System.Net;
 
 namespace MsGraphSamples.Services;
@@ -16,7 +15,7 @@ public interface IGraphDataService
 
     Task<User?> GetUserAsync(string[] select, string? id = null);
     Task<int?> GetUsersRawCountAsync(string filter, string search);
-    
+
     Task<ApplicationCollectionResponse?> GetApplicationCollectionAsync(string[] select, string? filter = null, string[]? orderBy = null, string? search = null, ushort top = 999);
     Task<ServicePrincipalCollectionResponse?> GetServicePrincipalCollectionAsync(string[] select, string? filter = null, string[]? orderBy = null, string? search = null, ushort top = 999);
     Task<DeviceCollectionResponse?> GetDeviceCollectionAsync(string[] select, string? filter = null, string[]? orderBy = null, string? search = null, ushort top = 999);
@@ -44,22 +43,6 @@ public class GraphDataService(GraphServiceClient graphClient) : IGraphDataServic
 
     public string? LastUrl { get; private set; } = null;
 
-    public Task<TCollectionResponse?> GetNextPageAsync<TCollectionResponse>(TCollectionResponse? collectionResponse) where TCollectionResponse : BaseCollectionPaginationCountResponse, new()
-    {
-        if (collectionResponse?.OdataNextLink == null)
-        {
-            return Task.FromResult<TCollectionResponse?>(null);
-        }
-
-        var nextPageRequestInformation = new RequestInformation
-        {
-            HttpMethod = Method.GET,
-            UrlTemplate = collectionResponse.OdataNextLink,
-        };
-
-        return _graphClient.RequestAdapter.SendAsync(nextPageRequestInformation, parseNode => new TCollectionResponse());
-    }
-
     public Task<User?> GetUserAsync(string[] select, string? id = null)
     {
         return id == null
@@ -81,6 +64,10 @@ public class GraphDataService(GraphServiceClient graphClient) : IGraphDataServic
 
         LastUrl = WebUtility.UrlDecode(requestInfo.URI.AbsoluteUri);
         return _graphClient.RequestAdapter.SendPrimitiveAsync<int?>(requestInfo);
+    }
+    public Task<TCollectionResponse?> GetNextPageAsync<TCollectionResponse>(TCollectionResponse? collectionResponse) where TCollectionResponse : BaseCollectionPaginationCountResponse, new()
+    {
+        return collectionResponse.GetNextPageAsync(_graphClient.RequestAdapter);
     }
 
 

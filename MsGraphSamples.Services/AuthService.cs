@@ -16,27 +16,34 @@ public interface IAuthService
 
 public class AuthService : IAuthService
 {
-    private static readonly IConfiguration _configuration = new ConfigurationBuilder().AddUserSecrets<AuthService>().Build();
+    private readonly IConfiguration _configuration = new ConfigurationBuilder().AddUserSecrets<AuthService>().Build();
 
-    private const string _tokenPath = "authToken.bin";
+    private readonly string _tokenPath;
     private static readonly string[] _scopes = ["Directory.Read.All"];
 
     private GraphServiceClient? _graphClient;
     
     //public GraphServiceClient GraphClient => _graphClient ??= new GraphServiceClient(GetAppCredential());
     public GraphServiceClient GraphClient => _graphClient ??= new GraphServiceClient(GetBrowserCredential());
-    
-    private static ClientSecretCredential GetAppCredential() => new(
+
+    public AuthService()
+    {
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var appName = AppDomain.CurrentDomain.FriendlyName;
+        _tokenPath = Path.Combine(localAppData, appName, "authToken.bin");
+    }
+
+    private ClientSecretCredential GetAppCredential() => new(
         _configuration["tenantId"],
         _configuration["clientId"],
         _configuration["clientSecret"]);
 
-    private static InteractiveBrowserCredential GetBrowserCredential()
+    private InteractiveBrowserCredential GetBrowserCredential()
     {
         var credentialOptions = new InteractiveBrowserCredentialOptions
         {
             ClientId = _configuration["clientId"],
-            TokenCachePersistenceOptions = new TokenCachePersistenceOptions() { UnsafeAllowUnencryptedStorage = true }
+            TokenCachePersistenceOptions = new TokenCachePersistenceOptions()// { UnsafeAllowUnencryptedStorage = true }
         };
 
         if (File.Exists(_tokenPath))
@@ -53,8 +60,11 @@ public class AuthService : IAuthService
             var browserCredential = new InteractiveBrowserCredential(credentialOptions);
             var tokenRequestContext = new TokenRequestContext(_scopes);
             var authRecord = browserCredential.Authenticate(tokenRequestContext);
+
+            Directory.CreateDirectory(Path.GetDirectoryName(_tokenPath)!);
             using var authRecordStream = File.OpenWrite(_tokenPath);
             authRecord.Serialize(authRecordStream);
+
             return browserCredential;
         }
     }

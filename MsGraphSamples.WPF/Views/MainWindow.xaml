@@ -151,7 +151,12 @@
                 Grid.Row="0"
                 Grid.Column="2"
                 Margin="6,0">
-                <!--<TextBlock FontWeight="Bold" Text="{Binding DirectoryObjects, Converter={StaticResource DirectoryObjectsCount}, StringFormat=Entities: {0}, FallbackValue='Entities:'}" />-->
+                <TextBlock FontWeight="Bold">
+                    <Run Text="Entities: "/>
+                    <Run Text="{Binding DirectoryObjects.Value.Count, Mode=OneWay}"/>
+                    <Run Text=" / "/>
+                    <Run Text="{Binding DirectoryObjects.OdataCount, Mode=OneWay}" />
+                </TextBlock>
                 <ComboBox
                     Width="120"
                     ItemsSource="{Binding Entities}"

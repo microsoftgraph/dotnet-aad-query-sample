@@ -109,11 +109,10 @@ public partial class MainViewModel(IAuthService authService, IGraphDataService g
         await Load();
     }
 
-
     [RelayCommand]
     private async Task Load()
     {
-        DirectoryObjects = await IsBusyWrapper1(async () => SelectedEntity switch
+        await IsBusyWrapper(async () => SelectedEntity switch
         {
             "Users" => await graphDataService.GetUserCollectionAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
             "Groups" => await graphDataService.GetGroupCollectionAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
@@ -130,38 +129,39 @@ public partial class MainViewModel(IAuthService authService, IGraphDataService g
     {
         ArgumentNullException.ThrowIfNull(SelectedObject);
 
-        DirectoryObjects = await IsBusyWrapper1(async () =>
+        await IsBusyWrapper(async () =>
         {
             OrderBy = string.Empty;
             Filter = string.Empty;
             Search = string.Empty;
 
-            return SelectedEntity switch
+            return DirectoryObjects switch
             {
-                "Users" => await graphDataService.GetTransitiveMemberOfAsGroupCollectionAsync(SelectedObject.Id!, SplittedSelect),
-                "Groups" => await graphDataService.GetTransitiveMembersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
-                "Applications" => await graphDataService.GetApplicationOwnersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
-                "ServicePrincipals" => await graphDataService.GetServicePrincipalOwnersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
-                "Devices" => await graphDataService.GetDeviceOwnersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
-                _ => throw new NotImplementedException("Can't find selected entity")
+                UserCollectionResponse userCollection => await graphDataService.GetTransitiveMemberOfAsGroupCollectionAsync(SelectedObject.Id!, SplittedSelect),
+                GroupCollectionResponse groupCollection => await graphDataService.GetTransitiveMembersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
+                ApplicationCollectionResponse applicationCollection => await graphDataService.GetApplicationOwnersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
+                ServicePrincipalCollectionResponse servicePrincipalCollection => await graphDataService.GetServicePrincipalOwnersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
+                DeviceCollectionResponse deviceCollection => await graphDataService.GetDeviceOwnersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
+                _ => throw new NotImplementedException("Can't find Entity Type")
             };
         });
     }
 
     private bool CanGoNextPage => DirectoryObjects?.OdataNextLink is not null;
     [RelayCommand(CanExecute = nameof(CanGoNextPage))]
-    private async Task LoadNextPage()
+    private Task LoadNextPage()
     {
-        //DirectoryObjects = await graphDataService.GetNextPageAsync(DirectoryObjects);
-        DirectoryObjects = DirectoryObjects switch
+        //return IsBusyWrapper(() => graphDataService.GetNextPageAsync(DirectoryObjects));
+
+        return IsBusyWrapper(async () => DirectoryObjects switch
         {
             UserCollectionResponse userCollection => await graphDataService.GetNextPageAsync(userCollection),
             GroupCollectionResponse groupCollection => await graphDataService.GetNextPageAsync(groupCollection),
             ApplicationCollectionResponse applicationCollection => await graphDataService.GetNextPageAsync(applicationCollection),
             ServicePrincipalCollectionResponse servicePrincipalCollection => await graphDataService.GetNextPageAsync(servicePrincipalCollection),
             DeviceCollectionResponse deviceCollection => await graphDataService.GetNextPageAsync(deviceCollection),
-            _ => throw new NotImplementedException("Can't find selected entity")
-        };
+            _ => throw new NotImplementedException("Can't find Entity Type")
+        });
     }
 
     [RelayCommand]
@@ -199,48 +199,9 @@ public partial class MainViewModel(IAuthService authService, IGraphDataService g
         authService.Logout();
         App.Current.Shutdown();
     }
-    private async Task<BaseCollectionPaginationCountResponse?> IsBusyWrapper1(Func<Task<BaseCollectionPaginationCountResponse?>> getDirectoryObjects)
-    {
-        IsBusy = true;
-        _stopWatch.Restart();
 
-        // Sending message to generate DataGridColumns according to the selected properties
-        WeakReferenceMessenger.Default.Send(SplittedSelect);
-        try
-        {
-            return await getDirectoryObjects();
 
-            //SelectedEntity = DirectoryObjects switch
-            //{
-            //    UserCollectionResponse => "Users",
-            //    GroupCollectionResponse => "Groups",
-            //    ApplicationCollectionResponse => "Applications",
-            //    ServicePrincipalCollectionResponse => "ServicePrincipals",
-            //    DeviceCollectionResponse => "Devices",
-            //    _ => SelectedEntity,
-            //};
-        }
-        catch (ODataError ex)
-        {
-            Task.Run(() => System.Windows.MessageBox.Show(ex.Message, ex.Error?.Message)).Await();
-            return null;
-        }
-        catch (ApiException ex)
-        {
-            Task.Run(() => System.Windows.MessageBox.Show(ex.Message, ex.Source)).Await();
-            return null;
-        }
-        finally
-        {
-            _stopWatch.Stop();
-            OnPropertyChanged(nameof(ElapsedMs));
-            OnPropertyChanged(nameof(LastUrl));
-            IsBusy = false;
-        }
-
-    }
-
-    private async Task IsBusyWrapper(Task<BaseCollectionPaginationCountResponse> getDirectoryObjects)
+    private async Task IsBusyWrapper(Func<Task<BaseCollectionPaginationCountResponse?>> getDirectoryObjects)
     {
         IsBusy = true;
         _stopWatch.Restart();
@@ -250,7 +211,7 @@ public partial class MainViewModel(IAuthService authService, IGraphDataService g
 
         try
         {
-            DirectoryObjects = await getDirectoryObjects;
+            DirectoryObjects = await getDirectoryObjects();
 
             SelectedEntity = DirectoryObjects switch
             {

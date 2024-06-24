@@ -5,7 +5,7 @@ using Microsoft.Kiota.Abstractions;
 
 namespace MsGraphSamples.Services;
 
-public static class AsyncEnumerableGraphExtensions
+public static class GraphExtensions
 {
     /// <summary>
     /// Transform a generic RequestInformation into an AsyncEnumerable to efficiently iterate through the collection in case there are several pages.
@@ -35,6 +35,7 @@ public static class AsyncEnumerableGraphExtensions
         where TCollectionResponse : BaseCollectionPaginationCountResponse, new()
     {
         var collectionResponse = await collectionResponseTask.ConfigureAwait(false);
+
         await foreach (var item in collectionResponse.ToAsyncEnumerable<TEntity, TCollectionResponse>(requestAdapter, countAction))
         {
             yield return item;
@@ -56,30 +57,47 @@ public static class AsyncEnumerableGraphExtensions
     {
         countAction?.Invoke(collectionResponse?.OdataCount);
 
-        while (true)
+        while (collectionResponse != null)
         {
-            var entities = collectionResponse?.BackingStore.Get<List<TEntity>>("value") ?? Enumerable.Empty<TEntity>();
+            var entities = collectionResponse.GetValue<TEntity>() ?? [];
             foreach (var entity in entities)
             {
                 yield return entity;
             }
 
-            if (collectionResponse?.OdataNextLink == null)
-            {
-                break;
-            }
-
-            var nextPageRequestInformation = new RequestInformation
-            {
-                HttpMethod = Method.GET,
-                UrlTemplate = collectionResponse.OdataNextLink,
-            };
-
-            collectionResponse = await requestAdapter
-                .SendAsync(nextPageRequestInformation, parseNode => new TCollectionResponse())
-                .ConfigureAwait(false);
+            collectionResponse = await collectionResponse.GetNextPageAsync(requestAdapter);
         }
     }
+
+    public static List<TEntity>? GetValue<TEntity>(this BaseCollectionPaginationCountResponse collectionResponse) where TEntity : Entity
+    {
+        return collectionResponse.BackingStore.Get<List<TEntity>>("value");
+    }
+
+    public static async Task<TCollectionResponse?> GetNextPageAsync<TCollectionResponse>(this TCollectionResponse? collectionResponse, IRequestAdapter requestAdapter)
+        where TCollectionResponse : BaseCollectionPaginationCountResponse, new()
+    {
+        if (collectionResponse?.OdataNextLink == null)
+            return null;
+
+        var nextPageRequestInformation = new RequestInformation
+        {
+            HttpMethod = Method.GET,
+            UrlTemplate = collectionResponse.OdataNextLink,
+        };
+        var previousCount = collectionResponse.OdataCount;
+
+        var nextPage = await requestAdapter
+            .SendAsync(nextPageRequestInformation, parseNode => new TCollectionResponse())
+            .ConfigureAwait(false);
+
+        // fix count property not present in pages other than the first one
+        if (nextPage != null)
+            nextPage.OdataCount = previousCount;
+
+        return nextPage;
+    }
+
 
     public static async IAsyncEnumerable<TEntity> Batch<TEntity, TCollectionResponse>(this GraphServiceClient graphClient, params RequestInformation[] requests)
         where TEntity : Entity
