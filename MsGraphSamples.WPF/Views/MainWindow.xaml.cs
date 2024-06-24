@@ -1,21 +1,19 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Input;
-using CommunityToolkit.Mvvm.Messaging;
 using MsGraphSamples.WPF.Helpers;
 using MsGraphSamples.WPF.ViewModels;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace MsGraphSamples.WPF.Views;
 
-public partial class MainView : Window
+public partial class MainWindow : Window
 {
     private MainViewModel ViewModel => (MainViewModel)DataContext;
 
-    public MainView()
+    public MainWindow()
     {
         InitializeComponent();
     }
@@ -45,7 +43,7 @@ public partial class MainView : Window
 
     private void ResultsDataGrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
     {
-        if (!ViewModel.SplittedSelect.Any())
+        if (ViewModel.SplittedSelect.Length == 0)
             return;
 
         e.Cancel = !e.PropertyName.In(ViewModel.SplittedSelect);
@@ -64,5 +62,15 @@ public partial class MainView : Window
                 ViewModel.SplittedSelect,
                 p => p.Equals(column.Header.ToString(), StringComparison.OrdinalIgnoreCase));
         }
+    }
+
+    private void Window_Loaded(object sender, RoutedEventArgs e)
+    {
+        //Dispatcher.InvokeAsync(ViewModel.Init);
+    }
+
+    private void Window_Initialized(object sender, EventArgs e)
+    {
+        ViewModel.Init().Await();
     }
 }

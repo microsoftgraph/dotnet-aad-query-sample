@@ -12,16 +12,11 @@ using Microsoft.Graph.Models;
 using Microsoft.Graph.Models.ODataErrors;
 using Microsoft.Kiota.Abstractions;
 using MsGraphSamples.Services;
-using MsGraphSamples.WPF.Helpers;
-
 
 namespace MsGraphSamples.WPF.ViewModels;
 
-public partial class MainViewModel : ObservableObject
+public partial class MainViewModel(IAuthService authService, IGraphDataService graphDataService) : ObservableObject
 {
-    private readonly IAuthService _authService;
-    private readonly IGraphDataService _graphDataService;
-
     private readonly Stopwatch _stopWatch = new();
     public long ElapsedMs => _stopWatch.ElapsedMilliseconds;
 
@@ -31,9 +26,9 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string? _userName;
 
-    public string? LastUrl => _graphDataService.LastUrl;
+    public string? LastUrl => graphDataService.LastUrl;
 
-    public static IReadOnlyList<string> Entities => new[] { "Users", "Groups", "Applications", "ServicePrincipals", "Devices" };
+    public static IReadOnlyList<string> Entities => ["Users", "Groups", "Applications", "ServicePrincipals", "Devices"];
 
     [ObservableProperty]
     private string _selectedEntity = "Users";
@@ -106,56 +101,48 @@ public partial class MainViewModel : ObservableObject
 
     #endregion
 
-    public MainViewModel(IAuthService authService, IGraphDataService graphDataService)
-    {
-        _authService = authService;
-        _graphDataService = graphDataService;
-
-        Init().Await();
-    }
-
     public async Task Init()
     {
-        //var user = await _graphDataService.GetUserAsync(new[] { "displayName" });
-        //UserName = user?.DisplayName;
+        var user = await graphDataService.GetUserAsync(["displayName"]);
+        UserName = user?.DisplayName;
 
         await Load();
     }
 
 
     [RelayCommand]
-    private Task Load()
+    private async Task Load()
     {
-        return IsBusyWrapper(async () => DirectoryObjects = SelectedEntity switch
+        DirectoryObjects = await IsBusyWrapper1(async () => SelectedEntity switch
         {
-            "Users" => await _graphDataService.GetUserCollectionAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
-            "Groups" => await _graphDataService.GetGroupCollectionAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
-            "Applications" => await _graphDataService.GetApplicationCollectionAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
-            "ServicePrincipals" => await _graphDataService.GetServicePrincipalsCollectionAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
-            "Devices" => await _graphDataService.GetDeviceCollectionAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
+            "Users" => await graphDataService.GetUserCollectionAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
+            "Groups" => await graphDataService.GetGroupCollectionAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
+            "Applications" => await graphDataService.GetApplicationCollectionAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
+            "ServicePrincipals" => await graphDataService.GetServicePrincipalCollectionAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
+            "Devices" => await graphDataService.GetDeviceCollectionAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
             _ => throw new NotImplementedException("Can't find selected entity")
         });
     }
 
     private bool CanDrillDown() => SelectedObject is not null;
     [RelayCommand(CanExecute = nameof(CanDrillDown))]
-    private Task DrillDown()
+    private async Task DrillDown()
     {
         ArgumentNullException.ThrowIfNull(SelectedObject);
 
-        return IsBusyWrapper(async () =>
+        DirectoryObjects = await IsBusyWrapper1(async () =>
         {
             OrderBy = string.Empty;
             Filter = string.Empty;
             Search = string.Empty;
 
-            DirectoryObjects = SelectedEntity switch
+            return SelectedEntity switch
             {
-                "Users" => await _graphDataService.GetTransitiveMemberOfAsGroupCollectionAsync(SelectedObject.Id!, SplittedSelect),
-                "Groups" => await _graphDataService.GetTransitiveMembersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
-                "Applications" => await _graphDataService.GetAppOwnersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
-                "ServicePrincipals" => await _graphDataService.GetSPOwnersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
-                "Devices" => await _graphDataService.GetRegisteredOwnersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
+                "Users" => await graphDataService.GetTransitiveMemberOfAsGroupCollectionAsync(SelectedObject.Id!, SplittedSelect),
+                "Groups" => await graphDataService.GetTransitiveMembersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
+                "Applications" => await graphDataService.GetApplicationOwnersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
+                "ServicePrincipals" => await graphDataService.GetServicePrincipalOwnersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
+                "Devices" => await graphDataService.GetDeviceOwnersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
                 _ => throw new NotImplementedException("Can't find selected entity")
             };
         });
@@ -165,13 +152,14 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanGoNextPage))]
     private async Task LoadNextPage()
     {
+        //DirectoryObjects = await graphDataService.GetNextPageAsync(DirectoryObjects);
         DirectoryObjects = DirectoryObjects switch
         {
-            UserCollectionResponse userCollection => await _graphDataService.GetNextPageAsync(userCollection),
-            GroupCollectionResponse groupCollection => await _graphDataService.GetNextPageAsync(groupCollection),
-            ApplicationCollectionResponse applicationCollection => await _graphDataService.GetNextPageAsync(applicationCollection),
-            ServicePrincipalCollectionResponse servicePrincipalCollection => await _graphDataService.GetNextPageAsync(servicePrincipalCollection),
-            DeviceCollectionResponse deviceCollection => await _graphDataService.GetNextPageAsync(deviceCollection),
+            UserCollectionResponse userCollection => await graphDataService.GetNextPageAsync(userCollection),
+            GroupCollectionResponse groupCollection => await graphDataService.GetNextPageAsync(groupCollection),
+            ApplicationCollectionResponse applicationCollection => await graphDataService.GetNextPageAsync(applicationCollection),
+            ServicePrincipalCollectionResponse servicePrincipalCollection => await graphDataService.GetNextPageAsync(servicePrincipalCollection),
+            DeviceCollectionResponse deviceCollection => await graphDataService.GetNextPageAsync(deviceCollection),
             _ => throw new NotImplementedException("Can't find selected entity")
         };
     }
@@ -208,11 +196,51 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void Logout()
     {
-        _authService.Logout();
+        authService.Logout();
         App.Current.Shutdown();
     }
+    private async Task<BaseCollectionPaginationCountResponse?> IsBusyWrapper1(Func<Task<BaseCollectionPaginationCountResponse?>> getDirectoryObjects)
+    {
+        IsBusy = true;
+        _stopWatch.Restart();
 
-    private async Task IsBusyWrapper(Func<Task> task)
+        // Sending message to generate DataGridColumns according to the selected properties
+        WeakReferenceMessenger.Default.Send(SplittedSelect);
+        try
+        {
+            return await getDirectoryObjects();
+
+            //SelectedEntity = DirectoryObjects switch
+            //{
+            //    UserCollectionResponse => "Users",
+            //    GroupCollectionResponse => "Groups",
+            //    ApplicationCollectionResponse => "Applications",
+            //    ServicePrincipalCollectionResponse => "ServicePrincipals",
+            //    DeviceCollectionResponse => "Devices",
+            //    _ => SelectedEntity,
+            //};
+        }
+        catch (ODataError ex)
+        {
+            Task.Run(() => System.Windows.MessageBox.Show(ex.Message, ex.Error?.Message)).Await();
+            return null;
+        }
+        catch (ApiException ex)
+        {
+            Task.Run(() => System.Windows.MessageBox.Show(ex.Message, ex.Source)).Await();
+            return null;
+        }
+        finally
+        {
+            _stopWatch.Stop();
+            OnPropertyChanged(nameof(ElapsedMs));
+            OnPropertyChanged(nameof(LastUrl));
+            IsBusy = false;
+        }
+
+    }
+
+    private async Task IsBusyWrapper(Task<BaseCollectionPaginationCountResponse> getDirectoryObjects)
     {
         IsBusy = true;
         _stopWatch.Restart();
@@ -222,7 +250,7 @@ public partial class MainViewModel : ObservableObject
 
         try
         {
-            await task();
+            DirectoryObjects = await getDirectoryObjects;
 
             SelectedEntity = DirectoryObjects switch
             {

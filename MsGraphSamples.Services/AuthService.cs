@@ -22,20 +22,14 @@ public class AuthService : IAuthService
     private static readonly string[] _scopes = ["Directory.Read.All"];
 
     private GraphServiceClient? _graphClient;
-    //public GraphServiceClient GraphClient => _graphClient ??= new GraphServiceClient(GetBrowserCredential());
     
-    public GraphServiceClient GraphClient => _graphClient ??= new GraphServiceClient(GetAppCredential());
+    //public GraphServiceClient GraphClient => _graphClient ??= new GraphServiceClient(GetAppCredential());
+    public GraphServiceClient GraphClient => _graphClient ??= new GraphServiceClient(GetBrowserCredential());
     
-    public void Logout()
-    {
-        File.Delete(_tokenPath);
-        _graphClient = null;
-    }
-
     private static ClientSecretCredential GetAppCredential() => new(
-        SecretConfig.GetValue("MStenantId"),
-        SecretConfig.GetValue("MSclientId"),
-        SecretConfig.GetValue("MSclientSecret"));
+        _configuration["tenantId"],
+        _configuration["clientId"],
+        _configuration["clientSecret"]);
 
     private static InteractiveBrowserCredential GetBrowserCredential()
     {
@@ -63,5 +57,11 @@ public class AuthService : IAuthService
             authRecord.Serialize(authRecordStream);
             return browserCredential;
         }
+    }
+
+    public void Logout()
+    {
+        File.Delete(_tokenPath);
+        _graphClient = null;
     }
 }

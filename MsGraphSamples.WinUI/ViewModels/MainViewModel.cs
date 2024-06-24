@@ -9,15 +9,13 @@ using Microsoft.Graph.Models;
 using Microsoft.Graph.Models.ODataErrors;
 using Microsoft.Kiota.Abstractions;
 using MsGraphSamples.Services;
-using MsGraphSamples.WinUI.Contracts.ViewModels;
+using Windows.UI.Popups;
 using MsGraphSamples.WinUI.Helpers;
 
 namespace MsGraphSamples.WinUI.ViewModels;
 
-public partial class MainViewModel : ObservableRecipient, INavigationAware
+public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGraphDataService graphDataService) : ObservableRecipient
 {
-    private readonly IAsyncEnumerableGraphDataService _graphDataService;
-
     private readonly ushort pageSize = 25;
 
     private readonly Stopwatch _stopWatch = new();
@@ -40,12 +38,12 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     [NotifyCanExecuteChangedFor(nameof(DrillDownCommand))]
     private DirectoryObject? _selectedObject;
 
-    public IReadOnlyList<string> Entities => new[] { "Users", "Groups", "Applications", "ServicePrincipals", "Devices" };
+    public static IReadOnlyList<string> Entities => ["Users", "Groups", "Applications", "ServicePrincipals", "Devices"];
 
     [ObservableProperty]
     private string _selectedEntity = "Users";
-    public string? LastUrl => _graphDataService.LastUrl;
-    public long? LastCount => _graphDataService.LastCount;
+    public string? LastUrl => graphDataService.LastUrl;
+    public long? LastCount => graphDataService.LastCount;
 
     #region OData Operators
 
@@ -105,22 +103,13 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     }
 
     #endregion
-
-    public MainViewModel(IAsyncEnumerableGraphDataService graphDataService)
+    
+    public async Task Init()
     {
-        _graphDataService = graphDataService;
-    }
-
-    public async void OnNavigatedTo(object parameter)
-    {
-        //var user = await _graphDataService.GetUserAsync(new[] { "displayName" });
-        //UserName = user?.DisplayName;
+        var user = await graphDataService.GetUserAsync(["displayName"]);
+        UserName = user?.DisplayName;
 
         await Load();
-    }
-
-    public void OnNavigatedFrom()
-    {
     }
 
     [RelayCommand]
@@ -129,11 +118,11 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         return IsBusyWrapper(() => SelectedEntity switch
         {
             //"Users" =>  _graphDataService.GetUsersInBatch(SplittedSelect, pageSize),
-            "Users" => _graphDataService.GetUsers(SplittedSelect, Filter, SplittedOrderBy, Search, pageSize),
-            "Groups" => _graphDataService.GetGroups(SplittedSelect, Filter, SplittedOrderBy, Search, pageSize),
-            "Applications" => _graphDataService.GetApplications(SplittedSelect, Filter, SplittedOrderBy, Search, pageSize),
-            "ServicePrincipals" => _graphDataService.GetServicePrincipals(SplittedSelect, Filter, SplittedOrderBy, Search, pageSize),
-            "Devices" => _graphDataService.GetDevices(SplittedSelect, Filter, SplittedOrderBy, Search, pageSize),
+            "Users" => graphDataService.GetUsers(SplittedSelect, Filter, SplittedOrderBy, Search, pageSize),
+            "Groups" => graphDataService.GetGroups(SplittedSelect, Filter, SplittedOrderBy, Search, pageSize),
+            "Applications" => graphDataService.GetApplications(SplittedSelect, Filter, SplittedOrderBy, Search, pageSize),
+            "ServicePrincipals" => graphDataService.GetServicePrincipals(SplittedSelect, Filter, SplittedOrderBy, Search, pageSize),
+            "Devices" => graphDataService.GetDevices(SplittedSelect, Filter, SplittedOrderBy, Search, pageSize),
             _ => throw new NotImplementedException("Can't find selected entity")
         });
     }
@@ -155,11 +144,11 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
             return SelectedEntity switch
             {
-                "Users" => _graphDataService.GetTransitiveMemberOfAsGroups(id, SplittedSelect, pageSize),
-                "Groups" => _graphDataService.GetTransitiveMembersAsUsers(id, SplittedSelect, pageSize),
-                "Applications" => _graphDataService.GetAppOwnersAsUsers(id, SplittedSelect, pageSize),
-                "ServicePrincipals" => _graphDataService.GetSPOwnersAsUsers(id, SplittedSelect, pageSize),
-                "Devices" => _graphDataService.GetRegisteredOwnersAsUsers(id, SplittedSelect, pageSize),
+                "Users" => graphDataService.GetTransitiveMemberOfAsGroups(id, SplittedSelect, pageSize),
+                "Groups" => graphDataService.GetTransitiveMembersAsUsers(id, SplittedSelect, pageSize),
+                "Applications" => graphDataService.GetApplicationOwnersAsUsers(id, SplittedSelect, pageSize),
+                "ServicePrincipals" => graphDataService.GetServicePrincipalOwnersAsUsers(id, SplittedSelect, pageSize),
+                "Devices" => graphDataService.GetDeviceOwnersAsUsers(id, SplittedSelect, pageSize),
                 _ => throw new NotImplementedException("Can't find selected entity")
             };
         });
@@ -169,8 +158,6 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     [RelayCommand]
     private Task Sort(DataGridColumnEventArgs e)
     {
-        ArgumentNullException.ThrowIfNull(e);
-
         OrderBy = (string)e.Column.Header;
         //e.handled  = true;
         return Load();
@@ -193,6 +180,13 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
         var psi = new ProcessStartInfo { FileName = url, UseShellExecute = true };
         System.Diagnostics.Process.Start(psi);
+    }
+
+    [RelayCommand]
+    private void Logout()
+    {
+        authService.Logout();
+        App.Current.Exit();
     }
 
     private async Task IsBusyWrapper(Func<IAsyncEnumerable<DirectoryObject>> getDirectoryObjects)
@@ -222,12 +216,14 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         catch (ODataError ex)
         {
             IsError = true;
-            await App.MainWindow.ShowMessageDialogAsync(ex.Message, ex.Error?.Message ?? string.Empty);
+            var errorDialog = new MessageDialog(ex.Message, ex.Error?.Message ?? string.Empty);
+            await errorDialog.ShowAsync();
         }
         catch (ApiException ex)
         {
             IsError = true;
-            await App.MainWindow.ShowMessageDialogAsync(ex.Message, ex.Source ?? string.Empty);
+            var errorDialog = new MessageDialog(ex.Message, ex.Source ?? string.Empty);
+            await errorDialog.ShowAsync();
         }
         finally
         {

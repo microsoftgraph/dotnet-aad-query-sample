@@ -1,10 +1,10 @@
-﻿{
-    "profiles": {
-      "MsGraphSamples.WinUI (Package)": {
-        "commandName": "MsixPackage"
-      },
-      "MsGraphSamples.WinUI (Unpackaged)": {
-        "commandName": "Project"
-      }
+{
+  "profiles": {
+    "MsGraphSamples.WinUI (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "MsGraphSamples.WinUI (Unpackaged)": {
+      "commandName": "Project"
     }
+  }
 }

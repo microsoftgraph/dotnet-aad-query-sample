@@ -12,18 +12,32 @@ public static class AsyncEnumerableGraphExtensions
     /// </summary>
     /// <param name="requestInfo"></param>
     /// <param name="requestAdapter"></param>
-    /// <returns>IAsyncEnumerable<User></returns>
-    public static async IAsyncEnumerable<TEntity> ToAsyncEnumerable<TEntity, TCollectionResponse>(this RequestInformation requestInfo, IRequestAdapter requestAdapter)
+    /// <param name="countAction"></param>
+    /// <returns>IAsyncEnumerable<Entity></returns>
+    public static IAsyncEnumerable<TEntity> ToAsyncEnumerable<TEntity, TCollectionResponse>(this RequestInformation requestInfo, IRequestAdapter requestAdapter, Action<long?>? countAction = null)
         where TEntity : Entity
         where TCollectionResponse : BaseCollectionPaginationCountResponse, new()
     {
-        var collectionResponse = await requestAdapter
-        .SendAsync(requestInfo, parseNode => new TCollectionResponse())
-        .ConfigureAwait(false);
+        return requestAdapter
+            .SendAsync(requestInfo, parseNode => new TCollectionResponse())
+            .ToAsyncEnumerable<TEntity, TCollectionResponse>(requestAdapter, countAction);
+    }
 
-        await foreach (var entity in collectionResponse.ToAsyncEnumerable<TEntity, TCollectionResponse>(requestAdapter))
+    /// <summary>
+    /// Transform a Task<BaseCollectionPaginationCountResponse> into an AsyncEnumerable to efficiently iterate through the collection in case there are several pages.
+    /// </summary>
+    /// <param name="requestInfo"></param>
+    /// <param name="requestAdapter"></param>
+    /// <param name="countAction"></param>
+    /// <returns>IAsyncEnumerable<Entity></returns>
+    public static async IAsyncEnumerable<TEntity> ToAsyncEnumerable<TEntity, TCollectionResponse>(this Task<TCollectionResponse?> collectionResponseTask, IRequestAdapter requestAdapter, Action<long?>? countAction = null)
+        where TEntity : Entity
+        where TCollectionResponse : BaseCollectionPaginationCountResponse, new()
+    {
+        var collectionResponse = await collectionResponseTask.ConfigureAwait(false);
+        await foreach (var item in collectionResponse.ToAsyncEnumerable<TEntity, TCollectionResponse>(requestAdapter, countAction))
         {
-            yield return entity;
+            yield return item;
         }
     }
 
@@ -34,19 +48,17 @@ public static class AsyncEnumerableGraphExtensions
     /// <typeparam name="TCollectionResponse">Specialized BaseCollectionPaginationCountResponse</typeparam>
     /// <param name="collectionResponse">The CollectionResponse to convert to IAsyncEnumerable</param>
     /// <param name="requestAdapter">The IRequestAdapter from GraphServiceClient used to make requests</param>
+    /// <param name="countAction"></param>
     /// <returns></returns>
-    public static async IAsyncEnumerable<TEntity> ToAsyncEnumerable<TEntity, TCollectionResponse>(this TCollectionResponse? collectionResponse, IRequestAdapter requestAdapter)
-        where TEntity : Entity
-        where TCollectionResponse : BaseCollectionPaginationCountResponse, new()
+    public static async IAsyncEnumerable<TEntity> ToAsyncEnumerable<TEntity, TCollectionResponse>(this TCollectionResponse? collectionResponse, IRequestAdapter requestAdapter, Action<long?>? countAction = null)
+    where TEntity : Entity
+    where TCollectionResponse : BaseCollectionPaginationCountResponse, new()
     {
+        countAction?.Invoke(collectionResponse?.OdataCount);
+
         while (true)
         {
-            if (collectionResponse?.GetType().GetProperty("Value")?.GetValue(collectionResponse) is not List<TEntity> entities)
-            {
-                // not a collection response
-                break;
-            }
-
+            var entities = collectionResponse?.BackingStore.Get<List<TEntity>>("value") ?? Enumerable.Empty<TEntity>();
             foreach (var entity in entities)
             {
                 yield return entity;

@@ -21,7 +21,7 @@ public class ViewModelLocator
         Ioc.Default.ConfigureServices(GetServices());
     }
 
-    private static IServiceProvider GetServices()
+    private static ServiceProvider GetServices()
     {
         var serviceCollection = new ServiceCollection();
 

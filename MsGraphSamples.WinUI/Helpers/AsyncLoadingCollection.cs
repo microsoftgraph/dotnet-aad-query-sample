@@ -29,7 +29,7 @@ public class AsyncLoadingCollection<T> : ObservableCollection<T>, ISupportIncrem
 
     private async Task<LoadMoreItemsResult> LoadMoreItemsAsync(uint count, CancellationToken cancellationToken)
     {
-        await _mutex.WaitAsync();
+        await _mutex.WaitAsync(cancellationToken);
 
         if (cancellationToken.IsCancellationRequested || !HasMoreItems)
         {
