@@ -51,6 +51,7 @@ public partial class App : Application
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         var m_window = new MainWindow();
+        m_window.ExtendsContentIntoTitleBar = true;
 
         // Create a Frame to act as the navigation context and navigate to the first page
         var rootFrame = new Frame();

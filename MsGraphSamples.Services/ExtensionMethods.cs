@@ -6,6 +6,7 @@ namespace MsGraphSamples;
 public static class ExtensionMethods
 {
     public static bool In(this string s, params string[] items) => items.Any(i => i.Trim().Equals(s, StringComparison.InvariantCultureIgnoreCase));
+    public static bool IsNullOrEmpty(this string? s) => string.IsNullOrEmpty(s);
 
     public static int NthIndexOf(this string input, char value, int nth, int startIndex = 0)
     {

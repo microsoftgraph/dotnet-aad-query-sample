@@ -70,7 +70,6 @@ public class GraphDataService(GraphServiceClient graphClient) : IGraphDataServic
         return collectionResponse.GetNextPageAsync(_graphClient.RequestAdapter);
     }
 
-
     public Task<ApplicationCollectionResponse?> GetApplicationCollectionAsync(string[] select, string? filter = null, string[]? orderBy = null, string? search = null, ushort top = 999)
     {
         var requestInfo = _graphClient.Applications
@@ -207,6 +206,7 @@ public class GraphDataService(GraphServiceClient graphClient) : IGraphDataServic
         LastUrl = WebUtility.UrlDecode(requestInfo.URI.AbsoluteUri);
         return _graphClient.RequestAdapter.SendAsync(requestInfo, UserCollectionResponse.CreateFromDiscriminatorValue);
     }
+
     public Task<UserCollectionResponse?> GetGroupOwnersAsUserCollectionAsync(string id, string[] select, ushort top = 999)
     {
         var requestInfo = _graphClient.Groups[id]
@@ -222,7 +222,6 @@ public class GraphDataService(GraphServiceClient graphClient) : IGraphDataServic
         LastUrl = WebUtility.UrlDecode(requestInfo.URI.AbsoluteUri);
         return _graphClient.RequestAdapter.SendAsync(requestInfo, UserCollectionResponse.CreateFromDiscriminatorValue);
     }
-
 
     public Task<GroupCollectionResponse?> GetTransitiveMemberOfAsGroupCollectionAsync(string id, string[] select, ushort top = 999)
     {
@@ -262,5 +261,4 @@ public class GraphDataService(GraphServiceClient graphClient) : IGraphDataServic
         userRequestBody.AdditionalData[propertyName] = propertyValue;
         return _graphClient.Users[userId].PatchAsync(userRequestBody);
     }
-
 }

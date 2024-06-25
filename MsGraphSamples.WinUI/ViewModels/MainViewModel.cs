@@ -11,6 +11,8 @@ using Microsoft.Kiota.Abstractions;
 using MsGraphSamples.Services;
 using Windows.UI.Popups;
 using MsGraphSamples.WinUI.Helpers;
+using System.Collections.Immutable;
+using System.Reflection;
 
 namespace MsGraphSamples.WinUI.ViewModels;
 
@@ -53,7 +55,7 @@ public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGra
     public string _select = "id,displayName,mail,userPrincipalName";
 
     [ObservableProperty]
-    public string? _filter = string.Empty;
+    public string? _filter;
 
     public string[]? SplittedOrderBy => OrderBy?.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 
@@ -103,8 +105,9 @@ public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGra
     }
 
     #endregion
-    
-    public async Task Init()
+
+    [RelayCommand]
+    public async Task PageLoaded()
     {
         var user = await graphDataService.GetUserAsync(["displayName"]);
         UserName = user?.DisplayName;
@@ -133,22 +136,19 @@ public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGra
     {
         ArgumentNullException.ThrowIfNull(SelectedObject);
 
-        // Need to save the Id because the SelectedObject will be cleared by DirectoryObjects.Clear() inside IsBusyWrapper()
-        var id = SelectedObject.Id!;
-
         return IsBusyWrapper(() =>
         {
-            OrderBy = string.Empty;
-            Filter = string.Empty;
-            Search = string.Empty;
+            OrderBy = null;
+            Filter = null;
+            Search = null;
 
             return SelectedEntity switch
             {
-                "Users" => graphDataService.GetTransitiveMemberOfAsGroups(id, SplittedSelect, pageSize),
-                "Groups" => graphDataService.GetTransitiveMembersAsUsers(id, SplittedSelect, pageSize),
-                "Applications" => graphDataService.GetApplicationOwnersAsUsers(id, SplittedSelect, pageSize),
-                "ServicePrincipals" => graphDataService.GetServicePrincipalOwnersAsUsers(id, SplittedSelect, pageSize),
-                "Devices" => graphDataService.GetDeviceOwnersAsUsers(id, SplittedSelect, pageSize),
+                "Users" => graphDataService.GetTransitiveMemberOfAsGroups(SelectedObject.Id!, SplittedSelect, pageSize),
+                "Groups" => graphDataService.GetTransitiveMembersAsUsers(SelectedObject.Id!, SplittedSelect, pageSize),
+                "Applications" => graphDataService.GetApplicationOwnersAsUsers(SelectedObject.Id!, SplittedSelect, pageSize),
+                "ServicePrincipals" => graphDataService.GetServicePrincipalOwnersAsUsers(SelectedObject.Id!, SplittedSelect, pageSize),
+                "Devices" => graphDataService.GetDeviceOwnersAsUsers(SelectedObject.Id!, SplittedSelect, pageSize),
                 _ => throw new NotImplementedException("Can't find selected entity")
             };
         });
@@ -158,8 +158,10 @@ public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGra
     [RelayCommand]
     private Task Sort(DataGridColumnEventArgs e)
     {
-        OrderBy = (string)e.Column.Header;
-        //e.handled  = true;
+        OrderBy = e.Column.SortDirection == null || e.Column.SortDirection == DataGridSortDirection.Descending
+            ? $"{e.Column.Header} asc"
+            : $"{e.Column.Header} desc";
+
         return Load();
     }
 
@@ -195,14 +197,14 @@ public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGra
         IsBusy = true;
         _stopWatch.Restart();
 
-        // Sending message to generate DataGridColumns according to the selected properties
-        WeakReferenceMessenger.Default.Send(SplittedSelect);
-
         try
         {
             DirectoryObjects = new(getDirectoryObjects(), pageSize);
             await DirectoryObjects.LoadMoreItemsAsync();
-            
+
+            // Sending message to generate DataGridColumns according to the selected properties
+            WeakReferenceMessenger.Default.Send(GetPropertiesAndSortDirection(DirectoryObjects));
+
             SelectedEntity = DirectoryObjects.FirstOrDefault() switch
             {
                 User => "Users",
@@ -232,6 +234,30 @@ public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGra
             OnPropertyChanged(nameof(LastUrl));
             OnPropertyChanged(nameof(LastCount));
             IsBusy = false;
+        }
+    }
+
+    private ImmutableSortedDictionary<string, DataGridSortDirection?> GetPropertiesAndSortDirection(AsyncLoadingCollection<DirectoryObject> directoryObjects)
+    {
+        return directoryObjects
+            .First()
+            .GetType()
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Select(p => p.Name)
+            .Where(p => p.In(SplittedSelect))
+            .ToImmutableSortedDictionary(kv => kv, GetSortDirection);
+
+        DataGridSortDirection? GetSortDirection(string propertyName)
+        {
+            var property = OrderBy?.Split(' ')[0];
+            var direction = OrderBy?.Split(' ').ElementAtOrDefault(1) ?? "asc";
+
+            if (propertyName.Equals(property, StringComparison.InvariantCultureIgnoreCase))
+                return direction.Equals("asc", StringComparison.InvariantCultureIgnoreCase)
+                    ? DataGridSortDirection.Ascending
+                    : DataGridSortDirection.Descending;
+
+            return null;
         }
     }
 }

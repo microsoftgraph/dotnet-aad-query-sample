@@ -6,15 +6,20 @@
     xmlns:Core="using:Microsoft.Xaml.Interactions.Core"
     xmlns:controls="using:CommunityToolkit.WinUI.UI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:graph="using:Microsoft.Graph.Models"
     xmlns:i="using:Microsoft.Xaml.Interactivity"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:sys="using:System"
     xmlns:vm="using:MsGraphSamples.WinUI.ViewModels"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
-    Loaded="Page_Loaded"
+    d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
     mc:Ignorable="d">
+    <i:Interaction.Behaviors>
+        <Core:EventTriggerBehavior EventName="Loaded">
+            <Core:InvokeCommandAction Command="{x:Bind ViewModel.PageLoadedCommand}" />
+        </Core:EventTriggerBehavior>
+    </i:Interaction.Behaviors>
 
-    <Grid>
+    <Grid Margin="0,24,0,0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -46,7 +51,7 @@
                     $select
                     <ToolTipService.ToolTip>
                         <TextBlock>
-                            <Run Foreground="Green">// List properties you want to select separated by a comma</Run>
+                            <Run Foreground="Green" Text="// List of properties separated by a comma" />
                         </TextBlock>
                     </ToolTipService.ToolTip>
                 </HyperlinkButton>
@@ -65,11 +70,12 @@
                     $filter
                     <ToolTipService.ToolTip>
                         <TextBlock>
-                            property eq 'filterValue'<LineBreak />
-                            property ne 'filterValue'<LineBreak />
-                            not propertyCollection/any(p:p eq 'filterValue')<LineBreak />
-                            startsWith(property, 'filterValue')<LineBreak />
-                            endsWith(property, 'filterValue')<Run Foreground="Green" Text=" // Enabled on mail, userPrincipalName and proxyAddresses" />
+                            <Run Text="property eq 'filterValue'" /><LineBreak />
+                            <Run Text="property ne 'filterValue'" /><LineBreak />
+                            <Run Text="not propertyCollection/any(p:p eq 'filterValue')" /><LineBreak />
+                            <Run Text="startsWith(property, 'filterValue')" /><LineBreak />
+                            <Run Text="endsWith(property, 'filterValue')" />
+                            <Run Foreground="Green" Text=" // Enabled on mail, userPrincipalName and proxyAddresses" />
                         </TextBlock>
                     </ToolTipService.ToolTip>
                 </HyperlinkButton>
@@ -106,9 +112,9 @@
                     $orderBy
                     <ToolTipService.ToolTip>
                         <TextBlock>
-                            <Run Foreground="Green">// Enabled only on few properties, see documentation for details</Run>
-                            <LineBreak />
-                            property [asc|desc]</TextBlock>
+                            <Run Foreground="Green" Text="// Enabled only on few properties, see documentation for details" /><LineBreak />
+                            <Run Text="property [asc|desc]" />
+                        </TextBlock>
                     </ToolTipService.ToolTip>
                 </HyperlinkButton>
                 <TextBox Text="{x:Bind ViewModel.OrderBy, Mode=TwoWay}" />
@@ -126,11 +132,10 @@
                     $search
                     <ToolTipService.ToolTip>
                         <TextBlock>
-                            <Run Foreground="Green">// Enabled on displayName and Description</Run>
-                            <LineBreak />
-                            <Run Foreground="Green">// All the other properties will fallback to startsWith filter behavior</Run>
-                            <LineBreak />
-                            &quot;property1:value1&quot; [AND|OR] &quot;property2:value2&quot;</TextBlock>
+                            <Run Foreground="Green" Text="// Enabled on displayName and Description" /><LineBreak />
+                            <Run Foreground="Green" Text="// All the other properties will fallback to startsWith filter behavior" /><LineBreak />
+                            <Run Text="&quot;property1:value1&quot; [AND|OR] &quot;property2:value2&quot;" />
+                        </TextBlock>
                     </ToolTipService.ToolTip>
                 </HyperlinkButton>
 
@@ -173,6 +178,7 @@
             x:Name="DirectoryObjectsGrid"
             Grid.Row="1"
             Margin="6"
+            d:DataContext="{d:DesignInstance Type=graph:User}"
             AutoGenerateColumns="False"
             GridLinesVisibility="Horizontal"
             IncrementalLoadingThreshold="0.6"
@@ -188,7 +194,7 @@
                 <Core:EventTriggerBehavior EventName="DoubleTapped" SourceObject="{Binding ElementName=DirectoryObjectsGrid}">
                     <Core:InvokeCommandAction Command="{x:Bind ViewModel.DrillDownCommand}" />
                 </Core:EventTriggerBehavior>
-                <Core:EventTriggerBehavior EventName="Sorting" SourceObject="{Binding ElementName=DirectoryObjectsGrid}">
+                <Core:EventTriggerBehavior EventName="Sorting">
                     <Core:InvokeCommandAction Command="{x:Bind ViewModel.SortCommand}" />
                 </Core:EventTriggerBehavior>
             </i:Interaction.Behaviors>

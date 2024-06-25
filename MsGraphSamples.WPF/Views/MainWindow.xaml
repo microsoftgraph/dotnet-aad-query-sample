@@ -37,10 +37,13 @@
     d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel}"
     DataContext="{Binding MainVM, Source={StaticResource Locator}}"
     Icon="/Assets/MSGraph.png"
-    Initialized="Window_Initialized"
-    Loaded="Window_Loaded"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Loaded">
+            <i:InvokeCommandAction Command="{Binding PageLoadedCommand}" />
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
 
     <Grid>
         <Grid.Resources>

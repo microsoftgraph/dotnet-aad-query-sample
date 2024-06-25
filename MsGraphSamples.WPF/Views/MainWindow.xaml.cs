@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using MsGraphSamples.WPF.Helpers;
 using MsGraphSamples.WPF.ViewModels;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -50,6 +50,15 @@ public partial class MainWindow : Window
         if (!e.Cancel)
         {
             e.Column.Width = new DataGridLength(1, DataGridLengthUnitType.Star);
+
+            var orderByProperty = ViewModel.OrderBy?.Split(' ')[0];
+            var direction = ViewModel.OrderBy?.Split(' ').ElementAtOrDefault(1) ?? "asc";
+            if (e.PropertyName.Equals(orderByProperty, StringComparison.InvariantCultureIgnoreCase))
+            {
+                e.Column.SortDirection = direction.Equals("asc", StringComparison.InvariantCultureIgnoreCase)
+                    ? ListSortDirection.Ascending
+                    : ListSortDirection.Descending;
+            }
         }
     }
 
@@ -62,15 +71,5 @@ public partial class MainWindow : Window
                 ViewModel.SplittedSelect,
                 p => p.Equals(column.Header.ToString(), StringComparison.OrdinalIgnoreCase));
         }
-    }
-
-    private void Window_Loaded(object sender, RoutedEventArgs e)
-    {
-        //Dispatcher.InvokeAsync(ViewModel.Init);
-    }
-
-    private void Window_Initialized(object sender, EventArgs e)
-    {
-        ViewModel.Init().Await();
     }
 }

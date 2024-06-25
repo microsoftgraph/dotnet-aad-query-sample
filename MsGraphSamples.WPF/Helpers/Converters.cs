@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using Microsoft.Graph.Models;
-using Microsoft.Kiota.Abstractions.Store;
 using System.Globalization;
 using System.Windows.Data;
 

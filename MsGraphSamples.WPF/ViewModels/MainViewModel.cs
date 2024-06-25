@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
 using System.Text;
@@ -50,7 +51,7 @@ public partial class MainViewModel(IAuthService authService, IGraphDataService g
     public string _select = "id,displayName,mail,userPrincipalName";
 
     [ObservableProperty]
-    public string? _filter = string.Empty;
+    public string? _filter;
 
     public string[]? SplittedOrderBy => OrderBy?.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 
@@ -101,7 +102,8 @@ public partial class MainViewModel(IAuthService authService, IGraphDataService g
 
     #endregion
 
-    public async Task Init()
+    [RelayCommand]
+    public async Task PageLoaded()
     {
         var user = await graphDataService.GetUserAsync(["displayName"]);
         UserName = user?.DisplayName;
@@ -131,9 +133,9 @@ public partial class MainViewModel(IAuthService authService, IGraphDataService g
 
         await IsBusyWrapper(async () =>
         {
-            OrderBy = string.Empty;
-            Filter = string.Empty;
-            Search = string.Empty;
+            OrderBy = null;
+            Filter = null;
+            Search = null;
 
             return DirectoryObjects switch
             {
@@ -165,12 +167,12 @@ public partial class MainViewModel(IAuthService authService, IGraphDataService g
     }
 
     [RelayCommand]
-    private Task Sort(DataGridSortingEventArgs? e)
+    private Task Sort(DataGridSortingEventArgs e)
     {
-        ArgumentNullException.ThrowIfNull(e);
+        OrderBy = e.Column.SortDirection == null || e.Column.SortDirection == ListSortDirection.Descending
+            ? $"{e.Column.Header} asc"
+            : $"{e.Column.Header} desc";
 
-        OrderBy = (string)e.Column.Header;
-        e.Handled = true;
         return Load();
     }
 
@@ -199,7 +201,6 @@ public partial class MainViewModel(IAuthService authService, IGraphDataService g
         authService.Logout();
         App.Current.Shutdown();
     }
-
 
     private async Task IsBusyWrapper(Func<Task<BaseCollectionPaginationCountResponse?>> getDirectoryObjects)
     {
