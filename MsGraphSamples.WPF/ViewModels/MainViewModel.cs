@@ -40,6 +40,7 @@ public partial class MainViewModel(IAuthService authService, IGraphDataService g
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(LaunchGraphExplorerCommand))]
     [NotifyCanExecuteChangedFor(nameof(LoadNextPageCommand))]
+    [NotifyPropertyChangedFor(nameof(LastUrl))]
     private BaseCollectionPaginationCountResponse? _directoryObjects;
 
     #region OData Operators
@@ -164,8 +165,8 @@ public partial class MainViewModel(IAuthService authService, IGraphDataService g
     private Task Sort(DataGridSortingEventArgs e)
     {
         OrderBy = e.Column.SortDirection == null || e.Column.SortDirection == ListSortDirection.Descending
-            ? $"{e.Column.Header} asc"
-            : $"{e.Column.Header} desc";
+                ? $"{e.Column.Header} asc"
+                : $"{e.Column.Header} desc";
         
         // Prevent client-side sorting
         e.Handled = true;
@@ -230,7 +231,6 @@ public partial class MainViewModel(IAuthService authService, IGraphDataService g
         {
             _stopWatch.Stop();
             OnPropertyChanged(nameof(ElapsedMs));
-            OnPropertyChanged(nameof(LastUrl));
             IsBusy = false;
         }
     }

@@ -5,16 +5,22 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:Core="using:Microsoft.Xaml.Interactions.Core"
     xmlns:controls="using:CommunityToolkit.WinUI.UI.Controls"
+    xmlns:converters="using:CommunityToolkit.WinUI.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:graph="using:Microsoft.Graph.Models"
     xmlns:i="using:Microsoft.Xaml.Interactivity"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:sys="using:System" Loaded="Page_Loaded"
     xmlns:vm="using:MsGraphSamples.WinUI.ViewModels"
     d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
+    Loaded="Page_Loaded"
     mc:Ignorable="d">
 
-    <Grid Margin="0,24,0,0">
+    <Page.Resources>
+        <converters:BoolNegationConverter x:Key="BoolNegationConverter" />
+        <converters:StringFormatConverter x:Key="StringFormatConverter" />
+    </Page.Resources>
+
+    <Grid Margin="0,28,0,0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -84,10 +90,13 @@
                 Margin="6,0"
                 VerticalAlignment="Bottom">
 
-                <TextBlock
-                    Margin="0,3"
-                    FontWeight="Bold"
-                    Text="{x:Bind sys:String.Format(x:Null, 'Entities: {0:N0} / {1:N0}', ViewModel.DirectoryObjects.Count, ViewModel.LastCount), Mode=OneWay}" />
+                <TextBlock Margin="0,3" FontWeight="Bold">
+                    <Run Text="Entities: " />
+                    <Run Text="{x:Bind ViewModel.DirectoryObjects.Count, Mode=OneWay}" />
+                    <Run Text=" / " />
+                    <Run Text="{x:Bind ViewModel.LastCount, Mode=OneWay}" />
+                </TextBlock>
+                
                 <ComboBox
                     HorizontalAlignment="Stretch"
                     ItemsSource="{x:Bind vm:MainViewModel.Entities}"
@@ -147,7 +156,8 @@
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Bottom"
                 Command="{x:Bind ViewModel.LoadCommand}"
-                Content="Load" />
+                Content="Load"
+                IsEnabled="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolNegationConverter}}" />
 
             <!--  Graph Explorer  -->
             <TextBox
@@ -165,7 +175,8 @@
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
                 Command="{x:Bind ViewModel.LaunchGraphExplorerCommand}"
-                Content="Graph Explorer" />
+                Content="Graph Explorer"
+                IsEnabled="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolNegationConverter}}" />
         </Grid>
 
         <!--  Query Results  -->
@@ -195,10 +206,7 @@
             </i:Interaction.Behaviors>
         </controls:DataGrid>
 
-        <Grid
-            Grid.Row="2"
-            Margin="6"
-            Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}">
+        <Grid Grid.Row="2" Margin="6">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
@@ -209,25 +217,26 @@
             <TextBlock
                 Margin="6,0"
                 VerticalAlignment="Center"
-                Text="{x:Bind sys:String.Format('Hello {0}', ViewModel.UserName), Mode=OneWay}" />
+                Text="{x:Bind ViewModel.UserName, Mode=OneWay, Converter={StaticResource StringFormatConverter}, ConverterParameter='Hello {0}'}" />
 
-            <!--<Button Grid.Column="2"
-                    Margin="0,0,6,0"
-                    Padding="6,0"
-                    Command="{x:Bind ViewModel.LogoutCommand}"
-                    Content="Logout" />-->
+            <Button
+                Grid.Column="1"
+                Margin="6,0"
+                Padding="6,0"
+                Command="{x:Bind ViewModel.LogoutCommand}"
+                Content="Logout" />
 
             <ProgressBar
                 Grid.Column="2"
-                Margin="0,0,6,0"
-                HorizontalContentAlignment="Stretch"
-                IsIndeterminate="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
+                Margin="6,0"
+                VerticalAlignment="Center"
+                IsIndeterminate="{x:Bind ViewModel.IsIndeterminate, Mode=OneWay}"
                 ShowError="{x:Bind ViewModel.IsError, Mode=OneWay}" />
 
             <TextBlock
                 Grid.Column="3"
-                Margin="0,0,6,0"
-                Text="{x:Bind sys:String.Format('{0:N0} ms', ViewModel.ElapsedMs), Mode=OneWay}" />
+                Margin="6,0"
+                Text="{x:Bind ViewModel.ElapsedMs, Mode=OneWay, Converter={StaticResource StringFormatConverter}, ConverterParameter='{}{0:N0} ms'}" />
         </Grid>
     </Grid>
 </Page>

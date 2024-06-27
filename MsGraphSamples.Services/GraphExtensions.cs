@@ -62,9 +62,9 @@ public static class GraphExtensions
         }
     }
 
-    public static List<TEntity> GetValue<TEntity>(this BaseCollectionPaginationCountResponse collectionResponse) where TEntity : Entity
+    public static List<TEntity> GetValue<TEntity>(this BaseCollectionPaginationCountResponse? collectionResponse) where TEntity : Entity
     {
-        return collectionResponse.BackingStore.Get<List<TEntity>>("value") ?? [];
+        return collectionResponse?.BackingStore.Get<List<TEntity>>("value") ?? [];
     }
 
     public static async Task<TCollectionResponse?> GetNextPageAsync<TCollectionResponse>(this TCollectionResponse? collectionResponse, IRequestAdapter requestAdapter, CancellationToken cancellationToken = default)

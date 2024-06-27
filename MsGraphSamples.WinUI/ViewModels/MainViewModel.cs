@@ -26,16 +26,22 @@ public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGra
     public long ElapsedMs => _stopWatch.ElapsedMilliseconds;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsIndeterminate))]
     private bool _isBusy = false;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsIndeterminate))]
     private bool _isError = false;
+
+    public bool IsIndeterminate => IsBusy || IsError;
 
     [ObservableProperty]
     private string? _userName;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(LaunchGraphExplorerCommand))]
+    [NotifyPropertyChangedFor(nameof(LastUrl))]
+    [NotifyPropertyChangedFor(nameof(LastCount))]
     private AsyncLoadingCollection<DirectoryObject>? _directoryObjects;
 
     [ObservableProperty]
@@ -204,7 +210,6 @@ public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGra
             DirectoryObjects = new(directoryObjects, pageSize);
             await DirectoryObjects.LoadMoreItemsAsync();
 
-
             SelectedEntity = DirectoryObjects.FirstOrDefault() switch
             {
                 User => "Users",
@@ -223,14 +228,12 @@ public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGra
         catch (ApiException ex)
         {
             IsError = true;
-            await ShowDialogAsync(ex.Message, Enum.GetName((HttpStatusCode)ex.ResponseStatusCode));
+            await ShowDialogAsync(Enum.GetName((HttpStatusCode)ex.ResponseStatusCode)!, ex.Message);
         }
         finally
         {
             _stopWatch.Stop();
             OnPropertyChanged(nameof(ElapsedMs));
-            OnPropertyChanged(nameof(LastUrl));
-            OnPropertyChanged(nameof(LastCount));
             IsBusy = false;
         }
     }

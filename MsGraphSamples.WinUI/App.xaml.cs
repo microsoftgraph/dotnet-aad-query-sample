@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Navigation;
 using MsGraphSamples.Services;
 using MsGraphSamples.WinUI.ViewModels;
 using MsGraphSamples.WinUI.Views;
+using Windows.ApplicationModel;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -32,11 +33,14 @@ public partial class App : Application
     {
         var serviceCollection = new ServiceCollection();
 
-        var authService = new AuthService();
-        serviceCollection.AddSingleton<IAuthService>(authService);
+        if (!DesignMode.DesignModeEnabled)
+        {
+            var authService = new AuthService();
+            serviceCollection.AddSingleton<IAuthService>(authService);
 
-        var asyncEnumerableGraphDataService = new AsyncEnumerableGraphDataService(authService.GraphClient);
-        serviceCollection.AddSingleton<IAsyncEnumerableGraphDataService>(asyncEnumerableGraphDataService);
+            var asyncEnumerableGraphDataService = new AsyncEnumerableGraphDataService(authService.GraphClient);
+            serviceCollection.AddSingleton<IAsyncEnumerableGraphDataService>(asyncEnumerableGraphDataService);
+        }
 
         serviceCollection.AddTransient<MainViewModel>();
 

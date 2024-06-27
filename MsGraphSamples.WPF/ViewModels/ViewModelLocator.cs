@@ -25,22 +25,16 @@ public class ViewModelLocator
     {
         var serviceCollection = new ServiceCollection();
 
-        if (IsInDesignMode)
-        {
-        }
-        else
+        if (!IsInDesignMode)
         {
             var authService = new AuthService();
             serviceCollection.AddSingleton<IAuthService>(authService);
 
             var graphDataService = new GraphDataService(authService.GraphClient);
             serviceCollection.AddSingleton<IGraphDataService>(graphDataService);
-
-            var asyncEnumerableGraphDataService = new AsyncEnumerableGraphDataService(authService.GraphClient);
-            serviceCollection.AddSingleton<IAsyncEnumerableGraphDataService>(asyncEnumerableGraphDataService);
         }
 
-        serviceCollection.AddSingleton<MainViewModel>();
+        serviceCollection.AddTransient<MainViewModel>();
 
         return serviceCollection.BuildServiceProvider();
     }
