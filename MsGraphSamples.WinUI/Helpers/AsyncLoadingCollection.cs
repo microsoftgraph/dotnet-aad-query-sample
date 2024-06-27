@@ -7,24 +7,15 @@ using Windows.Foundation;
 
 namespace MsGraphSamples.WinUI.Helpers;
 
-public class AsyncLoadingCollection<T> : ObservableCollection<T>, ISupportIncrementalLoading
+public class AsyncLoadingCollection<T>(IAsyncEnumerable<T> source, uint itemsPerPage = 25) : ObservableCollection<T>, ISupportIncrementalLoading
 {
-    private readonly uint _itemsPerPage;
-    private IAsyncEnumerator<T>? _asyncEnumerator;
+    private IAsyncEnumerator<T>? _asyncEnumerator = source.GetAsyncEnumerator();
     private readonly SemaphoreSlim _mutex = new(1, 1);
 
     public bool HasMoreItems => _asyncEnumerator != null;
 
-    public AsyncLoadingCollection(IAsyncEnumerable<T> source, uint itemsPerPage = 25)
-    {
-        ArgumentNullException.ThrowIfNull(nameof(source));
-
-        _asyncEnumerator = source.GetAsyncEnumerator();
-        _itemsPerPage = itemsPerPage;
-    }
-
-    public IAsyncOperation<LoadMoreItemsResult> LoadMoreItemsAsync(uint count = default) =>
-        LoadMoreItemsAsync(count == default ? _itemsPerPage : count, new CancellationToken(false))
+    public IAsyncOperation<LoadMoreItemsResult> LoadMoreItemsAsync(uint count = 0) =>
+        LoadMoreItemsAsync(count == 0 ? itemsPerPage : count, new CancellationToken(false))
         .AsAsyncOperation();
 
     private async Task<LoadMoreItemsResult> LoadMoreItemsAsync(uint count, CancellationToken cancellationToken)
@@ -37,27 +28,22 @@ public class AsyncLoadingCollection<T> : ObservableCollection<T>, ISupportIncrem
         }
 
         uint itemsLoaded = 0;
-        var itemsToLoad = Math.Min(_itemsPerPage, count);
+        var itemsToLoad = Math.Min(itemsPerPage, count);
 
         try
         {
             while (itemsLoaded < itemsToLoad)
             {
-                if (await _asyncEnumerator!.MoveNextAsync())
+                if (await _asyncEnumerator!.MoveNextAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    Add(_asyncEnumerator.Current);
+                    Add(_asyncEnumerator!.Current);
                     itemsLoaded++;
                 }
                 else
                 {
                     // Dispose the enumerator when we're done
-                    await _asyncEnumerator.DisposeAsync();
+                    await _asyncEnumerator!.DisposeAsync();
                     _asyncEnumerator = null;
-                    break;
-                }
-
-                if (cancellationToken.IsCancellationRequested)
-                {
                     break;
                 }
             }
@@ -65,9 +51,13 @@ public class AsyncLoadingCollection<T> : ObservableCollection<T>, ISupportIncrem
         catch (OperationCanceledException)
         {
             // The operation has been canceled using the Cancellation Token.
+            await _asyncEnumerator!.DisposeAsync();
+            _asyncEnumerator = null;
         }
         catch (Exception)
         {
+            await _asyncEnumerator!.DisposeAsync();
+            _asyncEnumerator = null;
             throw;
         }
         finally

@@ -9,15 +9,10 @@
     xmlns:graph="using:Microsoft.Graph.Models"
     xmlns:i="using:Microsoft.Xaml.Interactivity"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:sys="using:System"
+    xmlns:sys="using:System" Loaded="Page_Loaded"
     xmlns:vm="using:MsGraphSamples.WinUI.ViewModels"
     d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
     mc:Ignorable="d">
-    <i:Interaction.Behaviors>
-        <Core:EventTriggerBehavior EventName="Loaded">
-            <Core:InvokeCommandAction Command="{x:Bind ViewModel.PageLoadedCommand}" />
-        </Core:EventTriggerBehavior>
-    </i:Interaction.Behaviors>
 
     <Grid Margin="0,24,0,0">
         <Grid.RowDefinitions>

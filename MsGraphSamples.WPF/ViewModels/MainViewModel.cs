@@ -8,7 +8,6 @@ using System.Text;
 using System.Windows.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Graph.Models;
 using Microsoft.Graph.Models.ODataErrors;
 using Microsoft.Kiota.Abstractions;
@@ -114,7 +113,7 @@ public partial class MainViewModel(IAuthService authService, IGraphDataService g
     [RelayCommand]
     private async Task Load()
     {
-        await IsBusyWrapper(async () => SelectedEntity switch
+        await IsBusyWrapper(async () => DirectoryObjects = SelectedEntity switch
         {
             "Users" => await graphDataService.GetUserCollectionAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
             "Groups" => await graphDataService.GetGroupCollectionAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
@@ -131,31 +130,26 @@ public partial class MainViewModel(IAuthService authService, IGraphDataService g
     {
         ArgumentNullException.ThrowIfNull(SelectedObject);
 
-        await IsBusyWrapper(async () =>
-        {
-            OrderBy = null;
-            Filter = null;
-            Search = null;
+        OrderBy = null;
+        Filter = null;
+        Search = null;
 
-            return DirectoryObjects switch
-            {
-                UserCollectionResponse userCollection => await graphDataService.GetTransitiveMemberOfAsGroupCollectionAsync(SelectedObject.Id!, SplittedSelect),
-                GroupCollectionResponse groupCollection => await graphDataService.GetTransitiveMembersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
-                ApplicationCollectionResponse applicationCollection => await graphDataService.GetApplicationOwnersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
-                ServicePrincipalCollectionResponse servicePrincipalCollection => await graphDataService.GetServicePrincipalOwnersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
-                DeviceCollectionResponse deviceCollection => await graphDataService.GetDeviceOwnersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
-                _ => throw new NotImplementedException("Can't find Entity Type")
-            };
+        await IsBusyWrapper(async () => DirectoryObjects = DirectoryObjects switch
+        {
+            UserCollectionResponse => await graphDataService.GetTransitiveMemberOfAsGroupCollectionAsync(SelectedObject.Id!, SplittedSelect),
+            GroupCollectionResponse => await graphDataService.GetTransitiveMembersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
+            ApplicationCollectionResponse => await graphDataService.GetApplicationOwnersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
+            ServicePrincipalCollectionResponse => await graphDataService.GetServicePrincipalOwnersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
+            DeviceCollectionResponse => await graphDataService.GetDeviceOwnersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
+            _ => throw new NotImplementedException("Can't find Entity Type")
         });
     }
 
     private bool CanGoNextPage => DirectoryObjects?.OdataNextLink is not null;
     [RelayCommand(CanExecute = nameof(CanGoNextPage))]
-    private Task LoadNextPage()
+    private async Task LoadNextPage()
     {
-        //return IsBusyWrapper(() => graphDataService.GetNextPageAsync(DirectoryObjects));
-
-        return IsBusyWrapper(async () => DirectoryObjects switch
+        await IsBusyWrapper(async () => DirectoryObjects = DirectoryObjects switch
         {
             UserCollectionResponse userCollection => await graphDataService.GetNextPageAsync(userCollection),
             GroupCollectionResponse groupCollection => await graphDataService.GetNextPageAsync(groupCollection),
@@ -172,6 +166,9 @@ public partial class MainViewModel(IAuthService authService, IGraphDataService g
         OrderBy = e.Column.SortDirection == null || e.Column.SortDirection == ListSortDirection.Descending
             ? $"{e.Column.Header} asc"
             : $"{e.Column.Header} desc";
+        
+        // Prevent client-side sorting
+        e.Handled = true;
 
         return Load();
     }
@@ -202,17 +199,14 @@ public partial class MainViewModel(IAuthService authService, IGraphDataService g
         App.Current.Shutdown();
     }
 
-    private async Task IsBusyWrapper(Func<Task<BaseCollectionPaginationCountResponse?>> getDirectoryObjects)
+    private async Task IsBusyWrapper(Func<Task> loadOperation)
     {
         IsBusy = true;
         _stopWatch.Restart();
 
-        // Sending message to generate DataGridColumns according to the selected properties
-        WeakReferenceMessenger.Default.Send(SplittedSelect);
-
         try
         {
-            DirectoryObjects = await getDirectoryObjects();
+            await loadOperation();
 
             SelectedEntity = DirectoryObjects switch
             {
@@ -226,11 +220,11 @@ public partial class MainViewModel(IAuthService authService, IGraphDataService g
         }
         catch (ODataError ex)
         {
-            Task.Run(() => System.Windows.MessageBox.Show(ex.Message, ex.Error?.Message)).Await();
+            await ShowDialogAsync(ex.Error?.Code ?? "OData Error", ex.Error?.Message);
         }
         catch (ApiException ex)
         {
-            Task.Run(() => System.Windows.MessageBox.Show(ex.Message, ex.Source)).Await();
+            await ShowDialogAsync(ex.Message, Enum.GetName((HttpStatusCode)ex.ResponseStatusCode));
         }
         finally
         {
@@ -239,5 +233,15 @@ public partial class MainViewModel(IAuthService authService, IGraphDataService g
             OnPropertyChanged(nameof(LastUrl));
             IsBusy = false;
         }
+    }
+
+    /// <summary>
+    /// Shows a content dialog
+    /// </summary>
+    /// <param name="text">The text of the content dialog</param>
+    /// <param name="title">The title of the content dialog</param>
+    public static Task ShowDialogAsync(string title, string? text)
+    {
+        return Task.Run(() => System.Windows.MessageBox.Show(text, title));
     }
 }

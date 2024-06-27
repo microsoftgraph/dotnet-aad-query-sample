@@ -55,11 +55,10 @@ namespace MsGraphSamples.WinUI.Views
             var textBox = (TextBox)sender;
             textBox.SelectAll();
         }
-        //private async void Page_Loaded(object _, RoutedEventArgs __)
-        //{
-        //    ArgumentNullException.ThrowIfNull(ViewModel);
-        //    await ViewModel.Init();
-        //}
 
+        private async void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+            await ViewModel!.PageLoaded(this.XamlRoot);
+        }
     }
 }

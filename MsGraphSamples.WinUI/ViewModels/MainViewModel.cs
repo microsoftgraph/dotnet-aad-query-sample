@@ -9,15 +9,17 @@ using Microsoft.Graph.Models;
 using Microsoft.Graph.Models.ODataErrors;
 using Microsoft.Kiota.Abstractions;
 using MsGraphSamples.Services;
-using Windows.UI.Popups;
 using MsGraphSamples.WinUI.Helpers;
 using System.Collections.Immutable;
 using System.Reflection;
+using Microsoft.UI.Xaml.Controls;
 
 namespace MsGraphSamples.WinUI.ViewModels;
 
 public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGraphDataService graphDataService) : ObservableRecipient
 {
+    private Microsoft.UI.Xaml.XamlRoot? _xamlRoot;
+
     private readonly ushort pageSize = 25;
 
     private readonly Stopwatch _stopWatch = new();
@@ -106,19 +108,19 @@ public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGra
 
     #endregion
 
-    [RelayCommand]
-    public async Task PageLoaded()
+    public async Task PageLoaded(Microsoft.UI.Xaml.XamlRoot xamlRoot)
     {
+        _xamlRoot = xamlRoot;
+
         var user = await graphDataService.GetUserAsync(["displayName"]);
         UserName = user?.DisplayName;
-
         await Load();
     }
 
     [RelayCommand]
     private Task Load()
     {
-        return IsBusyWrapper(() => SelectedEntity switch
+        return IsBusyWrapper(SelectedEntity switch
         {
             //"Users" =>  _graphDataService.GetUsersInBatch(SplittedSelect, pageSize),
             "Users" => graphDataService.GetUsers(SplittedSelect, Filter, SplittedOrderBy, Search, pageSize),
@@ -136,21 +138,18 @@ public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGra
     {
         ArgumentNullException.ThrowIfNull(SelectedObject);
 
-        return IsBusyWrapper(() =>
-        {
-            OrderBy = null;
-            Filter = null;
-            Search = null;
+        OrderBy = null;
+        Filter = null;
+        Search = null;
 
-            return SelectedEntity switch
-            {
-                "Users" => graphDataService.GetTransitiveMemberOfAsGroups(SelectedObject.Id!, SplittedSelect, pageSize),
-                "Groups" => graphDataService.GetTransitiveMembersAsUsers(SelectedObject.Id!, SplittedSelect, pageSize),
-                "Applications" => graphDataService.GetApplicationOwnersAsUsers(SelectedObject.Id!, SplittedSelect, pageSize),
-                "ServicePrincipals" => graphDataService.GetServicePrincipalOwnersAsUsers(SelectedObject.Id!, SplittedSelect, pageSize),
-                "Devices" => graphDataService.GetDeviceOwnersAsUsers(SelectedObject.Id!, SplittedSelect, pageSize),
-                _ => throw new NotImplementedException("Can't find selected entity")
-            };
+        return IsBusyWrapper(SelectedEntity switch
+        {
+            "Users" => graphDataService.GetTransitiveMemberOfAsGroups(SelectedObject.Id!, SplittedSelect, pageSize),
+            "Groups" => graphDataService.GetTransitiveMembersAsUsers(SelectedObject.Id!, SplittedSelect, pageSize),
+            "Applications" => graphDataService.GetApplicationOwnersAsUsers(SelectedObject.Id!, SplittedSelect, pageSize),
+            "ServicePrincipals" => graphDataService.GetServicePrincipalOwnersAsUsers(SelectedObject.Id!, SplittedSelect, pageSize),
+            "Devices" => graphDataService.GetDeviceOwnersAsUsers(SelectedObject.Id!, SplittedSelect, pageSize),
+            _ => throw new NotImplementedException("Can't find selected entity")
         });
     }
 
@@ -161,7 +160,7 @@ public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGra
         OrderBy = e.Column.SortDirection == null || e.Column.SortDirection == DataGridSortDirection.Descending
             ? $"{e.Column.Header} asc"
             : $"{e.Column.Header} desc";
-
+        
         return Load();
     }
 
@@ -191,7 +190,7 @@ public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGra
         App.Current.Exit();
     }
 
-    private async Task IsBusyWrapper(Func<IAsyncEnumerable<DirectoryObject>> getDirectoryObjects)
+    private async Task IsBusyWrapper(IAsyncEnumerable<DirectoryObject> directoryObjects)
     {
         IsError = false;
         IsBusy = true;
@@ -199,11 +198,12 @@ public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGra
 
         try
         {
-            DirectoryObjects = new(getDirectoryObjects(), pageSize);
+            // Sending message to generate DataGridColumns according to the selected properties
+            await GetPropertiesAndSortDirection(directoryObjects);
+
+            DirectoryObjects = new(directoryObjects, pageSize);
             await DirectoryObjects.LoadMoreItemsAsync();
 
-            // Sending message to generate DataGridColumns according to the selected properties
-            WeakReferenceMessenger.Default.Send(GetPropertiesAndSortDirection(DirectoryObjects));
 
             SelectedEntity = DirectoryObjects.FirstOrDefault() switch
             {
@@ -218,14 +218,12 @@ public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGra
         catch (ODataError ex)
         {
             IsError = true;
-            var errorDialog = new MessageDialog(ex.Message, ex.Error?.Message ?? string.Empty);
-            await errorDialog.ShowAsync();
+            await ShowDialogAsync(ex.Error?.Code ?? "OData Error", ex.Error?.Message);
         }
         catch (ApiException ex)
         {
             IsError = true;
-            var errorDialog = new MessageDialog(ex.Message, ex.Source ?? string.Empty);
-            await errorDialog.ShowAsync();
+            await ShowDialogAsync(ex.Message, Enum.GetName((HttpStatusCode)ex.ResponseStatusCode));
         }
         finally
         {
@@ -237,15 +235,19 @@ public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGra
         }
     }
 
-    private ImmutableSortedDictionary<string, DataGridSortDirection?> GetPropertiesAndSortDirection(AsyncLoadingCollection<DirectoryObject> directoryObjects)
+    private async Task GetPropertiesAndSortDirection(IAsyncEnumerable<DirectoryObject> directoryObjects)
     {
-        return directoryObjects
-            .First()
-            .GetType()
+        var item = await directoryObjects.FirstOrDefaultAsync();
+        if (item == null)
+            return;
+
+        var propertiesAndSortDirection = item.GetType()
             .GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Select(p => p.Name)
             .Where(p => p.In(SplittedSelect))
             .ToImmutableSortedDictionary(kv => kv, GetSortDirection);
+
+        WeakReferenceMessenger.Default.Send(propertiesAndSortDirection);
 
         DataGridSortDirection? GetSortDirection(string propertyName)
         {
@@ -259,5 +261,29 @@ public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGra
 
             return null;
         }
+    }
+
+    /// <summary>
+    /// Shows a content dialog
+    /// </summary>
+    /// <param name="text">The text of the content dialog</param>
+    /// <param name="title">The title of the content dialog</param>
+    /// <param name="closeButtonText">The text of the close button</param>
+    /// <param name="primaryButtonText">The text of the primary button (optional)</param>
+    /// <param name="secondaryButtonText">The text of the secondary button (optional)</param>
+    /// <returns>The ContentDialogResult</returns>
+    public async Task<ContentDialogResult> ShowDialogAsync(string title, string? text, string closeButtonText = "Ok", string? primaryButtonText = null, string? secondaryButtonText = null)
+    {
+        var dialog = new ContentDialog()
+        {
+            Title = title,
+            Content = text,
+            CloseButtonText = closeButtonText,
+            PrimaryButtonText = primaryButtonText,
+            SecondaryButtonText = secondaryButtonText,
+            XamlRoot = _xamlRoot
+        };
+
+        return await dialog.ShowAsync();
     }
 }

@@ -50,11 +50,11 @@ public partial class App : Application
     /// <param name="args">Details about the launch request and process.</param>
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
-        var m_window = new MainWindow();
-        m_window.ExtendsContentIntoTitleBar = true;
+        var mainWindow = new MainWindow { ExtendsContentIntoTitleBar = true };
 
         // Create a Frame to act as the navigation context and navigate to the first page
         var rootFrame = new Frame();
+
         rootFrame.NavigationFailed += OnNavigationFailed;
 
         // Navigate to the first page, configuring the new page
@@ -62,12 +62,12 @@ public partial class App : Application
         rootFrame.Navigate(typeof(MainPage), args.Arguments);
 
         // Place the frame in the current Window
-        m_window.Content = rootFrame;
+        mainWindow.Content = rootFrame;
 
         // Ensure the MainWindow is active
-        m_window.Activate();
+        mainWindow.Activate();
     }
-
+    
     void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
     {
         throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
