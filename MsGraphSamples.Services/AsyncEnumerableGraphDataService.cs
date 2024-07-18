@@ -30,7 +30,6 @@ public interface IAsyncEnumerableGraphDataService
 
 public class AsyncEnumerableGraphDataService(GraphServiceClient graphClient) : IAsyncEnumerableGraphDataService
 {
-    private readonly GraphServiceClient _graphClient = graphClient;
     private readonly RequestHeaders EventualConsistencyHeader = new() { { "ConsistencyLevel", "eventual" } };
 
     public string? LastUrl { get; private set; } = null;
@@ -40,14 +39,14 @@ public class AsyncEnumerableGraphDataService(GraphServiceClient graphClient) : I
     public Task<User?> GetUserAsync(string[] select, string? id = null)
     {
         return id == null
-            ? _graphClient.Me.GetAsync(rc => rc.QueryParameters.Select = select)
-            : _graphClient.Users[id].GetAsync(rc => rc.QueryParameters.Select = select);
+            ? graphClient.Me.GetAsync(rc => rc.QueryParameters.Select = select)
+            : graphClient.Users[id].GetAsync(rc => rc.QueryParameters.Select = select);
     }
 
     public IAsyncEnumerable<User> GetUsersInBatch(string[] select, ushort top = 999, CancellationToken cancellationToken = default)
     {
-        return _graphClient.Batch<User, UserCollectionResponse>(cancellationToken,
-            _graphClient.Users.ToGetRequestInformation(rc =>
+        return graphClient.Batch<User, UserCollectionResponse>(cancellationToken,
+            graphClient.Users.ToGetRequestInformation(rc =>
             {
                 rc.Headers = EventualConsistencyHeader;
                 rc.QueryParameters.Count = true;
@@ -55,7 +54,7 @@ public class AsyncEnumerableGraphDataService(GraphServiceClient graphClient) : I
                 rc.QueryParameters.Filter = "startsWith(displayName, 'x')";
                 rc.QueryParameters.Top = top;
             }),
-            _graphClient.Users.ToGetRequestInformation(rc =>
+            graphClient.Users.ToGetRequestInformation(rc =>
             {
                 rc.Headers = EventualConsistencyHeader;
                 rc.QueryParameters.Count = true;
@@ -63,7 +62,7 @@ public class AsyncEnumerableGraphDataService(GraphServiceClient graphClient) : I
                 rc.QueryParameters.Filter = "startsWith(displayName, 'y')";
                 rc.QueryParameters.Top = top;
             }),
-            _graphClient.Users.ToGetRequestInformation(rc =>
+            graphClient.Users.ToGetRequestInformation(rc =>
             {
                 rc.Headers = EventualConsistencyHeader;
                 rc.QueryParameters.Count = true;
@@ -75,7 +74,7 @@ public class AsyncEnumerableGraphDataService(GraphServiceClient graphClient) : I
 
     public IAsyncEnumerable<Application> GetApplications(string[] select, string? filter = null, string[]? orderBy = null, string? search = null, ushort top = 999, CancellationToken cancellationToken = default)
     {
-        var requestInfo = _graphClient.Applications
+        var requestInfo = graphClient.Applications
             .ToGetRequestInformation(rc =>
             {
                 rc.Headers = EventualConsistencyHeader;
@@ -88,12 +87,12 @@ public class AsyncEnumerableGraphDataService(GraphServiceClient graphClient) : I
             });
 
         LastUrl = WebUtility.UrlDecode(requestInfo.URI.AbsoluteUri);
-        return requestInfo.ToAsyncEnumerable<Application, ApplicationCollectionResponse>(_graphClient.RequestAdapter, SetCount, cancellationToken);
+        return requestInfo.ToAsyncEnumerable<Application, ApplicationCollectionResponse>(graphClient.RequestAdapter, SetCount, cancellationToken);
     }
 
     public IAsyncEnumerable<ServicePrincipal> GetServicePrincipals(string[] select, string? filter, string[]? orderBy, string? search = null, ushort top = 999, CancellationToken cancellationToken = default)
     {
-        var requestInfo = _graphClient.ServicePrincipals
+        var requestInfo = graphClient.ServicePrincipals
             .ToGetRequestInformation(rc =>
             {
                 rc.Headers = EventualConsistencyHeader;
@@ -106,12 +105,12 @@ public class AsyncEnumerableGraphDataService(GraphServiceClient graphClient) : I
             });
 
         LastUrl = WebUtility.UrlDecode(requestInfo.URI.AbsoluteUri);
-        return requestInfo.ToAsyncEnumerable<ServicePrincipal, ServicePrincipalCollectionResponse>(_graphClient.RequestAdapter, SetCount, cancellationToken);
+        return requestInfo.ToAsyncEnumerable<ServicePrincipal, ServicePrincipalCollectionResponse>(graphClient.RequestAdapter, SetCount, cancellationToken);
     }
 
     public IAsyncEnumerable<Device> GetDevices(string[] select, string? filter = null, string[]? orderBy = null, string? search = null, ushort top = 999, CancellationToken cancellationToken = default)
     {
-        var requestInfo = _graphClient.Devices
+        var requestInfo = graphClient.Devices
             .ToGetRequestInformation(rc =>
             {
                 rc.Headers = EventualConsistencyHeader;
@@ -124,12 +123,12 @@ public class AsyncEnumerableGraphDataService(GraphServiceClient graphClient) : I
             });
 
         LastUrl = WebUtility.UrlDecode(requestInfo.URI.AbsoluteUri);
-        return requestInfo.ToAsyncEnumerable<Device, DeviceCollectionResponse>(_graphClient.RequestAdapter, SetCount, cancellationToken);
+        return requestInfo.ToAsyncEnumerable<Device, DeviceCollectionResponse>(graphClient.RequestAdapter, SetCount, cancellationToken);
     }
 
     public IAsyncEnumerable<Group> GetGroups(string[] select, string? filter = null, string[]? orderBy = null, string? search = null, ushort top = 999, CancellationToken cancellationToken = default)
     {
-        var requestInfo = _graphClient.Groups
+        var requestInfo = graphClient.Groups
             .ToGetRequestInformation(rc =>
             {
                 rc.Headers = EventualConsistencyHeader;
@@ -142,12 +141,12 @@ public class AsyncEnumerableGraphDataService(GraphServiceClient graphClient) : I
             });
 
         LastUrl = WebUtility.UrlDecode(requestInfo.URI.AbsoluteUri);
-        return requestInfo.ToAsyncEnumerable<Group, GroupCollectionResponse>(_graphClient.RequestAdapter, SetCount, cancellationToken);
+        return requestInfo.ToAsyncEnumerable<Group, GroupCollectionResponse>(graphClient.RequestAdapter, SetCount, cancellationToken);
     }
 
     public IAsyncEnumerable<User> GetUsers(string[] select, string? filter = null, string[]? orderBy = null, string? search = null, ushort top = 999, CancellationToken cancellationToken = default)
     {
-        var requestInfo = _graphClient.Users
+        var requestInfo = graphClient.Users
         .ToGetRequestInformation(rc =>
         {
             rc.Headers = EventualConsistencyHeader;
@@ -160,12 +159,12 @@ public class AsyncEnumerableGraphDataService(GraphServiceClient graphClient) : I
         });
 
         LastUrl = WebUtility.UrlDecode(requestInfo.URI.AbsoluteUri);
-        return requestInfo.ToAsyncEnumerable<User, UserCollectionResponse>(_graphClient.RequestAdapter, SetCount, cancellationToken);
+        return requestInfo.ToAsyncEnumerable<User, UserCollectionResponse>(graphClient.RequestAdapter, SetCount, cancellationToken);
     }
 
     public IAsyncEnumerable<User> GetApplicationOwnersAsUsers(string id, string[] select, ushort top = 999, CancellationToken cancellationToken = default)
     {
-        var requestInfo = _graphClient.Applications[id]
+        var requestInfo = graphClient.Applications[id]
             .Owners.GraphUser
             .ToGetRequestInformation(rc =>
             {
@@ -176,12 +175,12 @@ public class AsyncEnumerableGraphDataService(GraphServiceClient graphClient) : I
             });
 
         LastUrl = WebUtility.UrlDecode(requestInfo.URI.AbsoluteUri);
-        return requestInfo.ToAsyncEnumerable<User, UserCollectionResponse>(_graphClient.RequestAdapter, SetCount, cancellationToken);
+        return requestInfo.ToAsyncEnumerable<User, UserCollectionResponse>(graphClient.RequestAdapter, SetCount, cancellationToken);
     }
 
     public IAsyncEnumerable<User> GetServicePrincipalOwnersAsUsers(string id, string[] select, ushort top = 999, CancellationToken cancellationToken = default)
     {
-        var requestInfo = _graphClient.ServicePrincipals[id]
+        var requestInfo = graphClient.ServicePrincipals[id]
             .Owners.GraphUser
             .ToGetRequestInformation(rc =>
             {
@@ -192,12 +191,12 @@ public class AsyncEnumerableGraphDataService(GraphServiceClient graphClient) : I
             });
 
         LastUrl = WebUtility.UrlDecode(requestInfo.URI.AbsoluteUri);
-        return requestInfo.ToAsyncEnumerable<User, UserCollectionResponse>(_graphClient.RequestAdapter, SetCount, cancellationToken);
+        return requestInfo.ToAsyncEnumerable<User, UserCollectionResponse>(graphClient.RequestAdapter, SetCount, cancellationToken);
     }
 
     public IAsyncEnumerable<User> GetDeviceOwnersAsUsers(string id, string[] select, ushort top = 999, CancellationToken cancellationToken = default)
     {
-        var requestInfo = _graphClient.Devices[id]
+        var requestInfo = graphClient.Devices[id]
             .RegisteredOwners.GraphUser
             .ToGetRequestInformation(rc =>
             {
@@ -208,12 +207,12 @@ public class AsyncEnumerableGraphDataService(GraphServiceClient graphClient) : I
             });
 
         LastUrl = WebUtility.UrlDecode(requestInfo.URI.AbsoluteUri);
-        return requestInfo.ToAsyncEnumerable<User, UserCollectionResponse>(_graphClient.RequestAdapter, SetCount, cancellationToken);
+        return requestInfo.ToAsyncEnumerable<User, UserCollectionResponse>(graphClient.RequestAdapter, SetCount, cancellationToken);
     }
 
     public IAsyncEnumerable<User> GetGroupOwnersAsUsers(string id, string[] select, ushort top = 999, CancellationToken cancellationToken = default)
     {
-        var requestInfo = _graphClient.Groups[id]
+        var requestInfo = graphClient.Groups[id]
             .Owners.GraphUser
             .ToGetRequestInformation(rc =>
             {
@@ -225,12 +224,12 @@ public class AsyncEnumerableGraphDataService(GraphServiceClient graphClient) : I
             });
 
         LastUrl = WebUtility.UrlDecode(requestInfo.URI.AbsoluteUri);
-        return requestInfo.ToAsyncEnumerable<User, UserCollectionResponse>(_graphClient.RequestAdapter, SetCount, cancellationToken);
+        return requestInfo.ToAsyncEnumerable<User, UserCollectionResponse>(graphClient.RequestAdapter, SetCount, cancellationToken);
     }
 
     public IAsyncEnumerable<Group> GetTransitiveMemberOfAsGroups(string id, string[] select, ushort top = 999, CancellationToken cancellationToken = default)
     {
-        var requestInfo = _graphClient.Users[id]
+        var requestInfo = graphClient.Users[id]
             .TransitiveMemberOf.GraphGroup
             .ToGetRequestInformation(rc =>
             {
@@ -241,12 +240,12 @@ public class AsyncEnumerableGraphDataService(GraphServiceClient graphClient) : I
             });
 
         LastUrl = WebUtility.UrlDecode(requestInfo.URI.AbsoluteUri);
-        return requestInfo.ToAsyncEnumerable<Group, GroupCollectionResponse>(_graphClient.RequestAdapter, SetCount, cancellationToken);
+        return requestInfo.ToAsyncEnumerable<Group, GroupCollectionResponse>(graphClient.RequestAdapter, SetCount, cancellationToken);
     }
 
     public IAsyncEnumerable<User> GetTransitiveMembersAsUsers(string id, string[] select, ushort top = 999, CancellationToken cancellationToken = default)
     {
-        var requestInfo = _graphClient.Groups[id]
+        var requestInfo = graphClient.Groups[id]
             .TransitiveMembers.GraphUser
             .ToGetRequestInformation(rc =>
             {
@@ -257,6 +256,6 @@ public class AsyncEnumerableGraphDataService(GraphServiceClient graphClient) : I
             });
 
         LastUrl = WebUtility.UrlDecode(requestInfo.URI.AbsoluteUri);
-        return requestInfo.ToAsyncEnumerable<User, UserCollectionResponse>(_graphClient.RequestAdapter, SetCount, cancellationToken);
+        return requestInfo.ToAsyncEnumerable<User, UserCollectionResponse>(graphClient.RequestAdapter, SetCount, cancellationToken);
     }
 }

@@ -14,6 +14,7 @@
 		<PlatformTarget>x64</PlatformTarget>
 		<SupportedOSPlatformVersion>10.0.22000.0</SupportedOSPlatformVersion>
 		<WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+		<ApplicationIcon>Assets\MSGraph.ico</ApplicationIcon>
 	</PropertyGroup>
 	<ItemGroup>
 		<Manifest Include="$(ApplicationManifest)" />
@@ -27,16 +28,16 @@
 	<ItemGroup Condition="'$(DisableMsixProjectCapabilityAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
 		<ProjectCapability Include="Msix" />
 	</ItemGroup>
-	
-		<ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
 		<PackageReference Include="CommunityToolkit.WinUI.Converters" Version="8.0.240109" />
 		<PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Graph" Version="5.56.0" />
-		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240607001" />
-		<PackageReference Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="2.0.9" />
+		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240627000" />
 		<PackageReference Include="System.Linq.Async" Version="6.0.1" />
+		<PackageReference Include="System.Text.Json" Version="8.0.4" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -44,7 +45,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Properties\PublishProfiles\" />
+		<Folder Include="Properties\PublishProfiles\" />
 	</ItemGroup>
 
 

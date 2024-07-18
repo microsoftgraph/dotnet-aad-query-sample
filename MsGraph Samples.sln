@@ -5,7 +5,7 @@ VisualStudioVersion = 17.10.35013.160
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MsGraphSamples.Services", "MsGraphSamples.Services\MsGraphSamples.Services.csproj", "{1E9C3189-31E3-4D46-B9B2-CD221E6882B3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MSGraphSamples.WPF", "MsGraphSamples.WPF\MSGraphSamples.WPF.csproj", "{C0A150FB-2AB2-4818-AF59-E6C0BD71D510}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MsGraphSamples.WPF", "MsGraphSamples.WPF\MsGraphSamples.WPF.csproj", "{C0A150FB-2AB2-4818-AF59-E6C0BD71D510}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MsGraphSamples.WinUI", "MsGraphSamples.WinUI\MsGraphSamples.WinUI.csproj", "{9CA749CB-90C9-4338-8812-2D5939B77233}"
 EndProject
@@ -21,6 +21,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{85C2D888-4
 		docs\api_permissions.png = docs\api_permissions.png
 		docs\app1.png = docs\app1.png
 		docs\register_app.png = docs\register_app.png
+		docs\solution_explorer.png = docs\solution_explorer.png
 	EndProjectSection
 EndProject
 Global

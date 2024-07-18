@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using MsGraphSamples.Services;
+using MsGraphSamples.WinUI.Helpers;
 using MsGraphSamples.WinUI.ViewModels;
 using MsGraphSamples.WinUI.Views;
 using Windows.ApplicationModel;
@@ -40,6 +41,8 @@ public partial class App : Application
 
             var asyncEnumerableGraphDataService = new AsyncEnumerableGraphDataService(authService.GraphClient);
             serviceCollection.AddSingleton<IAsyncEnumerableGraphDataService>(asyncEnumerableGraphDataService);
+
+            serviceCollection.AddSingleton<IDialogService, DialogService>();
         }
 
         serviceCollection.AddTransient<MainViewModel>();
@@ -58,7 +61,7 @@ public partial class App : Application
 
         // Create a Frame to act as the navigation context and navigate to the first page
         var rootFrame = new Frame();
-
+        rootFrame.Loaded += Root_Loaded;
         rootFrame.NavigationFailed += OnNavigationFailed;
 
         // Navigate to the first page, configuring the new page
@@ -71,7 +74,14 @@ public partial class App : Application
         // Ensure the MainWindow is active
         mainWindow.Activate();
     }
-    
+
+    private void Root_Loaded(object sender, RoutedEventArgs e)
+    {
+        // ContentDialog requires a reference to XamlRoot that is only present after Load.
+        var dialogService = Ioc.Default.GetRequiredService<IDialogService>();
+        dialogService.Root = ((Frame)sender).XamlRoot;
+    }
+
     void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
     {
         throw new Exception("Failed to load Page " + e.SourcePageType.FullName);

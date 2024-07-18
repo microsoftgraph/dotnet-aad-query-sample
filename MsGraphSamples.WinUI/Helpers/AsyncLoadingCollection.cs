@@ -15,7 +15,7 @@ public class AsyncLoadingCollection<T>(IAsyncEnumerable<T> source, uint itemsPer
     public bool HasMoreItems => _asyncEnumerator != null;
 
     public IAsyncOperation<LoadMoreItemsResult> LoadMoreItemsAsync(uint count = 0) =>
-        LoadMoreItemsAsync(count == 0 ? itemsPerPage : count, new CancellationToken(false))
+        LoadMoreItemsAsync(count == 0 ? itemsPerPage : count, default)
         .AsAsyncOperation();
 
     private async Task<LoadMoreItemsResult> LoadMoreItemsAsync(uint count, CancellationToken cancellationToken)
@@ -23,9 +23,7 @@ public class AsyncLoadingCollection<T>(IAsyncEnumerable<T> source, uint itemsPer
         await _mutex.WaitAsync(cancellationToken);
 
         if (cancellationToken.IsCancellationRequested || !HasMoreItems)
-        {
             return new LoadMoreItemsResult(0);
-        }
 
         uint itemsLoaded = 0;
         var itemsToLoad = Math.Min(itemsPerPage, count);

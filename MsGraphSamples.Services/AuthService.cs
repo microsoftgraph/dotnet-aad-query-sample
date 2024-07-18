@@ -29,8 +29,7 @@ public class AuthService : IAuthService
     public AuthService()
     {
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var appName = AppDomain.CurrentDomain.FriendlyName;
-        _tokenPath = Path.Combine(localAppData, appName, "authToken.bin");
+        _tokenPath = Path.Combine(localAppData, AppDomain.CurrentDomain.FriendlyName, "authToken.bin");
     }
 
     private ClientSecretCredential GetAppCredential() => new(

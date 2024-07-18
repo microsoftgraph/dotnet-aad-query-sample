@@ -17,6 +17,7 @@ namespace MsGraphSamples.WPF.ViewModels;
 
 public partial class MainViewModel(IAuthService authService, IGraphDataService graphDataService) : ObservableObject
 {
+    private readonly ushort pageSize = 25;
     private readonly Stopwatch _stopWatch = new();
     public long ElapsedMs => _stopWatch.ElapsedMilliseconds;
 
@@ -116,11 +117,11 @@ public partial class MainViewModel(IAuthService authService, IGraphDataService g
     {
         await IsBusyWrapper(async () => DirectoryObjects = SelectedEntity switch
         {
-            "Users" => await graphDataService.GetUserCollectionAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
-            "Groups" => await graphDataService.GetGroupCollectionAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
-            "Applications" => await graphDataService.GetApplicationCollectionAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
-            "ServicePrincipals" => await graphDataService.GetServicePrincipalCollectionAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
-            "Devices" => await graphDataService.GetDeviceCollectionAsync(SplittedSelect, Filter, SplittedOrderBy, Search),
+            "Users" => await graphDataService.GetUserCollectionAsync(SplittedSelect, Filter, SplittedOrderBy, Search, pageSize),
+            "Groups" => await graphDataService.GetGroupCollectionAsync(SplittedSelect, Filter, SplittedOrderBy, Search, pageSize),
+            "Applications" => await graphDataService.GetApplicationCollectionAsync(SplittedSelect, Filter, SplittedOrderBy, Search, pageSize),
+            "ServicePrincipals" => await graphDataService.GetServicePrincipalCollectionAsync(SplittedSelect, Filter, SplittedOrderBy, Search, pageSize),
+            "Devices" => await graphDataService.GetDeviceCollectionAsync(SplittedSelect, Filter, SplittedOrderBy, Search, pageSize),
             _ => throw new NotImplementedException("Can't find selected entity")
         });
     }
@@ -137,11 +138,11 @@ public partial class MainViewModel(IAuthService authService, IGraphDataService g
 
         await IsBusyWrapper(async () => DirectoryObjects = DirectoryObjects switch
         {
-            UserCollectionResponse => await graphDataService.GetTransitiveMemberOfAsGroupCollectionAsync(SelectedObject.Id!, SplittedSelect),
-            GroupCollectionResponse => await graphDataService.GetTransitiveMembersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
-            ApplicationCollectionResponse => await graphDataService.GetApplicationOwnersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
-            ServicePrincipalCollectionResponse => await graphDataService.GetServicePrincipalOwnersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
-            DeviceCollectionResponse => await graphDataService.GetDeviceOwnersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect),
+            UserCollectionResponse => await graphDataService.GetTransitiveMemberOfAsGroupCollectionAsync(SelectedObject.Id!, SplittedSelect, pageSize),
+            GroupCollectionResponse => await graphDataService.GetTransitiveMembersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect, pageSize),
+            ApplicationCollectionResponse => await graphDataService.GetApplicationOwnersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect, pageSize),
+            ServicePrincipalCollectionResponse => await graphDataService.GetServicePrincipalOwnersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect, pageSize),
+            DeviceCollectionResponse => await graphDataService.GetDeviceOwnersAsUserCollectionAsync(SelectedObject.Id!, SplittedSelect, pageSize),
             _ => throw new NotImplementedException("Can't find Entity Type")
         });
     }
@@ -167,7 +168,7 @@ public partial class MainViewModel(IAuthService authService, IGraphDataService g
         OrderBy = e.Column.SortDirection == null || e.Column.SortDirection == ListSortDirection.Descending
                 ? $"{e.Column.Header} asc"
                 : $"{e.Column.Header} desc";
-        
+
         // Prevent client-side sorting
         e.Handled = true;
 

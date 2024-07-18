@@ -12,16 +12,15 @@ using MsGraphSamples.Services;
 using MsGraphSamples.WinUI.Helpers;
 using System.Collections.Immutable;
 using System.Reflection;
-using Microsoft.UI.Xaml.Controls;
 
 namespace MsGraphSamples.WinUI.ViewModels;
 
-public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGraphDataService graphDataService) : ObservableRecipient
+public partial class MainViewModel(
+    IAuthService authService,
+    IAsyncEnumerableGraphDataService graphDataService,
+    IDialogService dialogService) : ObservableRecipient
 {
-    private Microsoft.UI.Xaml.XamlRoot? _xamlRoot;
-
     private readonly ushort pageSize = 25;
-
     private readonly Stopwatch _stopWatch = new();
     public long ElapsedMs => _stopWatch.ElapsedMilliseconds;
 
@@ -45,7 +44,6 @@ public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGra
     private AsyncLoadingCollection<DirectoryObject>? _directoryObjects;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(DrillDownCommand))]
     private DirectoryObject? _selectedObject;
 
     public static IReadOnlyList<string> Entities => ["Users", "Groups", "Applications", "ServicePrincipals", "Devices"];
@@ -114,10 +112,8 @@ public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGra
 
     #endregion
 
-    public async Task PageLoaded(Microsoft.UI.Xaml.XamlRoot xamlRoot)
+    public async Task PageLoaded()
     {
-        _xamlRoot = xamlRoot;
-
         var user = await graphDataService.GetUserAsync(["displayName"]);
         UserName = user?.DisplayName;
         await Load();
@@ -138,9 +134,7 @@ public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGra
         });
     }
 
-    private bool CanDrillDown() => SelectedObject is not null;
-    [RelayCommand(CanExecute = nameof(CanDrillDown))]
-    private Task DrillDown()
+    public Task DrillDown()
     {
         ArgumentNullException.ThrowIfNull(SelectedObject);
 
@@ -159,14 +153,12 @@ public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGra
         });
     }
 
-
-    [RelayCommand]
-    private Task Sort(DataGridColumnEventArgs e)
+    public Task Sort(object sender, DataGridColumnEventArgs e)
     {
         OrderBy = e.Column.SortDirection == null || e.Column.SortDirection == DataGridSortDirection.Descending
             ? $"{e.Column.Header} asc"
             : $"{e.Column.Header} desc";
-        
+
         return Load();
     }
 
@@ -208,6 +200,8 @@ public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGra
             await GetPropertiesAndSortDirection(directoryObjects);
 
             DirectoryObjects = new(directoryObjects, pageSize);
+
+            // Trigger load due to bug https://github.com/CommunityToolkit/WindowsCommunityToolkit/issues/3584
             await DirectoryObjects.LoadMoreItemsAsync();
 
             SelectedEntity = DirectoryObjects.FirstOrDefault() switch
@@ -223,12 +217,12 @@ public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGra
         catch (ODataError ex)
         {
             IsError = true;
-            await ShowDialogAsync(ex.Error?.Code ?? "OData Error", ex.Error?.Message);
+            await dialogService.ShowAsync(ex.Error?.Code ?? "OData Error", ex.Error?.Message);
         }
         catch (ApiException ex)
         {
             IsError = true;
-            await ShowDialogAsync(Enum.GetName((HttpStatusCode)ex.ResponseStatusCode)!, ex.Message);
+            await dialogService.ShowAsync(Enum.GetName((HttpStatusCode)ex.ResponseStatusCode)!, ex.Message);
         }
         finally
         {
@@ -264,29 +258,5 @@ public partial class MainViewModel(IAuthService authService, IAsyncEnumerableGra
 
             return null;
         }
-    }
-
-    /// <summary>
-    /// Shows a content dialog
-    /// </summary>
-    /// <param name="text">The text of the content dialog</param>
-    /// <param name="title">The title of the content dialog</param>
-    /// <param name="closeButtonText">The text of the close button</param>
-    /// <param name="primaryButtonText">The text of the primary button (optional)</param>
-    /// <param name="secondaryButtonText">The text of the secondary button (optional)</param>
-    /// <returns>The ContentDialogResult</returns>
-    public async Task<ContentDialogResult> ShowDialogAsync(string title, string? text, string closeButtonText = "Ok", string? primaryButtonText = null, string? secondaryButtonText = null)
-    {
-        var dialog = new ContentDialog()
-        {
-            Title = title,
-            Content = text,
-            CloseButtonText = closeButtonText,
-            PrimaryButtonText = primaryButtonText,
-            SecondaryButtonText = secondaryButtonText,
-            XamlRoot = _xamlRoot
-        };
-
-        return await dialog.ShowAsync();
     }
 }

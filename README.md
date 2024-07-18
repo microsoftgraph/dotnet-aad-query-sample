@@ -25,7 +25,7 @@ codeUrl: https://github.com/microsoftgraph/dotnet-aad-query-sample
 zipUrl: https://github.com/microsoftgraph/dotnet-aad-query-sample/archive/master.zip
 description: "This sample demonstrates a .NET Desktop (WPF) application showcasing advanced Microsoft Graph Query Capabilities for Directory Objects with .NET"
 ---
-# Explore advanced Microsoft Graph Query Capabilities for Directory Objects (AAD) with .NET SDK
+# Explore advanced Microsoft Graph Query Capabilities on Microsoft Entra ID Objects with .NET SDK
 
 - [Overview](#overview)
 - [Prerequisites](#prerequisites)
@@ -43,7 +43,7 @@ description: "This sample demonstrates a .NET Desktop (WPF) application showcasi
 
 ## Overview
 
-This sample helps you explore the Microsoft Graph's [new query capabilities](https://aka.ms/graph-docs/advanced-queries) of the identity APIs using the [Microsoft Graph .NET Client Library v5](https://github.com/microsoftgraph/msgraph-sdk-dotnet) to query Azure AD.
+This sample helps you explore the Microsoft Graph's [new query capabilities](https://aka.ms/graph-docs/advanced-queries) of the identity APIs using the [Microsoft Graph .NET Client Library v5](https://github.com/microsoftgraph/msgraph-sdk-dotnet) to query Microsoft Entra ID.
 The main code is in [AsyncEnumerableGraphDataService.cs](MsGraphSamples.Services/AsyncEnumerableGraphDataService.cs) file where, for every request:
 
 - The required `$count=true` QueryString parameter is added
@@ -54,8 +54,8 @@ The main code is in [AsyncEnumerableGraphDataService.cs](MsGraphSamples.Services
 ## Prerequisites
 
 - Either [Visual Studio (>v16.8)](https://aka.ms/vsdownload) *or* [Visual Studio Code](https://code.visualstudio.com/) with [.NET 7.0 SDK](https://dotnet.microsoft.com/download/dotnet/7.0) and [C# for Visual Studio Code Extension](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp)
-- An Azure Active Directory (Azure AD) tenant. For more information, see [How to get an Azure AD tenant](https://azure.microsoft.com/documentation/articles/active-directory-howto-tenant/)
-- A user account in your Azure AD tenant. This sample will not work with a personal Microsoft account (formerly Windows Live account). Therefore, if you signed in to the [Azure portal](https://portal.azure.com) with a Microsoft account and have never created a user account in your directory before, you need to do that now.
+- A Microsoft Entra ID tenant. For more information, see [How to get an Microsoft Entra ID tenant](https://azure.microsoft.com/documentation/articles/active-directory-howto-tenant/)
+- A user account in your Microsoft Entra ID tenant. This sample will not work with a personal Microsoft account (formerly Windows Live account). Therefore, if you signed in to the [Azure portal](https://portal.azure.com) with a Microsoft account and have never created a user account in your directory before, you need to do that now.
 
 ## Registration
 
@@ -104,20 +104,17 @@ Press F5. This will restore the missing nuget packages, build the solution and r
 
 Shortly after you open the project folder in VS Code, a prompt by C# extension will appear on bottom right corner:  
 `Required assets to build and debug are missing from 'dotnet-aad-query-sample'. Add them?`.  
-Select **Yes** and a `.vscode` folder will be created in the project root folder.
+Select **Yes** and the [C# Dev Kit extension](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csdevkit) should install.  
+Use The Solution Explorer to browse the projects (WinUI or WPF), right-click and debug:
 
-Once this is done, open an integrated terminal in VS Code, then type:
+![Solution Explorer](docs/solution_explorer.png)
 
-```console
-    cd MSGraphSamples.WPF
-    dotnet build
-    dotnet run
-```
+> Note: Make sure to select `x64` Platform in the lower left corner of the window if you need to build WinUI, as `AnyCPU` is not supported.
 
 ### Using the app
 
 If everything was configured correctly, you should be able to see the login prompt opening in a web browser.  
-The auth token will be cached in a file for the subsequent runs.  
+The auth token will be cached in a file for the subsequent runs thanks to [GetBrowserCredential](MsGraphSamples.Services/AuthService.cs#L41C42-L41C62) Method.  
 You can query your tenant by typing the arguments of the standard OData `$select`, `$filter`, `$orderBy`, `$search` clauses in the relative text boxes.  
 In the screenshot below you can see the $search operator in action:
 
@@ -132,6 +129,7 @@ The generated URL will appear in the readonly Url textbox. You can click the Gra
 ## Code Architecture
 
 This app provides a good starting point for enterprise desktop applications that connects to Microsoft Graph.  
-The implementation is a classic **WPF** [MVVM](https://docs.microsoft.com/windows/uwp/data-binding/data-binding-and-mvvm) app with *Views*, *ViewModels* and *Services*, using [.NET Community Toolkit](https://github.com/CommunityToolkit/dotnet) as MVVM framework.  
-Dependency Injection is implemented using [Microsoft.Extensions.DependencyInjection](https://docs.microsoft.com/aspnet/core/fundamentals/dependency-injection), supporting design-time data.  
+The uses [MVVM](https://docs.microsoft.com/windows/uwp/data-binding/data-binding-and-mvvm) pattern and [.NET Community Toolkit](https://github.com/CommunityToolkit/dotnet).  
+There are two UI projects, one for [WPF](MsGraphSamples.WPF/) and one for [WinUI](MsGraphSamples.WinUI/). The WinUI project implements an advanced technique to iterate all pages of a response using [IAsyncEnumerable](https://learn.microsoft.com/en-us/archive/msdn-magazine/2019/november/csharp-iterating-with-async-enumerables-in-csharp-8) and [ISupportIncrementalLoading](https://learn.microsoft.com/uwp/api/windows.ui.xaml.data.isupportincrementalloading).  
+Dependency Injection is implemented using [Microsoft.Extensions.DependencyInjection](https://docs.microsoft.com/aspnet/core/fundamentals/dependency-injection).  
 **Nullable** and **Code Analysis** are enabled to enforce code quality.

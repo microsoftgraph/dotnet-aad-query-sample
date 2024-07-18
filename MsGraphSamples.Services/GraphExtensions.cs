@@ -62,9 +62,9 @@ public static class GraphExtensions
         }
     }
 
-    public static List<TEntity> GetValue<TEntity>(this BaseCollectionPaginationCountResponse? collectionResponse) where TEntity : Entity
+    public static IList<TEntity> GetValue<TEntity>(this BaseCollectionPaginationCountResponse? collectionResponse) where TEntity : Entity
     {
-        return collectionResponse?.BackingStore.Get<List<TEntity>>("value") ?? [];
+        return collectionResponse?.BackingStore.Get<IList<TEntity>>("value") ?? [];
     }
 
     public static async Task<TCollectionResponse?> GetNextPageAsync<TCollectionResponse>(this TCollectionResponse? collectionResponse, IRequestAdapter requestAdapter, CancellationToken cancellationToken = default)
@@ -79,7 +79,7 @@ public static class GraphExtensions
             UrlTemplate = collectionResponse.OdataNextLink,
         };
         var previousCount = collectionResponse.OdataCount;
-
+        
         var nextPage = await requestAdapter
             .SendAsync(nextPageRequestInformation, parseNode => new TCollectionResponse(), ErrorMappings, cancellationToken)
             .ConfigureAwait(false);
