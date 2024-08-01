@@ -53,7 +53,7 @@ The main code is in [AsyncEnumerableGraphDataService.cs](MsGraphSamples.Services
 
 ## Prerequisites
 
-- Either [Visual Studio (>v16.8)](https://aka.ms/vsdownload) *or* [Visual Studio Code](https://code.visualstudio.com/) with [.NET 7.0 SDK](https://dotnet.microsoft.com/download/dotnet/7.0) and [C# for Visual Studio Code Extension](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp)
+- Either [Visual Studio (>v16.8)](https://aka.ms/vsdownload) *or* [Visual Studio Code](https://code.visualstudio.com/) with [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) and [C# for Visual Studio Code Extension](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp)
 - A Microsoft Entra ID tenant. For more information, see [How to get an Microsoft Entra ID tenant](https://azure.microsoft.com/documentation/articles/active-directory-howto-tenant/)
 - A user account in your Microsoft Entra ID tenant. This sample will not work with a personal Microsoft account (formerly Windows Live account). Therefore, if you signed in to the [Azure portal](https://portal.azure.com) with a Microsoft account and have never created a user account in your directory before, you need to do that now.
 
@@ -91,7 +91,7 @@ or download and extract the repository .zip file.
 This application use the [.NET Core Secret Manager](https://docs.microsoft.com/aspnet/core/security/app-secrets) to store the **ClientId**.  
 To add the **ClientId** created on step 1 of registration:
 
-1. Open a **Developer Command Prompt** or an **Integrated Terminal** and locate the `dotnet-aad-query-sample\MSGraphSamples.WPF\` directory.
+1. Open a **Developer Command Prompt** or an **Integrated Terminal** and locate the `dotnet-aad-query-sample\MsGraphSamples.Services\` directory.
 1. Type `dotnet user-secrets set "clientId" "<YOUR CLIENT ID>"`
 
 ## Run the sample

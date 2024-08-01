@@ -20,7 +20,7 @@ public partial class MainViewModel(
     IAsyncEnumerableGraphDataService graphDataService,
     IDialogService dialogService) : ObservableRecipient
 {
-    private readonly ushort pageSize = 25;
+    public ushort PageSize { get; set; } = 25;
     private readonly Stopwatch _stopWatch = new();
     public long ElapsedMs => _stopWatch.ElapsedMilliseconds;
 
@@ -125,11 +125,11 @@ public partial class MainViewModel(
         return IsBusyWrapper(SelectedEntity switch
         {
             //"Users" =>  _graphDataService.GetUsersInBatch(SplittedSelect, pageSize),
-            "Users" => graphDataService.GetUsers(SplittedSelect, Filter, SplittedOrderBy, Search, pageSize),
-            "Groups" => graphDataService.GetGroups(SplittedSelect, Filter, SplittedOrderBy, Search, pageSize),
-            "Applications" => graphDataService.GetApplications(SplittedSelect, Filter, SplittedOrderBy, Search, pageSize),
-            "ServicePrincipals" => graphDataService.GetServicePrincipals(SplittedSelect, Filter, SplittedOrderBy, Search, pageSize),
-            "Devices" => graphDataService.GetDevices(SplittedSelect, Filter, SplittedOrderBy, Search, pageSize),
+            "Users" => graphDataService.GetUsers(SplittedSelect, Filter, SplittedOrderBy, Search, PageSize),
+            "Groups" => graphDataService.GetGroups(SplittedSelect, Filter, SplittedOrderBy, Search, PageSize),
+            "Applications" => graphDataService.GetApplications(SplittedSelect, Filter, SplittedOrderBy, Search, PageSize),
+            "ServicePrincipals" => graphDataService.GetServicePrincipals(SplittedSelect, Filter, SplittedOrderBy, Search, PageSize),
+            "Devices" => graphDataService.GetDevices(SplittedSelect, Filter, SplittedOrderBy, Search, PageSize),
             _ => throw new NotImplementedException("Can't find selected entity")
         });
     }
@@ -144,11 +144,11 @@ public partial class MainViewModel(
 
         return IsBusyWrapper(SelectedEntity switch
         {
-            "Users" => graphDataService.GetTransitiveMemberOfAsGroups(SelectedObject.Id!, SplittedSelect, pageSize),
-            "Groups" => graphDataService.GetTransitiveMembersAsUsers(SelectedObject.Id!, SplittedSelect, pageSize),
-            "Applications" => graphDataService.GetApplicationOwnersAsUsers(SelectedObject.Id!, SplittedSelect, pageSize),
-            "ServicePrincipals" => graphDataService.GetServicePrincipalOwnersAsUsers(SelectedObject.Id!, SplittedSelect, pageSize),
-            "Devices" => graphDataService.GetDeviceOwnersAsUsers(SelectedObject.Id!, SplittedSelect, pageSize),
+            "Users" => graphDataService.GetTransitiveMemberOfAsGroups(SelectedObject.Id!, SplittedSelect, PageSize),
+            "Groups" => graphDataService.GetTransitiveMembersAsUsers(SelectedObject.Id!, SplittedSelect, PageSize),
+            "Applications" => graphDataService.GetApplicationOwnersAsUsers(SelectedObject.Id!, SplittedSelect, PageSize),
+            "ServicePrincipals" => graphDataService.GetServicePrincipalOwnersAsUsers(SelectedObject.Id!, SplittedSelect, PageSize),
+            "Devices" => graphDataService.GetDeviceOwnersAsUsers(SelectedObject.Id!, SplittedSelect, PageSize),
             _ => throw new NotImplementedException("Can't find selected entity")
         });
     }
@@ -199,10 +199,10 @@ public partial class MainViewModel(
             // Sending message to generate DataGridColumns according to the selected properties
             await GetPropertiesAndSortDirection(directoryObjects);
 
-            DirectoryObjects = new(directoryObjects, pageSize);
+            DirectoryObjects = new(directoryObjects, PageSize);
 
             // Trigger load due to bug https://github.com/CommunityToolkit/WindowsCommunityToolkit/issues/3584
-            await DirectoryObjects.LoadMoreItemsAsync();
+            await DirectoryObjects.RefreshAsync();
 
             SelectedEntity = DirectoryObjects.FirstOrDefault() switch
             {
