@@ -22,7 +22,7 @@ public class AuthService : IAuthService
     private static readonly string[] _scopes = ["Directory.Read.All"];
 
     private GraphServiceClient? _graphClient;
-    
+
     //public GraphServiceClient GraphClient => _graphClient ??= new GraphServiceClient(GetAppCredential());
     public GraphServiceClient GraphClient => _graphClient ??= new GraphServiceClient(GetBrowserCredential());
 
@@ -42,7 +42,7 @@ public class AuthService : IAuthService
         var credentialOptions = new InteractiveBrowserCredentialOptions
         {
             ClientId = _configuration["clientId"],
-            TokenCachePersistenceOptions = new TokenCachePersistenceOptions()// { UnsafeAllowUnencryptedStorage = true }
+            TokenCachePersistenceOptions = new TokenCachePersistenceOptions()
         };
 
         if (File.Exists(_tokenPath))

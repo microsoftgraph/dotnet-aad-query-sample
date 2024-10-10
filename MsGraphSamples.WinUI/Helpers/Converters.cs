@@ -5,7 +5,7 @@ using Microsoft.UI.Xaml.Data;
 
 namespace MsGraphSamples.WinUI.Converters;
 
-public class AdditionalDataConverter : IValueConverter
+public partial class AdditionalDataConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
     {
