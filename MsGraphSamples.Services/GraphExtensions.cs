@@ -114,9 +114,9 @@ public static class GraphExtensions
         params RequestInformation[] requests)
         where T : IParsable, new()
     {
-        BatchRequestContentCollection batchRequestContent = new(graphClient);
+        var batchRequestContent = new BatchRequestContentCollection(graphClient);
 
-        var addBatchTasks = requests.Select(x => batchRequestContent.AddBatchRequestStepAsync(x));
+        var addBatchTasks = requests.Select(request => batchRequestContent.AddBatchRequestStepAsync(request));
         var requestIds = await Task.WhenAll(addBatchTasks);
 
         var batchResponse = await graphClient.Batch.PostAsync(batchRequestContent, cancellationToken, ErrorMappings);

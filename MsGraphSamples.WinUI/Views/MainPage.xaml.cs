@@ -5,13 +5,17 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using MsGraphSamples.WinUI.Converters;
+using MsGraphSamples.WinUI.Helpers;
 using MsGraphSamples.WinUI.ViewModels;
 using System.Collections.Immutable;
+using System.Reflection;
+using Windows.Foundation;
 
 namespace MsGraphSamples.WinUI.Views;
 public sealed partial class MainPage : Page, IRecipient<ImmutableSortedDictionary<string, DataGridSortDirection?>>
 {
     public MainViewModel ViewModel { get; } = Ioc.Default.GetRequiredService<MainViewModel>();
+    private readonly Debouncer debouncer = new(TimeSpan.FromMilliseconds(600));
 
     public MainPage()
     {
@@ -53,5 +57,27 @@ public sealed partial class MainPage : Page, IRecipient<ImmutableSortedDictionar
     {
         var textBox = (TextBox)sender;
         textBox.SelectAll();
+    }
+
+    private void DirectoryObjectsGrid_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        debouncer.Debounce(SetPageSize);
+    }
+
+    private void SetPageSize()
+    {
+        var rowsPresenterAvailableSizeObj = typeof(DataGrid)
+            .GetField("_rowsPresenterAvailableSize", BindingFlags.NonPublic | BindingFlags.Instance)
+            ?.GetValue(DirectoryObjectsGrid);
+
+        var rowHeightEstimateObj = typeof(DataGrid)
+            .GetProperty("RowHeightEstimate", BindingFlags.NonPublic | BindingFlags.Instance)
+            ?.GetValue(DirectoryObjectsGrid);
+
+        if (rowsPresenterAvailableSizeObj is Size rowPresenterSize &&
+            rowHeightEstimateObj is double rowHeight)
+        {
+            ViewModel.PageSize = (ushort)Math.Min(Math.Round(DirectoryObjectsGrid.DataFetchSize * rowPresenterSize.Height / rowHeight), 999);
+        }
     }
 }
