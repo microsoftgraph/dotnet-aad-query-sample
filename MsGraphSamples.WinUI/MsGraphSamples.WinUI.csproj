@@ -37,7 +37,7 @@
 		<PackageReference Include="Microsoft.Graph" Version="5.62.0" />
 		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.240923002" />
 		<PackageReference Include="System.Linq.Async" Version="6.0.1" />
-		<PackageReference Include="System.Text.Json" Version="8.0.5" />
+		<PackageReference Include="System.Text.Json" Version="9.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
