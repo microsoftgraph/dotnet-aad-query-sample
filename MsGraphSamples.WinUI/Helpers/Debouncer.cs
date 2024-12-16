@@ -12,6 +12,7 @@ public class Debouncer
         timer = new DispatcherTimer { Interval = delay };
         timer.Tick += Timer_Tick;
     }
+
     public void Debounce(Action action)
     {
         this.action = action;
