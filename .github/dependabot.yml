@@ -4,7 +4,16 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    pull_request:
+      labels:
+        - automerge
+      auto_merge: true
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "daily"
+    pull_request:
+      labels:
+        - automerge
+      auto_merge: true
