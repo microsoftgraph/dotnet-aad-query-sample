@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using MsGraphSamples.WPF.Converters;
 using MsGraphSamples.WPF.ViewModels;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 
 namespace MsGraphSamples.WPF.Views;
@@ -50,6 +52,19 @@ public partial class MainWindow : Window
         if (!e.Cancel)
         {
             e.Column.Width = new DataGridLength(1, DataGridLengthUnitType.Star);
+
+            // If the property is a string collection, use the converter
+            var property = e.PropertyType;
+            if (typeof(System.Collections.IEnumerable).IsAssignableFrom(property) && property != typeof(string))
+            {
+                if (e.Column is DataGridTextColumn textColumn)
+                {
+                    textColumn.Binding = new Binding(e.PropertyName)
+                    {
+                        Converter = new CollectionToCommaSeparatedStringConverter()
+                    };
+                }
+            }
 
             var orderByProperty = ViewModel.OrderBy?.Split(' ')[0];
             var direction = ViewModel.OrderBy?.Split(' ').ElementAtOrDefault(1) ?? "asc";

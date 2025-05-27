@@ -9,9 +9,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Azure.Identity" Version="1.13.2" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="9.0.1" />
-		<PackageReference Include="Microsoft.Graph" Version="5.69.0" />
+		<PackageReference Include="Azure.Identity" Version="1.14.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="9.0.5" />
+		<PackageReference Include="Microsoft.Graph" Version="5.79.0" />
 	</ItemGroup>
 
 </Project>

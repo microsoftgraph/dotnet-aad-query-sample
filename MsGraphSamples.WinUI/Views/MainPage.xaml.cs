@@ -45,7 +45,7 @@ public sealed partial class MainPage : Page, IRecipient<ImmutableSortedDictionar
                 DirectoryObjectsGrid.Columns.Add(new DataGridTextColumn
                 {
                     Header = property.Key,
-                    Binding = new Binding() { Path = new PropertyPath(property.Key) },
+                    Binding = new Binding() { Path = new PropertyPath(property.Key), Converter = new CollectionToCommaSeparatedStringConverter() },
                     SortDirection = property.Value,
                     Width = new DataGridLength(1, DataGridLengthUnitType.Star)
                 });
