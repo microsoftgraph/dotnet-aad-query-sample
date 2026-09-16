@@ -17,3 +17,5 @@ updates:
       labels:
         - automerge
       auto_merge: true
+    cooldown:
+      default-days: 7
